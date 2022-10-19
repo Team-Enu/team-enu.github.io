@@ -1,0 +1,15 @@
+baseURL = "https://Team-Enu.github.io/team-enu-pr/"
+publishDir = "docs"
+languageCode = "ja-jp"
+title = "Team Enu"
+theme = "hugo-whisper-theme"
+
+[[menu.main]]
+name = "Home"
+url = "/"
+weight = 1
+
+[[menu.main]]
+name = "Posts"
+url = "/posts/"
+weight = 2
