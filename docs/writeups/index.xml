@@ -2,21 +2,21 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Writeups on Team Enu</title>
-    <link>https://localhost:8080/writeups/</link>
+    <link>http://localhost:8080/writeups/</link>
     <description>Recent content in Writeups on Team Enu</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>ja-jp</language>
     <lastBuildDate>Wed, 19 Oct 2022 21:18:00 +0900</lastBuildDate>
     
-	<atom:link href="https://localhost:8080/writeups/index.xml" rel="self" type="application/rss+xml" />
+	<atom:link href="http://localhost:8080/writeups/index.xml" rel="self" type="application/rss+xml" />
     
     
     <item>
       <title>CakeCTF2022 smal aley (SAMPLE)</title>
-      <link>https://localhost:8080/writeups/writeup1/</link>
+      <link>http://localhost:8080/writeups/writeup1/</link>
       <pubDate>Wed, 19 Oct 2022 21:18:00 +0900</pubDate>
       
-      <guid>https://localhost:8080/writeups/writeup1/</guid>
+      <guid>http://localhost:8080/writeups/writeup1/</guid>
       <description>CakeCTF 2022においてpwnableのジャンルで出題された問題 smal aleyのwriteup．(サンプル)</description>
     </item>
     
