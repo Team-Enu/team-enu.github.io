@@ -1,8 +1,13 @@
-baseURL = "https://Team-Enu.github.io/team-enu-pr/"
+baseURL = "https://localhost:8080"
 publishDir = "docs"
 languageCode = "ja-jp"
 title = "Team Enu"
 theme = "hugo-whisper-theme"
+
+# 強調表示オプション
+pygmentsCodeFences = true
+pygmentsCodefencesGuessSyntax = true
+pygmentsUseClasses = true
 
 [[menu.main]]
 name = "Home"
@@ -10,6 +15,11 @@ url = "/"
 weight = 1
 
 [[menu.main]]
-name = "Posts"
-url = "/posts/"
+name = "Writeups"
+url = "/writeups/"
 weight = 2
+
+[params]
+  [params.logo]
+      mobile = "team-enu.png"
+      standard  = "team-enu.png"
