@@ -3,15 +3,26 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   
   <url>
-    <loc>https://Team-Enu.github.io/team-enu-pr/categories/</loc>
+    <loc>https://localhost:8080/writeups/writeup1/</loc>
+    <lastmod>2022-10-19T21:18:00+09:00</lastmod>
   </url>
   
   <url>
-    <loc>https://Team-Enu.github.io/team-enu-pr/tags/</loc>
+    <loc>https://localhost:8080/</loc>
+    <lastmod>2022-10-19T21:18:00+09:00</lastmod>
   </url>
   
   <url>
-    <loc>https://Team-Enu.github.io/team-enu-pr/</loc>
+    <loc>https://localhost:8080/writeups/</loc>
+    <lastmod>2022-10-19T21:18:00+09:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://localhost:8080/categories/</loc>
+  </url>
+  
+  <url>
+    <loc>https://localhost:8080/tags/</loc>
   </url>
   
 </urlset>
