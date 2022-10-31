@@ -1,0 +1,27 @@
+[params.homepage_meta_tags]
+# .Site.Params.homepage_meta_tags.meta_description
+
+# .Site.Params.homepage_meta_tags.meta_og_title
+  meta_og_title = 'Writeup1' 
+
+# # .Site.Params.homepage_meta_tags.meta_og_type
+#   meta_og_type =
+  
+# # .Site.Params.homepage_meta_tags.meta_og_url
+#   meta_og_url =
+  
+# # .Site.Params.homepage_meta_tags.meta_og_image
+#   meta_og_image =
+  
+# # .Site.Params.homepage_meta_tags.meta_og_description
+#   meta_og_description =
+  
+# # .Site.Params.homepage_meta_tags.meta_twitter_card
+#   meta_twitter_card =
+  
+# # .Site.Params.homepage_meta_tags.meta_twitter_site
+#   meta_twitter_site =
+#   \
+# # .Site.Params.homepage_meta_tags.meta_twitter_creator
+#   meta_twitter_creator =
+  
