@@ -2,7 +2,7 @@ baseURL = "http://localhost:8080"
 publishDir = "docs"
 languageCode = "ja-jp"
 title = "Team Enu"
-theme = "hugo-whisper-theme"
+theme = "team-enu-theme"
 
 # 強調表示オプション
 pygmentsCodeFences = true
