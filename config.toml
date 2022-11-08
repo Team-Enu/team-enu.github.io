@@ -31,6 +31,21 @@ logo = "team-enu.png"
 # * FontAwesome 6 <https://fontawesome.com/> ('fa-brands', 'fa-normal', or 'fa-solid' for brands)
 # * Academicons <https://jpswalsh.github.io/academicons> ('ai ai-')
 
+[[params.socialLinks]]
+icon = "fa-brands fa-github"
+title = "GitHub"
+url = "https://github.com/joeroe/risotto"
+
+[[params.socialLinks]]
+icon = "fa-solid fa-envelope"
+title = "Email"
+url = "mailto:example@example.com"
+
+[[params.socialLinks]]
+icon = "ai ai-orcid"
+title = "ORCID"
+url = "https://orcid.org/0000-0001-2345-6789"
+
 [menu]
 
   #[[menu.main]]
@@ -84,6 +99,16 @@ unsafe = true
 name = "Writeups"
 url = "/writeups/"
 weight = 2
+
+[[menu.main]]
+name = "Members"
+url = "/members/"
+weight = 1
+
+[[menu.main]]
+name = "News"
+url = "/news/"
+weight = 3
 
 #[params.homepage_meta_tags]
 # .Site.Params.homepage_meta_tags.meta_description

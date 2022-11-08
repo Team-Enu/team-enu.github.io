@@ -5,6 +5,9 @@
     <loc>http://localhost:8080/writeups/writeup1/</loc>
     <lastmod>2022-10-19T21:18:00+09:00</lastmod>
   </url><url>
+    <loc>http://localhost:8080/members/</loc>
+    <lastmod>2022-10-19T21:18:00+09:00</lastmod>
+  </url><url>
     <loc>http://localhost:8080/</loc>
     <lastmod>2022-10-19T21:18:00+09:00</lastmod>
   </url><url>
@@ -12,6 +15,10 @@
     <lastmod>2022-10-19T21:18:00+09:00</lastmod>
   </url><url>
     <loc>http://localhost:8080/categories/</loc>
+  </url><url>
+    <loc>http://localhost:8080/news/2022060801/</loc>
+  </url><url>
+    <loc>http://localhost:8080/news/</loc>
   </url><url>
     <loc>http://localhost:8080/series/</loc>
   </url><url>
