@@ -1,44 +1,110 @@
 baseURL = "http://localhost:8080"
-publishDir = "docs"
-languageCode = "ja-jp"
+theme = "risotto"
 title = "Team Enu"
-theme = "team-enu-theme"
+author = "Team Enu"
+publishDir = "docs"
+paginate = 3
+languageCode = "ja-jp"
+DefaultContentLanguage = "ja-jp"
+enableInlineShortcodes = true
+# prevent build failures when using Hugo's Instagram shortcode due to deprecated Instagram API.
+# See https://github.com/gohugoio/hugo/issues/7228#issuecomment-714490456
+ignoreErrors = ["error-remote-getjson"]
 
-# 強調表示オプション
-pygmentsCodeFences = true
-pygmentsCodefencesGuessSyntax = true
-pygmentsUseClasses = true
+# Automatically add content sections to main menu
+#sectionPagesMenu = "main"
 
-[[menu.main]]
-name = "Home"
-url = "/"
-weight = 1
+[params]
+noindex = false
+
+[params.theme]
+palette = "base16-dark"
+
+# Sidebar: about/bio
+[params.about]
+title = "Team Enu"
+description = "Team EnuのWriteupや活動の紹介を掲載しています。"
+logo = "team-enu.png"
+
+# Sidebar: social links
+# Available icon sets:
+# * FontAwesome 6 <https://fontawesome.com/> ('fa-brands', 'fa-normal', or 'fa-solid' for brands)
+# * Academicons <https://jpswalsh.github.io/academicons> ('ai ai-')
+
+[menu]
+
+  #[[menu.main]]
+   # identifier = "about"
+    #name = "About"
+    #url = "/about/"
+    #weight = 10
+
+[taxonomies]
+category = "categories"
+tag = "tags"
+series = "series"
+
+# For hugo >= 0.60.0, enable inline HTML
+[markup.goldmark.renderer]
+unsafe = true
+
+[privacy]
+
+  [privacy.vimeo]
+    disabled = false
+    simple = true
+
+  [privacy.twitter]
+    disabled = false
+    enableDNT = true
+    simple = true
+
+  [privacy.instagram]
+    disabled = false
+    simple = true
+
+  [privacy.youtube]
+    disabled = false
+    privacyEnhanced = true
+
+[services]
+
+  [services.instagram]
+    disableInlineCSS = true
+
+  [services.twitter]
+    disableInlineCSS = true
+
+#[[menu.main]]
+#name = "Home"
+#url = "/"
+#weight = 1
 
 [[menu.main]]
 name = "Writeups"
 url = "/writeups/"
 weight = 2
 
-[params.homepage_meta_tags]
+#[params.homepage_meta_tags]
 # .Site.Params.homepage_meta_tags.meta_description
 
 # .Site.Params.homepage_meta_tags.meta_og_title
-  meta_og_title = 'Team Enu PR site' 
+  #meta_og_title = 'Team Enu PR site' 
 
 # .Site.Params.homepage_meta_tags.meta_og_type
-  meta_og_type = 'website'
+  #meta_og_type = 'website'
   
 # .Site.Params.homepage_meta_tags.meta_og_url
-  meta_og_url = 'http://localhost:8080'
+  #meta_og_url = 'http://localhost:8080'
   
 # .Site.Params.homepage_meta_tags.meta_og_image
-  meta_og_image = 'team-enu.png'
+  #meta_og_image = 'team-enu.png'
   
 # .Site.Params.homepage_meta_tags.meta_og_description
-  meta_og_description = 'Team Enu PR site' 
+  #meta_og_description = 'Team Enu PR site' 
   
 # .Site.Params.homepage_meta_tags.meta_twitter_card
-  meta_twitter_card = 'summary'
+  #meta_twitter_card = 'summary'
   
 # .Site.Params.homepage_meta_tags.meta_twitter_site
   # meta_twitter_site =
