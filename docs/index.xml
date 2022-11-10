@@ -31,9 +31,9 @@
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       
       <guid>http://localhost:8080/members/sato1/</guid>
-      <description>普段いる勉強会部屋 初心者部屋
+      <description>普段のCTF活動 Team-Enuでは毎週金曜日にpwn部屋で活動したり、たまに有志で野良CTFに参加しています。
 CTF以外の趣味 ポケモン
-好きな○○ 好きな食べ物：みかん</description>
+CTF活動での経歴 SECCON CTF ○○を作問 (2022) SECCON for Beginners 作問 (2018) </description>
     </item>
     
     <item>
@@ -42,9 +42,8 @@ CTF以外の趣味 ポケモン
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       
       <guid>http://localhost:8080/members/sato5/</guid>
-      <description>普段いる勉強会部屋 サイレント部屋4
-CTF以外の趣味 肉を食らうこと
-好きな○○ 好きなお寿司のネタ：さば</description>
+      <description>普段のCTF活動 サイレント部屋4でもくもくしています。
+CTF以外の趣味 肉を食らうこと</description>
     </item>
     
     <item>
@@ -53,9 +52,8 @@ CTF以外の趣味 肉を食らうこと
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       
       <guid>http://localhost:8080/members/sato3/</guid>
-      <description>普段いる勉強会部屋 Web部屋
-CTF以外の趣味 Web開発
-好きな○○ 好きなカーテンの色：白</description>
+      <description>普段のCTF活動 Web部屋で勉強中。
+CTF以外の趣味 Web開発</description>
     </item>
     
     <item>
@@ -64,9 +62,8 @@ CTF以外の趣味 Web開発
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       
       <guid>http://localhost:8080/members/sato4/</guid>
-      <description>普段いる勉強会部屋 REV部屋
-CTF以外の趣味 シンカリオン
-好きな○○ 好きな新幹線：はやぶさ</description>
+      <description>普段のCTF活動 REV部屋部屋で勉強中。
+CTF以外の趣味 シンカリオン</description>
     </item>
     
     <item>
@@ -75,9 +72,8 @@ CTF以外の趣味 シンカリオン
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       
       <guid>http://localhost:8080/members/sato2/</guid>
-      <description>普段いる勉強会部屋 Pwn
-CTF以外の趣味 機械の分解
-好きな○○ 好きな天気：雨</description>
+      <description>普段のCTF活動 Pwn部屋で勉強中。
+CTF以外の趣味 機械の分解</description>
     </item>
     
   </channel>
