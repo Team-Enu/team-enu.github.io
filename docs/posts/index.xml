@@ -20,14 +20,5 @@
 writeupはこちら</description>
     </item>
     
-    <item>
-      <title>DEF CON CTF 2022 予選参加レポート(サンプル)</title>
-      <link>http://localhost:8080/posts/2022060801/</link>
-      <pubDate>Wed, 08 Jun 2022 21:18:00 +0900</pubDate>
-      
-      <guid>http://localhost:8080/posts/2022060801/</guid>
-      <description>本記事は、「Team Enu」のDEF CON CTF 2022予選参加を主に事務局の視点からまとめた参加レポートです。</description>
-    </item>
-    
   </channel>
 </rss>

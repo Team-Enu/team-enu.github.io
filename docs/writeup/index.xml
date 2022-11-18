@@ -16,14 +16,5 @@
       <description>本記事はSECCON CTF 2021のPwn問題kasu_bofのWriteupです。</description>
     </item>
     
-    <item>
-      <title>CakeCTF2022 smal aley (SAMPLE)</title>
-      <link>http://localhost:8080/writeup/writeup1/</link>
-      <pubDate>Wed, 19 Oct 2022 21:18:00 +0900</pubDate>
-      
-      <guid>http://localhost:8080/writeup/writeup1/</guid>
-      <description>CakeCTF 2022においてpwnableのジャンルで出題された問題 smal aleyのwriteup．(サンプル)</description>
-    </item>
-    
   </channel>
 </rss>
