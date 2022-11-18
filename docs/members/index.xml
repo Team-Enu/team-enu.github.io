@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Members on Team Enu</title>
+    <link>http://localhost:8080/members/</link>
+    <description>Recent content in Members on Team Enu</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>ja-jp</language>
+    <lastBuildDate>Wed, 19 Oct 2022 21:18:00 +0900</lastBuildDate><atom:link href="http://localhost:8080/members/index.xml" rel="self" type="application/rss+xml" />
+  </channel>
+</rss>

@@ -3,6 +3,7 @@ title: "CakeCTF2022 smal aley (SAMPLE)"
 date: 2022-10-19T21:18:00+09:00
 draft: false
 summary: "CakeCTF 2022においてpwnableのジャンルで出題された問題 smal aleyのwriteup．(サンプル)"
+author: "芝海人"
 ---
 
 ## 問題
