@@ -8,14 +8,14 @@
     <language>ja-jp</language>
     <lastBuildDate>Fri, 11 Nov 2022 21:18:00 +0900</lastBuildDate><atom:link href="http://localhost:8080/index.xml" rel="self" type="application/rss+xml" />
     <item>
-      <title>最近の勉強会</title>
+      <title>スタックに関するPwnの勉強会</title>
       <link>http://localhost:8080/posts/2022111101/</link>
       <pubDate>Fri, 11 Nov 2022 21:18:00 +0900</pubDate>
       
       <guid>http://localhost:8080/posts/2022111101/</guid>
-      <description>最近1ヶ月の活動状況（10/12〜11/11） 毎週金曜日に勉強会をしています。Pwnの勉強をするグループでは、さまざまなCTFのPwn問題を題材に、勉強会に取り組んでいます。
+      <description>Team Enuでは毎週金曜日に勉強会をしています。Pwnの勉強をするグループでは、さまざまなCTFのPwn問題を題材に、勉強会に取り組んでいます。
 初心者グループではpicoCTFを中心に各自のレベルにあった問題に取り組んでいます。
-return to dl resolveの個別勉強会 NFLabs.のインターンに参加中のmc4nfさんが昨年のSECCON2021予選のkasu_bofを題材にreturn to dl resolveの勉強会をしてくれました。
+今回はスタックを用いたROPとして、return to dl resolveの個別勉強会をしました。 NFLabs.のインターンに参加中のmc4nfさんが昨年のSECCON2021予選のkasu_bofを題材にreturn to dl resolveの勉強会をしてくれました。
 writeupはこちら</description>
     </item>
     
