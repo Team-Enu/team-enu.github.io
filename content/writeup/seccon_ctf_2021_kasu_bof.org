@@ -51,7 +51,7 @@ mc4nf@mc4nf:~/ctf/seccon2021/pwn/kasu_bof$ checksec chall
 ** 方針
 配布されたソースコード ( ~main.c~ )を見てみると、以下の特徴がある。
 - ~buf~ のサイズが ~0x80~ 
-- ~gets~ を使用しているため、 ~buf~ に任意の文字数を入力可能
+- ~gets~ を使用しているため、 ~\n~ (0x0a) が入力されるまで ~buf~ に任意の文字を入力可能
 
   
 このことから，配布されたプログラムには簡単なスタックバッファオーバフローの脆弱性があることがわかる．
@@ -70,7 +70,7 @@ mc4nf@mc4nf:~/ctf/seccon2021/pwn/kasu_bof$ checksec chall
 
    この攻撃の流れは以下のようになる。
 
-   1. 任意の関数(ここでは ~shell~ )を呼ぶため、 ~_dl_runtime_resolve~ に読み込ませる偽の ~Elf32_Rel~ 構造体と ~Elf32_Sym~ 構造体、および  ~system~ 、 ~/bin/sh~ を書き込み可能な領域に用意
+   1. 任意の関数(ここでは ~shell~ )を呼ぶため、 ~_dl_runtime_resolve~ に読み込ませる偽の ~Elf32_Rel~ 構造体と ~Elf32_Sym~ 構造体のオブジェクト、および NULL終端文字列 ~"system"~ と ~"/bin/sh"~ を書き込み可能な領域に用意
    2. ~_dl_runtime_resolve~ が ~Elf32_Rel~ 構造体を特定するために引数に取る ~reloc_arg~ を、偽の ~Elf32_Rel~ を指すように指定
    3. ~.plt~ の先頭にジャンプし、偽の構造体を元に ~system~ のアドレスを解決し、 ~system("/bin/sh")~ を実行
 
@@ -88,7 +88,7 @@ mc4nf@mc4nf:~/ctf/seccon2021/pwn/kasu_bof$ checksec chall
         .rel.plt                         .dynsym                                           .dynstr                                    
             |                                |                                                 |
             |                                |                                                 |
-reloc_arg---+   reroc_arg + .rel.plt         |                                                 |
+reloc_arg---+   reloc_arg + .rel.plt         |                                                 |
             |                                |                                                 |
             +-->|-----------+----------|     |                                                 |
                 | Elf32_Rel | r_offset |     |                                                 |
@@ -382,11 +382,11 @@ reloc_arg---+   reroc_arg + .rel.plt         |                                  
         .rel.plt                         .dynsym                                           .dynstr                                    
             |                                |                                                 |
             |                                |                                                 |
-reloc_arg---+   reroc_arg + .rel.plt         |                                                 |
+reloc_arg---+   reloc_arg + .rel.plt         |                                                 |
             |                                |                                                 |
             +-->|-----------+----------|     |                                                 |
                 | Elf32_Rel | r_offset |     |                                                 |
-                |           | r_info   |-----+  (r_info>>8 + .dynsym)*sizeof(Elf32_Sym)        |
+                |           | r_info   |-----+  ((r_info>>8) + .dynsym)*sizeof(Elf32_Sym)      |
                 |-----------+----------|     |                                                 |
                                              |                                                 |
                                              +->|-----------+---------------------------|      |
