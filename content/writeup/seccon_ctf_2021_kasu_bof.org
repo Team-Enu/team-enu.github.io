@@ -66,12 +66,12 @@ mc4nf@mc4nf:~/ctf/seccon2021/pwn/kasu_bof$ checksec chall
 2. 1.を踏まえて、 *return to dl resolve* を利用し、 ~shell~ を起動
 
 ** 1. return to dl resolve (ret2dl resolve)
-   return to dl resolveは、ライブラリ関数のアドレスを動的に解決する際に呼び出される関数である ~_dl_runtime_resolve_xsavec~ を利用し、任意のライブラリ関数を呼び出す攻撃手法である。
+   return to dl resolveは、ライブラリ関数のアドレスを動的に解決する際に呼び出される関数である ~_dl_runtime_resolve~ を利用し、任意のライブラリ関数を呼び出す攻撃手法である。
 
    この攻撃の流れは以下のようになる。
 
-   1. 任意の関数(ここでは ~shell~ )を呼ぶため、 ~_dl_runtime_resolve_xsavec~ に読み込ませる偽の ~Elf32_Rel~ 構造体と ~Elf32_Sym~ 構造体、および  ~system~ 、 ~/bin/sh~ を書き込み可能な領域に用意
-   2. ~_dl_runtime_resolve_xsavec~ が ~Elf32_Rel~ 構造体を特定するために引数に取る ~reloc_arg~ を、偽の ~Elf32_Rel~ を指すように指定
+   1. 任意の関数(ここでは ~shell~ )を呼ぶため、 ~_dl_runtime_resolve~ に読み込ませる偽の ~Elf32_Rel~ 構造体と ~Elf32_Sym~ 構造体、および  ~system~ 、 ~/bin/sh~ を書き込み可能な領域に用意
+   2. ~_dl_runtime_resolve~ が ~Elf32_Rel~ 構造体を特定するために引数に取る ~reloc_arg~ を、偽の ~Elf32_Rel~ を指すように指定
    3. ~.plt~ の先頭にジャンプし、偽の構造体を元に ~system~ のアドレスを解決し、 ~system("/bin/sh")~ を実行
 
    そこで、以下では、pltセクションからアドレス解決の流れを説明し、如何にして偽の構造体を作成すればよいかについて説明する。
