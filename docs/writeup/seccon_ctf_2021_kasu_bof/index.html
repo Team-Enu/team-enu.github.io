@@ -120,7 +120,7 @@ mc4nf@mc4nf:~/ctf/seccon2021/pwn/kasu_bof$ checksec chall
 <p>配布されたソースコード ( <code>main.c</code> )を見てみると、以下の特徴がある。</p>
 <ul>
 <li><code>buf</code> のサイズが <code>0x80</code> </li>
-<li><code>gets</code> を使用しているため、 <code>buf</code> に任意の文字数を入力可能</li>
+<li><code>gets</code> を使用しているため、 <code>\n</code> (0x0a) が入力されるまで <code>buf</code> に任意の文字を入力可能</li>
 </ul>
 <p>
 このことから，配布されたプログラムには簡単なスタックバッファオーバフローの脆弱性があることがわかる．</p>
@@ -140,12 +140,12 @@ mc4nf@mc4nf:~/ctf/seccon2021/pwn/kasu_bof$ checksec chall
 1. return to dl resolve (ret2dl resolve)
 </h3>
 <div id="outline-text-headline-7" class="outline-text-3">
-<p>return to dl resolveは、ライブラリ関数のアドレスを動的に解決する際に呼び出される関数である <code>_dl_runtime_resolve_xsavec</code> を利用し、任意のライブラリ関数を呼び出す攻撃手法である。</p>
+<p>return to dl resolveは、ライブラリ関数のアドレスを動的に解決する際に呼び出される関数である <code>_dl_runtime_resolve</code> を利用し、任意のライブラリ関数を呼び出す攻撃手法である。</p>
 <p>
    この攻撃の流れは以下のようになる。</p>
 <ol>
-<li>任意の関数(ここでは <code>shell</code> )を呼ぶため、 <code>_dl_runtime_resolve_xsavec</code> に読み込ませる偽の <code>Elf32_Rel</code> 構造体と <code>Elf32_Sym</code> 構造体、および  <code>system</code> 、 <code>/bin/sh</code> を書き込み可能な領域に用意</li>
-<li><code>_dl_runtime_resolve_xsavec</code> が <code>Elf32_Rel</code> 構造体を特定するために引数に取る <code>reloc_arg</code> を、偽の <code>Elf32_Rel</code> を指すように指定</li>
+<li>任意の関数(ここでは <code>shell</code> )を呼ぶため、 <code>_dl_runtime_resolve</code> に読み込ませる偽の <code>Elf32_Rel</code> 構造体と <code>Elf32_Sym</code> 構造体のオブジェクト、および NULL終端文字列 <code>&#34;system&#34;</code> と <code>&#34;/bin/sh&#34;</code> を書き込み可能な領域に用意</li>
+<li><code>_dl_runtime_resolve</code> が <code>Elf32_Rel</code> 構造体を特定するために引数に取る <code>reloc_arg</code> を、偽の <code>Elf32_Rel</code> を指すように指定</li>
 <li><code>.plt</code> の先頭にジャンプし、偽の構造体を元に <code>system</code> のアドレスを解決し、 <code>system(&#34;/bin/sh&#34;)</code> を実行</li>
 </ol>
 <p>そこで、以下では、pltセクションからアドレス解決の流れを説明し、如何にして偽の構造体を作成すればよいかについて説明する。</p>
@@ -163,7 +163,7 @@ mc4nf@mc4nf:~/ctf/seccon2021/pwn/kasu_bof$ checksec chall
     .rel.plt                         .dynsym                                           .dynstr                                    
         |                                |                                                 |
         |                                |                                                 |
-reloc_arg---+   reroc_arg + .rel.plt         |                                                 |
+reloc_arg---+   reloc_arg + .rel.plt         |                                                 |
         |                                |                                                 |
         +--&gt;|-----------+----------|     |                                                 |
             | Elf32_Rel | r_offset |     |                                                 |
@@ -540,11 +540,11 @@ Solverの準備
         .rel.plt                         .dynsym                                           .dynstr                                    
             |                                |                                                 |
             |                                |                                                 |
-reloc_arg---+   reroc_arg + .rel.plt         |                                                 |
+reloc_arg---+   reloc_arg + .rel.plt         |                                                 |
             |                                |                                                 |
             +--&gt;|-----------+----------|     |                                                 |
                 | Elf32_Rel | r_offset |     |                                                 |
-                |           | r_info   |-----+  (r_info&gt;&gt;8 + .dynsym)*sizeof(Elf32_Sym)        |
+                |           | r_info   |-----+  ((r_info&gt;&gt;8) + .dynsym)*sizeof(Elf32_Sym)      |
                 |-----------+----------|     |                                                 |
                                              |                                                 |
                                              +-&gt;|-----------+---------------------------|      |
