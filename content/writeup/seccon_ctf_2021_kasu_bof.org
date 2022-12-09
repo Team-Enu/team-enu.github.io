@@ -139,7 +139,7 @@ GOT protection: Partial RelRO | GOT functions: 2
     ~.plt~ の先頭の命令は、 ~push   DWORD PTR ds:0x804c004~ となっており、 ~0x804c004~ に格納されている値をスタックに積む。
     そして、次の命令 ~jmp    DWORD PTR ds:0x804c008~ で ~0x804c008~ に格納されているアドレスへジャンプする。
 
-    ここで、 ~0x804c004~ および ~0x804c008~ 番地には何が格納されているのか調べてみる。    
+    ここで、 ~0x804c004~ および ~0x804c008~ 番地には何が格納されているのか調べてみる。
     #+begin_src
 gef➤  hexdump dword 0x804c004
 0x0804c004│+0x0000   <_GLOBAL_OFFSET_TABLE_+0004> 0xf7ffd990   
@@ -147,7 +147,7 @@ gef➤  hexdump dword 0x804c004
     #+end_src
     すると、これらのアドレスはGOT先頭付近のアドレスであり、それぞれ ~0xf7ffd990~ と ~0xf7fe7ac0~ の値が格納されていることがわかる。
 
-    このため、 ~.plt~ の先頭の命令では、スタックに ~0xf7ffd990~ を積み、 ~0xf7fe7ac0~ 番地へジャンプしている。    
+    このため、 ~.plt~ の先頭の命令では、スタックに ~0xf7ffd990~ を積み、 ~0xf7fe7ac0~ 番地へジャンプしている。
     そして、 ~0xf7fe7ac0~ へジャンプ後、 ~gets~ のアドレスがGOTへ格納され、 ~gets~ が実行される。
 
 
@@ -155,10 +155,10 @@ gef➤  hexdump dword 0x804c004
     
 *** ~.plt~ セクションからアドレス解決の流れ
     さて、 ~main~ から ~gets~ が呼び出される全体像が掴めたところで、最後にジャンプしたアドレス ~0xf7fe7ac0~ から先を追ってみる。
-    ジャンプ先の  ~0xf7fe7ac0~ が ~_dl_runtime_resolve~ となっており、この関数により ~gets~ のアドレスが解決される。
-     ~_dl_runtime_resolve~ は引数として ~link_map~ 構造体と、 後述する ~Elf32_Rel~ 構造体へのオフセットを示す ~reloc_arg~ という2つの値を取る。
+    ジャンプ先の ~0xf7fe7ac0~ は ~_dl_runtime_resolve~ となっており、この関数により ~gets~ のアドレスが解決される。
+     ~_dl_runtime_resolve~ は引数として ~link_map~ 構造体と、後述する ~Elf32_Rel~ 構造体へのオフセットを示す ~reloc_arg~ という2つの値を取る。
 
-    そこで、ここから先では、 ~_dl_runtime_resolve~ を呼び出す際に スタックに積まれた ~0xf7ffd990~ を ~_dl_runtime_resolve~ の第一引数である ~link_map~ 構造体のアドレス、 ~0x0~ を第二引数である ~reloc_arg~ として扱う。
+    そこで、ここから先では、 ~_dl_runtime_resolve~ を呼び出す際にスタックに積まれた ~0xf7ffd990~ を ~_dl_runtime_resolve~ の第一引数である ~link_map~ 構造体のアドレス、 ~0x0~ を第二引数である ~reloc_arg~ として扱う。
 
    それでは、次に引数として渡された ~link_map~ 構造体がどのような役割を担っているのかを調査する。
     
@@ -216,52 +216,67 @@ gef➤  hexdump dword 0x804c004
      - ソースコード中の ~ElfW(hoge)~ のマクロは、 ~Elf32_hoge~ と展開される。
        - https://elixir.bootlin.com/glibc/glibc-2.36/source/elf/link.h#L28
 
-   以下の例の場合、 ~link_map~ 構造体のアドレス ~0x804c004~ と ~gets~ の ~reloc_arg~ ~0x0~ をスタックにプッシュしている。
-      #+begin_src
-   gef➤  x/10i $eip
-   => 0x8049030:   push   DWORD PTR ds:0x804c004
-      0x8049036:   jmp    DWORD PTR ds:0x804c008
-      0x804903c:   add    BYTE PTR [eax],al
-      0x804903e:   add    BYTE PTR [eax],al
-      0x8049040 <gets@plt>:        jmp    DWORD PTR ds:0x804c00c
-      0x8049046 <gets@plt+6>:      push   0x0
-      0x804904b <gets@plt+11>:     jmp    0x8049030
-      0x8049050 <__libc_start_main@plt>:   jmp    DWORD PTR ds:0x804c010
-      0x8049056 <__libc_start_main@plt+6>: push   0x8
-      0x804905b <__libc_start_main@plt+11>:        jmp    0x8049030
-      #+end_src
-   
+    *return to dl resolve* において、後述する ~.dynamic~ セクションの情報を含む ~l_info~ 構造体を利用する。
 
-   以下のサイトを参考に、gdbで、ELFの構造体を読み込めるようにする。
+   # 以下の例の場合、 ~link_map~ 構造体のアドレス ~0x804c004~ と ~gets~ の ~reloc_arg~ ~0x0~ をスタックにプッシュしている。
+   #    #+begin_src
+   # gef➤  x/10i $eip
+   # => 0x8049030:   push   DWORD PTR ds:0x804c004
+   #    0x8049036:   jmp    DWORD PTR ds:0x804c008
+   #    0x804903c:   add    BYTE PTR [eax],al
+   #    0x804903e:   add    BYTE PTR [eax],al
+   #    0x8049040 <gets@plt>:        jmp    DWORD PTR ds:0x804c00c
+   #    0x8049046 <gets@plt+6>:      push   0x0
+   #    0x804904b <gets@plt+11>:     jmp    0x8049030
+   #    0x8049050 <__libc_start_main@plt>:   jmp    DWORD PTR ds:0x804c010
+   #    0x8049056 <__libc_start_main@plt+6>: push   0x8
+   #    0x804905b <__libc_start_main@plt+11>:        jmp    0x8049030
+   #    #+end_src
+
+   
+   また、実際にgdbでプログラムを動作させ、 ~link_map~ 構造体に格納されている値を参照してみる。
+   このため、以下のサイトを参考に、gdbで、ELFの構造体を読み込めるようにする。
    - https://inaz2.hatenablog.com/entry/2014/07/21/124857
-     - gdbに ~link.h~ および ~elf.h~ のシンボル情報を読み込み
+     - ~link.h~ をコンパイル
        #+begin_src 
 	 gcc -g -fno-eliminate-unused-debug-types -x c -m32 -c /usr/include/link.h -o link.o
        #+end_src
-       今回はx86のELFを対象としているため ~-m32~ オプションを指定
-
-   特定した ~link_map~ 構造体のアドレス ~0xf7ffd990~ の中身を表示してみる。
-   #+begin_src 
+       - 今回はx86のELFを対象としているため ~-m32~ オプションを指定
+     - gdbに ~link.h~ のシンボル情報を読み込み
+       #+begin_src
 	 gef➤  add-symbol-file link.o 0
 	 add symbol table from file "link.o" at
 		 .text_addr = 0x0
 	 Reading symbols from link.o...
-	 gef➤  set $l = (struct link_map *) 0xf7ffd990
-	 gef➤  print *$l
-	 $1 = {
-	   l_addr = 0x0,
-	   l_name = 0xf7ffdc84 "",
-	   l_ld = 0x804bf14,
-	   l_next = 0xf7ffdc90,
-	   l_prev = 0x0
-	 }
-   #+end_src
+       #+end_src   
 
-**** ~.dynamic~ セクション
-  ~.dynamic~ セクションのアドレスは、 ~link_map~ 構造体の ~l_ld~ に格納されるため、
-  ~.dynamic~ セクションのアドレスは ~0x804bf14~ であるとわかる。
+   それでは早速、 ~_dl_runtime_resolve~ の第一引数である ~0xf7ffd990~ は ~link_map~ 構造体のアドレスであるため、 ~0xf7ffd990~ に配置されている ~link_map~ 構造体を表示してみる。
+   #+begin_src 
+    gef➤  set $link_map = (struct link_map *) 0xf7ffd990
+    gef➤  print *$link_map 
+    $1 = {
+      l_addr = 0x0,
+      l_name = 0xf7ffdc84 "",
+      l_ld = 0x804bf14,
+      l_next = 0xf7ffdc90,
+      l_prev = 0x0
+    }
+   #+end_src
+   # l_infoを含む構造体を定義できないため苦戦中
+
+   実際にそれぞれのメンバに値が格納されていることを確認できた。
    
-  ~.dynamic~ セクションは、 ~ELF_Dyn~ 構造体のエントリを ~d_tag~ の種類の数保持しており、この中に ~.rel.plt~ や ~.dynsym~ , ~.dynstr~ などのアドレスが格納されている。
+   それでは、次にライブラリ関数のシンボルを解決する際に必要な情報が格納されている ~.dynamic~ セクションを見ていく。
+   
+**** ~.dynamic~ セクション
+  ~.dynamic~ セクションは、 ~ELF_Dyn~ 構造体のエントリを ~d_tag~ の種類の数保持しており、このセクションの中に ~.rel.plt~ や ~.dynsym~ , ~.dynstr~ などのアドレスが格納されている。
+
+  そこで、 ~.dynamic~ セクションを参照することで、これらのアドレスの情報を取得していく。
+
+  
+  ~.dynamic~ セクションそのもののアドレスは、 ~link_map~ 構造体の ~l_info[DT_JMPREL]~ に格納される。
+  上記の結果より、 ~.dynamic~ セクションのアドレスは ~0x804bf14~ であるとわかる。
+   
     - ELF32_Dyn 構造体
       - https://elixir.bootlin.com/glibc/glibc-2.36/source/elf/elf.h#L840
 	#+begin_src c
@@ -590,4 +605,4 @@ SECCON{jUst_4_s1mpL3_b0f_ch4ll3ng3}
 
 
 created 2022/11/11\\
-updated 2022/11/25
+updated 2022/12/9
