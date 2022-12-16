@@ -193,107 +193,73 @@ gef➤  hexdump dword 0x804c004
     
 **** ~link_map~ 構造体
    ~link_map~ 構造体は、ELFファイルと実際にマッピングされたアドレスの差分や各セクションのアドレス、再配置情報を保持する構造体であり、ライブラリ関数のシンボルを解決する際に参照される。
-   実際の構造を知るために、定義を参照してみる。
-   - https://elixir.bootlin.com/glibc/glibc-2.36/source/include/link.h#L95
-     #+begin_src c
-       struct link_map
-       {
-	 /* These first few members are part of the protocol with the debugger.
-	    This is the same format used in SVR4.  */
 
-	 ElfW(Addr) l_addr;		/* Difference between the address in the ELF
-					  file and the addresses in memory.  */
-	 char *l_name;		/* Absolute file name object was found in.  */
-	 ElfW(Dyn) *l_ld;		/* Dynamic section of the shared object.  */
-	 struct link_map *l_next, *l_prev; /* Chain of loaded objects.  */
-	 ...
-
-	 ElfW(Dyn) *l_info[DT_NUM + DT_THISPROCNUM + DT_VERSIONTAGNUM
-		  + DT_EXTRANUM + DT_VALNUM + DT_ADDRNUM];
-	 ...
-       }
-     #+end_src
-     - ソースコード中の ~ElfW(hoge)~ のマクロは、 ~Elf32_hoge~ と展開される。
-       - https://elixir.bootlin.com/glibc/glibc-2.36/source/elf/link.h#L28
-
-    *return to dl resolve* において、後述する ~.dynamic~ セクションの情報を含む ~l_info~ 構造体を利用する。
-
-   # 以下の例の場合、 ~link_map~ 構造体のアドレス ~0x804c004~ と ~gets~ の ~reloc_arg~ ~0x0~ をスタックにプッシュしている。
-   #    #+begin_src
-   # gef➤  x/10i $eip
-   # => 0x8049030:   push   DWORD PTR ds:0x804c004
-   #    0x8049036:   jmp    DWORD PTR ds:0x804c008
-   #    0x804903c:   add    BYTE PTR [eax],al
-   #    0x804903e:   add    BYTE PTR [eax],al
-   #    0x8049040 <gets@plt>:        jmp    DWORD PTR ds:0x804c00c
-   #    0x8049046 <gets@plt+6>:      push   0x0
-   #    0x804904b <gets@plt+11>:     jmp    0x8049030
-   #    0x8049050 <__libc_start_main@plt>:   jmp    DWORD PTR ds:0x804c010
-   #    0x8049056 <__libc_start_main@plt+6>: push   0x8
-   #    0x804905b <__libc_start_main@plt+11>:        jmp    0x8049030
-   #    #+end_src
-
-   
-   また、実際にgdbでプログラムを動作させ、 ~link_map~ 構造体に格納されている値を参照してみる。
-   このため、以下のサイトを参考に、gdbで、ELFの構造体を読み込めるようにする。
-   - https://inaz2.hatenablog.com/entry/2014/07/21/124857
-     - ~link.h~ をコンパイル
-       #+begin_src 
-	 gcc -g -fno-eliminate-unused-debug-types -x c -m32 -c /usr/include/link.h -o link.o
-       #+end_src
-       - 今回はx86のELFを対象としているため ~-m32~ オプションを指定
-     - gdbに ~link.h~ のシンボル情報を読み込み
-       #+begin_src
-	 gef➤  add-symbol-file link.o 0
-	 add symbol table from file "link.o" at
-		 .text_addr = 0x0
-	 Reading symbols from link.o...
-       #+end_src   
-
-   それでは早速、 ~_dl_runtime_resolve~ の第一引数である ~0xf7ffd990~ は ~link_map~ 構造体のアドレスであるため、 ~0xf7ffd990~ に配置されている ~link_map~ 構造体を表示してみる。
-   #+begin_src 
-    gef➤  set $link_map = (struct link_map *) 0xf7ffd990
-    gef➤  print *$link_map 
-    $1 = {
-      l_addr = 0x0,
-      l_name = 0xf7ffdc84 "",
-      l_ld = 0x804bf14,
-      l_next = 0xf7ffdc90,
-      l_prev = 0x0
-    }
+   gdbから、これらの構造体の定義を得るために、libcにおけるデバッグ情報を取得しておく。
+   #+begin_src
+mc4nf@mc4nf:~/ctf/seccon2021/pwn/kasu_bof$ sudo apt-get install libc6-dbg libc6-dbg:i386
    #+end_src
-   # l_infoを含む構造体を定義できないため苦戦中
-
-   実際にそれぞれのメンバに値が格納されていることを確認できた。
    
-   それでは、次にライブラリ関数のシンボルを解決する際に必要な情報が格納されている ~.dynamic~ セクションを見ていく。
-   
-**** ~.dynamic~ セクション
-  ~.dynamic~ セクションは、 ~ELF_Dyn~ 構造体のエントリを ~d_tag~ の種類の数保持しており、このセクションの中に ~.rel.plt~ や ~.dynsym~ , ~.dynstr~ などのアドレスが格納されている。
+   それでは、構造を知るために、gdbを用いて定義を参照してみる。
+   #+begin_src
+gef➤  break main
+gef➤  run
+gef➤  info types link_map
+All types matching regular expression "link_map":
 
-  そこで、 ~.dynamic~ セクションを参照することで、これらのアドレスの情報を取得していく。
+File ../elf/link.h:
+84:	struct link_map_public;
 
-  
-  ~.dynamic~ セクションそのもののアドレスは、 ~link_map~ 構造体の ~l_info[DT_JMPREL]~ に格納される。
-  上記の結果より、 ~.dynamic~ セクションのアドレスは ~0x804bf14~ であるとわかる。
-   
-    - ELF32_Dyn 構造体
-      - https://elixir.bootlin.com/glibc/glibc-2.36/source/elf/elf.h#L840
-	#+begin_src c
-	  typedef struct
-	  {
-	    Elf32_Sword d_tag;			/* Dynamic entry type */
-	    union
-	      {
-		Elf32_Word d_val;			/* Integer value */
-		Elf32_Addr d_ptr;			/* Address value */
-	      } d_un;
-	  } Elf32_Dyn;
-	#+end_src
-	 
-    - d_tagの定義
-      - https://elixir.bootlin.com/glibc/glibc-2.36/source/elf/elf.h#L862
-	#+begin_src c
+File ../include/link.h:
+91:	struct link_map;
+271:	struct link_map_reldeps;
+
+File ../sysdeps/x86/linkmap.h:
+10:	struct link_map_machine;
+
+gef➤  ptype /o struct link_map
+/* offset    |  size */  type = struct link_map {
+/*    0      |     4 */    Elf32_Addr l_addr;
+/*    4      |     4 */    char *l_name;
+/*    8      |     4 */    Elf32_Dyn *l_ld;
+/*   12      |     4 */    struct link_map *l_next;
+/*   16      |     4 */    struct link_map *l_prev;
+/*   20      |     4 */    struct link_map *l_real;
+/*   24      |     4 */    Lmid_t l_ns;
+/*   28      |     4 */    struct libname_list *l_libname;
+/*   32      |   308 */    Elf32_Dyn *l_info[77];
+/*  340      |     4 */    const Elf32_Phdr *l_phdr;
+...
+   #+end_src
+   ソースコードの定義はここ
+   - https://elixir.bootlin.com/glibc/glibc-2.36/source/include/link.h#L95
+     # #+begin_src c
+     #   struct link_map
+     #   {
+     # 	 /* These first few members are part of the protocol with the debugger.
+     # 	    This is the same format used in SVR4.  */
+
+     # 	 ElfW(Addr) l_addr;		/* Difference between the address in the ELF
+     # 					  file and the addresses in memory.  */
+     # 	 char *l_name;		/* Absolute file name object was found in.  */
+     # 	 ElfW(Dyn) *l_ld;		/* Dynamic section of the shared object.  */
+     # 	 struct link_map *l_next, *l_prev; /* Chain of loaded objects.  */
+     # 	 ...
+
+     # 	 ElfW(Dyn) *l_info[DT_NUM + DT_THISPROCNUM + DT_VERSIONTAGNUM
+     # 		  + DT_EXTRANUM + DT_VALNUM + DT_ADDRNUM];
+     # 	 ...
+     #   }
+     # #+end_src
+     # - ソースコード中の ~ElfW(hoge)~ のマクロは、 ~Elf32_hoge~ と展開される。
+     #   - https://elixir.bootlin.com/glibc/glibc-2.36/source/elf/link.h#L28
+
+     *return to dl resolve* において、 ~link_map~ 構造体の ~offset~ が32の位置に保持されている ~l_info~ フィールドを利用する。
+      ~l_info~ は、後述する ~.dynamic~ セクションの情報を含んでおり、各セクションへのアドレスを保持している。
+
+     各セクションが格納されている ~l_info~ のインデックスは、 ~d_tag~ に格納される。
+      - d_tagに代入されうる値の一覧
+        - https://elixir.bootlin.com/glibc/glibc-2.36/source/elf/elf.h#L862
+          #+begin_src c
 	  /* Legal values for d_tag (dynamic entry type).  */
 	  ...
 	  #define DT_STRTAB	5		/* Address of string table */
@@ -303,25 +269,103 @@ gef➤  hexdump dword 0x804c004
 	  ...
 	  #define DT_JMPREL	23		/* Address of PLT relocs */
 	  ...
+	  #+end_src
+     例えば、 シンボルの文字列が格納されている ~.dynstr~ セクションのアドレスを参照したい場合、
+     ~l_info[DT_STRTAB]~ とすることで参照することができる。
+
+     
+   それでは、実際にgdbでプログラムを動作させ、 ~link_map~ 構造体の中身を参照してみる。
+   
+   ここで、 ~_dl_runtime_resolve~ の第一引数である ~0xf7ffd990~ は ~link_map~ 構造体のアドレスであるため、 ~0xf7ffd990~ を ~link_map~ 構造体のアドレスとし、表示してみる。
+   #+begin_src 
+gef➤  set $link_map = (struct link_map*) 0xf7ffd990
+gef➤  print *$link_map
+$1 = {
+  l_addr = 0x0,
+  l_name = 0xf7ffdc84 "",
+  l_ld = 0x804bf14,
+  l_next = 0xf7ffdc90,
+  l_prev = 0x0,
+  l_real = 0xf7ffd990,
+  l_ns = 0x0,
+  l_libname = 0xf7ffdc78,
+  l_info = {0x0, 0x804bf14, 0x804bf84, 0x804bf7c, 0x0, 0x804bf54, 0x804bf5c, 0x0, 0x0, 0x0, 0x804bf64, 0x804bf6c, 0x804bf1c, 0x804bf24, 0x0, 0x0, 0x0, 0x804bf9c, 0x804bfa4, 0x804bfac, 0x804bf8c, 0x804bf74, 0x0, 0x804bf94, 0x0, 0x804bf2c, 0x804bf3c, 0x804bf34, 0x804bf44, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x804bfbc, 0x804bfb4, 0x0 <repeats 13 times>, 0x804bfc4, 0x0 <repeats 25 times>, 0x804bf4c},
+  l_phdr = 0x8048034,
+...
+   #+end_src
+
+   すると ~link_map~ 構造体のそれぞれのメンバの値が確認できる。
+   例えば、 ~.dynstr~ セクションの ~d_tag~ は ~5~ なため、 ~l_info[5]~ の ~0x804bf54~ が  ~.dynstr~ セクションのアドレスということがわかる。
+   
+   それでは、次にライブラリ関数のシンボルを解決する際に必要な情報が格納されている ~.dynamic~ セクションを見ていく。
+   
+**** ~.dynamic~ セクション
+  ~.dynamic~ セクションは、 ~ELF_Dyn~ 構造体のエントリを ~d_tag~ の種類の数保持しており、このセクションの中に ~.rel.plt~ や ~.dynsym~ , ~.dynstr~ などのセクションのアドレスが格納されている。
+
+  それでは、ELF32_Dyn 構造体をgdbで参照してみる。
+  	#+begin_src
+gef➤  ptype /o Elf32_Dyn
+type = struct {
+/*    0      |     4 */    Elf32_Sword d_tag;
+/*    4      |     4 */    union {
+/*                 4 */        Elf32_Word d_val;
+/*                 4 */        Elf32_Addr d_ptr;
+
+                               /* total size (bytes):    4 */
+                           } d_un;
+
+                           /* total size (bytes):    8 */
+                         }
 	#+end_src
-	 
-    また、このとき ~.dynamic~ セクションは、 ~d_tag~ の順番に並んでいる訳ではないことに注意。
-    - 以下の例では、 ~DT_STRTAB, DT_SYMTAB~ は8、9番目のエントリ、 ~DT_JMPREL, DT_REL~ は16、17番目のエントリに配置
-      #+begin_src 
-      0x0804bf14│+0x0000   <_DYNAMIC+0000> 0x00000001
-      0x0804bf18│+0x0004   <_DYNAMIC+0004> 0x00000001
-      ...
-      0x0804bf54│+0x0040   <_DYNAMIC+0040> 0x00000005 // DT_STRTAB
-      0x0804bf58│+0x0044   <_DYNAMIC+0044> 0x0804825c
-      0x0804bf5c│+0x0048   <_DYNAMIC+0048> 0x00000006 // DT_SYMTAB
-      0x0804bf60│+0x004c   <_DYNAMIC+004c> 0x0804820c
-      ...
-      0x0804bf94│+0x0080   <_DYNAMIC+0080> 0x00000017 // DT_JMPREL
-      0x0804bf98│+0x0084   <_DYNAMIC+0084> 0x080482d8
-      0x0804bf9c│+0x0088   <_DYNAMIC+0088> 0x00000011 // DT_REL
-      0x0804bfa0│+0x008c   <_DYNAMIC+008c> 0x080482d0
-      ...
-      #+end_src
+  - ソースコードにおける定義
+  - https://elixir.bootlin.com/glibc/glibc-2.36/source/elf/elf.h#L840
+	# #+begin_src c
+	#   typedef struct
+	#   {
+	#     Elf32_Sword d_tag;			/* Dynamic entry type */
+	#     union
+	#       {
+	# 	Elf32_Word d_val;			/* Integer value */
+	# 	Elf32_Addr d_ptr;			/* Address value */
+	#       } d_un;
+	#   } Elf32_Dyn;
+	# #+end_src
+
+
+  # そこで、 ~.dynamic~ セクションを参照することで、これらのアドレスの情報を取得していく。
+
+  
+  ~.dynamic~ セクションそのもののアドレスは、 ~link_map~ 構造体の ~l_info[DT_JMPREL]~ に格納されている。ここで、 ~DT_JMPREL~ は23のため、 ~l_info[23]~ を参照する。
+  #+begin_src
+gef➤  set $dynamic = $link_map.l_info[23]
+gef➤  print *$dynamic
+$3 = {
+  d_tag = 0x17,
+  d_un = {
+    d_val = 0x80482d8,
+    d_ptr = 0x80482d8
+  }
+}
+  #+end_src
+  上記の結果より、 ~.dynamic~ セクションのアドレスは ~0x804bf14~ であるとわかる。  
+	
+    # また、このとき ~.dynamic~ セクションは、 ~d_tag~ の順番に並んでいる訳ではないことに注意。
+    # - 以下の例では、 ~DT_STRTAB, DT_SYMTAB~ は8、9番目のエントリ、 ~DT_JMPREL, DT_REL~ は16、17番目のエントリに配置
+    #   #+begin_src 
+    #   0x0804bf14│+0x0000   <_DYNAMIC+0000> 0x00000001
+    #   0x0804bf18│+0x0004   <_DYNAMIC+0004> 0x00000001
+    #   ...
+    #   0x0804bf54│+0x0040   <_DYNAMIC+0040> 0x00000005 // DT_STRTAB
+    #   0x0804bf58│+0x0044   <_DYNAMIC+0044> 0x0804825c
+    #   0x0804bf5c│+0x0048   <_DYNAMIC+0048> 0x00000006 // DT_SYMTAB
+    #   0x0804bf60│+0x004c   <_DYNAMIC+004c> 0x0804820c
+    #   ...
+    #   0x0804bf94│+0x0080   <_DYNAMIC+0080> 0x00000017 // DT_JMPREL
+    #   0x0804bf98│+0x0084   <_DYNAMIC+0084> 0x080482d8
+    #   0x0804bf9c│+0x0088   <_DYNAMIC+0088> 0x00000011 // DT_REL
+    #   0x0804bfa0│+0x008c   <_DYNAMIC+008c> 0x080482d0
+    #   ...
+    #   #+end_src
        
 **** ~.rel.plt~ セクション
   ~rel.plt~ セクションは、 ~ELF32_Rel~ 構造体の配列となっている。
@@ -595,9 +639,8 @@ SECCON{jUst_4_s1mpL3_b0f_ch4ll3ng3}
   - 2.10 再配置テーブル pp.57
     - Elf_Rel構造体について
 
-- gdbに構造体定義を読み込ませて使う - ももいろテクノロジー
-  - https://inaz2.hatenablog.com/entry/2014/07/21/124857
-
+# - gdbに構造体定義を読み込ませて使う - ももいろテクノロジー
+#   - https://inaz2.hatenablog.com/entry/2014/07/21/124857
 
 - ret2dl_resolve Sections 關係表
   - https://hackmd.io/@LJP/BkJmAqXEI
