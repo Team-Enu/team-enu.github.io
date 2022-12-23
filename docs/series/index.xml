@@ -5,6 +5,10 @@
     <link>http://localhost:8080/series/</link>
     <description>Recent content in Series on Team Enu</description>
     <generator>Hugo -- gohugo.io</generator>
-    <language>ja-jp</language><atom:link href="http://localhost:8080/series/index.xml" rel="self" type="application/rss+xml" />
+    <language>ja-jp</language>
+    
+	<atom:link href="http://localhost:8080/series/index.xml" rel="self" type="application/rss+xml" />
+    
+    
   </channel>
 </rss>
