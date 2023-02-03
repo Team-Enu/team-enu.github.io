@@ -20,10 +20,11 @@ CTFTimeはこちら：[https://ctftime.org/team/4894/](https://ctftime.org/team/
 - DEFCON CTF 予選 2022 世界28位
 - SECCON 2019 国内3位
 
-## Team EnuではCTFに興味のある学生の皆様を募集しています！！
+## Team EnuではCTFに興味のある学生の皆さんも大歓迎！！
 
-- 経験や技術よりも熱意重視です！！
-- 学生時代から「Team Enu」メンバーとしてもCTFの経験を積んだ社員も在籍しています。
+- 熱意重視です！
+  - 経験者はもちろん、Team Enuに所属してから強くなりたい方も大歓迎です。いっしょに強くなりましょう！
+- 学生時代から「Team Enu」メンバーとしてCTFの経験を積んだ社員も在籍しています。
 
 連絡先：teamenu.contact@gmail.com
 
