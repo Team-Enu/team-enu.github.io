@@ -16,14 +16,14 @@ CTFTimeはこちら：[https://ctftime.org/team/4894/](https://ctftime.org/team/
 
 ## 主な成績
 
-- SECCON 2019 国内3位
 - SECCON 2022 国内予選突破 2月に国内決勝参加予定
-- DEFCON CTF 予選 2022 世界28位　等
+- DEFCON CTF 予選 2022 世界28位
+- SECCON 2019 国内3位
 
-## Team EnuではCTF好きの学生さんを募集しています！！
+## Team EnuではCTFに興味のある学生の皆様を募集しています！！
 
 - 経験や技術よりも熱意重視です！！
-- 学生時代から参戦し、今も活躍中の社員も在籍しています。
+- 学生時代から「Team Enu」メンバーとしてもCTFの経験を積んだ社員も在籍しています。
 
 連絡先：teamenu.contact@gmail.com
 
