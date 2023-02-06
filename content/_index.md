@@ -22,9 +22,8 @@ CTFTimeはこちら：[https://ctftime.org/team/4894/](https://ctftime.org/team/
 
 ## Team EnuではCTFに興味のある学生の皆さんも大歓迎！！
 
-- 熱意重視です！
-  - 経験者はもちろん、Team Enuに所属してから強くなりたい方も大歓迎です。いっしょに強くなりましょう！
-- 学生時代から「Team Enu」メンバーとしてCTFの経験を積んだ社員も在籍しています。
+- 経験者はもちろん、Team Enuに所属してから強くなりたい方も大歓迎です。いっしょに強くなりましょう！
+- 学生時代からTeam EnuメンバーとしてCTFの経験を積んだ社員も在籍しています。
 
 連絡先：teamenu.contact@gmail.com
 
