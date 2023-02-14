@@ -6,7 +6,16 @@
     <description>Recent content in TOP on Team Enu</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>ja-jp</language>
-    <lastBuildDate>Fri, 11 Nov 2022 21:18:00 +0900</lastBuildDate><atom:link href="http://localhost:8080/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Tue, 14 Feb 2023 11:29:55 +0900</lastBuildDate><atom:link href="http://localhost:8080/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>SECCON CTF 2017 - Baby Stack Writeup</title>
+      <link>http://localhost:8080/writeup/seccon_ctf_2017_baby_stack/</link>
+      <pubDate>Tue, 14 Feb 2023 11:29:55 +0900</pubDate>
+      
+      <guid>http://localhost:8080/writeup/seccon_ctf_2017_baby_stack/</guid>
+      <description>本記事はSECCON CTF 2017のPwn問題Baby StackのWriteupです。</description>
+    </item>
+    
     <item>
       <title>スタックに関するPwnの勉強会</title>
       <link>http://localhost:8080/posts/2022111101/</link>
