@@ -15,3 +15,181 @@ Can you do a traditional stack attack?
 *** 配布ファイル
 - ~baby_stack-7b078c99bb96de6e5efc2b3da485a9ae8a66fd702b7139baf072ec32175076d8~
 
+#+begin_example
+mc4nf@mc4nf:~/ctf/seccon2017/baby_stack$ file baby_stack-7b078c99bb96de6e5efc2b3da485a9ae8a66fd702b7139baf072ec32175076d8 
+baby_stack-7b078c99bb96de6e5efc2b3da485a9ae8a66fd702b7139baf072ec32175076d8: ELF 64-bit LSB executable, x86-64, version 1 (SYSV), statically linked, Go BuildID=bcdb5e02c0606a4c9dd06d1e0dc56dc8564db722, with debug_info, not stripped
+
+mc4nf@mc4nf:~/ctf/seccon2017/baby_stack$ checksec baby_stack-7b078c99bb96de6e5efc2b3da485a9ae8a66fd702b7139baf072ec32175076d8
+[*] '/home/mc4nf/ctf/seccon2017/baby_stack/baby_stack-7b078c99bb96de6e5efc2b3da485a9ae8a66fd702b7139baf072ec32175076d8'
+    Arch:     amd64-64-little
+    RELRO:    No RELRO
+    Stack:    No canary found
+    NX:       NX enabled
+    PIE:      No PIE (0x400000)
+#+end_example
+実行ファイルに ~file~ コマンドと ~checksec~ を用いると、
+実行ファイルのアーキテクチャはx86-64、
+セキュリティ機構は、RELRO、SSP (Stack Smashing Protection)、PIEが無効で、NXのみ有効であることがわかる。
+
+** 方針
+この問題では、実行ファイルのみ配布され、問題のソースコードが配布されていない。
+このため、問題を解くために以下の手順で脆弱性の調査を行う。
+1. 配布された実行ファイルを動作させ、動的解析
+2. 配布された実行ファイルを逆アセンブルし、静的解析
+
+** 1. 配布された実行ファイルの動的解析
+*** 実行ファイルの動作の確認   
+   とりあえず、配布された実行ファイル (以降実行ファイル)の動作がわからない限り何もわからないので、早速実行してみる。
+   #+begin_example
+mc4nf@mc4nf:~/ctf/seccon2017/baby_stack$ ./baby_stack-7b078c99bb96de6e5efc2b3da485a9ae8a66fd702b7139baf072ec32175076d8 
+Please tell me your name >> hoge
+Give me your message >> fuga
+Thank you, hoge!
+msg : fuga
+   #+end_example
+   実行してみると、 ~Please tell me your name >>~ の文字列の表示の後に1回目の入力(ここでは ~hoge~ を入力)、
+   ~Give me your message >>~ の文字列の表示の後に2回目の入力(ここでは ~fuga~ を入力)を促された。
+   また、2回の入力が終わると、それぞれ入力した文字列が画面上に表示され、プログラムが終了した。
+
+   問題のタイトルや、実行ファイルに対しSSPが適用されていないことなどから、大量の文字を入力し、スタックバッファオーバフローの脆弱性が存在しているか確認してみる。
+   #+begin_example
+mc4nf@mc4nf:~/ctf/seccon2017/baby_stack$ ./baby_stack-7b078c99bb96de6e5efc2b3da485a9ae8a66fd702b7139baf072ec32175076d8 
+Please tell me your name >> aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+Give me your message >> bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb   
+panic: runtime error: growslice: cap out of range
+
+goroutine 1 [running]:
+panic(0x4e4800, 0xc820076280)
+        /usr/lib/go-1.6/src/runtime/panic.go:481 +0x3e6
+fmt.(*fmt).padString(0xc82007ae28, 0x6262626262626262, 0x6262626262626262)
+        /usr/lib/go-1.6/src/fmt/format.go:130 +0x406
+fmt.(*fmt).fmt_s(0xc82007ae28, 0x6262626262626262, 0x6262626262626262)
+        /usr/lib/go-1.6/src/fmt/format.go:322 +0x61
+fmt.(*pp).fmtString(0xc82007add0, 0x6262626262626262, 0x6262626262626262, 0xc800000073)
+        /usr/lib/go-1.6/src/fmt/print.go:521 +0xdc
+fmt.(*pp).printArg(0xc82007add0, 0x4c1c00, 0xc820076260, 0x73, 0x0, 0x0)
+        /usr/lib/go-1.6/src/fmt/print.go:797 +0xd95
+fmt.(*pp).doPrintf(0xc82007add0, 0x5220a0, 0x18, 0xc820045ea8, 0x2, 0x2)
+        /usr/lib/go-1.6/src/fmt/print.go:1238 +0x1dcd
+fmt.Fprintf(0x7f1b1267a1c0, 0xc82008c008, 0x5220a0, 0x18, 0xc820045ea8, 0x2, 0x2, 0x40beee, 0x0, 0x0)
+        /usr/lib/go-1.6/src/fmt/print.go:188 +0x74
+fmt.Printf(0x5220a0, 0x18, 0xc820045ea8, 0x2, 0x2, 0x20, 0x0, 0x0)
+        /usr/lib/go-1.6/src/fmt/print.go:197 +0x94
+main.main()
+        /home/yutaro/CTF/SECCON/2017/baby_stack/baby_stack.go:23 +0x45e
+   #+end_example
+   
+   とりあえず、何も考えずに大量の文字列を入力したところ、プログラムがエラーを出力し終了した。
+   ここで、出力されたエラーを見てみると、 ~0x6262626262626262~ のような記述が多く見られる。
+   ~0x62~ はASCIIコードで ~'b'~ を表わすことから、2回目の入力においてスタックバッファオーバフローが発生していると予想できる。
+
+*** GDBを用いた動的解析
+    それでは、だいたいの実行ファイルの動きと脆弱性の存在する箇所の検討がついたことから、GDBを用いて実行ファイルの動きを追ってみる。
+
+    まず、2回目の入力が促されたタイミングでプログラムを停止し、関数の呼び出し履歴を確認してみる。
+    #+begin_example
+[#0] 0x496a54 → syscall.Syscall()
+[#1] 0x4957af → syscall.read(fd=0x0, p={
+  array = 0xc820094005 "",
+  len = 0xffb,
+  cap = 0xffb
+}, n=0xc82001ea0c, err={
+  tab = 0x0,
+  data = 0x0
+})
+[#2] 0x49529d → syscall.Read(fd=0x0, p={
+  array = 0xc820094005 "",
+  len = 0xffb,
+  cap = 0xffb
+}, n=0xc820000180, err={
+  tab = 0x0,
+  data = 0x0
+})
+[#3] 0x46aa23 → os.(*File).read(f=0xc820034008, b={
+  array = 0xc820094005 "",
+  len = 0xffb,
+  cap = 0xffb
+}, n=0x18, err={
+  tab = 0x0,
+  data = 0x0
+})
+[#4] 0x46887a → os.(*File).Read(f=0xc820034008, b={
+  array = 0xc820094005 "",
+  len = 0xffb,
+  cap = 0xffb
+}, n=0x4ebb40, err={
+  tab = 0x0,
+  data = 0x0
+})
+[#5] 0x46d53b → bufio.(*Scanner).Scan(s=0xc820047ec8, ~r0=0x18)
+[#6] 0x4011e8 → main.main()
+    #+end_example
+
+    すると、2回目の入力を行う関数は、 ~main.main()~ の ~0x4011e8~ の直前に呼ばれていたことがわかる。
+    そこで、 ~main.main()~ の ~0x4011e8~ から先で呼ばれる処理の中で、スタックバッファオーバフローを引き起こすような処理がないかを確認してみる。
+    
+    以下メモ
+    #+begin_example
+gef➤  x/10i 0x4011e8
+   0x4011e8 <main.main+488>:    mov    rax,QWORD PTR [rsp+0x80]
+   0x4011f0 <main.main+496>:    xor    ebx,ebx
+   0x4011f2 <main.main+498>:    mov    QWORD PTR [rsp+0x98],rbx
+   0x4011fa <main.main+506>:    mov    QWORD PTR [rsp+0xa0],rbx
+   0x401202 <main.main+514>:    lea    rbx,[rsp+0x40]
+   0x401207 <main.main+519>:    mov    QWORD PTR [rsp],rbx
+   0x40120b <main.main+523>:    cmp    rax,0x0
+   0x40120f <main.main+527>:    je     0x401498 <main.main+1176>
+   0x401215 <main.main+533>:    lea    rbx,[rax+0x20]
+   0x401219 <main.main+537>:    lea    rdi,[rsp+0x8]
+gef➤  
+   0x40121e <main.main+542>:    mov    rcx,QWORD PTR [rbx]
+   0x401221 <main.main+545>:    mov    QWORD PTR [rdi],rcx
+   0x401224 <main.main+548>:    mov    rcx,QWORD PTR [rbx+0x8]
+   0x401228 <main.main+552>:    mov    QWORD PTR [rdi+0x8],rcx
+   0x40122c <main.main+556>:    mov    rcx,QWORD PTR [rbx+0x10]
+   0x401230 <main.main+560>:    mov    QWORD PTR [rdi+0x10],rcx
+   0x401234 <main.main+564>:    call   0x43f630 <runtime.slicebytetostring>
+   0x401239 <main.main+569>:    mov    rcx,QWORD PTR [rsp+0x20]
+   0x40123e <main.main+574>:    mov    rax,QWORD PTR [rsp+0x28]
+   0x401243 <main.main+579>:    mov    QWORD PTR [rsp+0xe8],rcx
+gef➤  
+   0x40124b <main.main+587>:    mov    QWORD PTR [rsp+0xf0],rax
+   0x401253 <main.main+595>:    mov    QWORD PTR [rsp+0x98],rcx
+   0x40125b <main.main+603>:    mov    QWORD PTR [rsp+0xa8],rcx
+   0x401263 <main.main+611>:    mov    QWORD PTR [rsp+0xa0],rax
+   0x40126b <main.main+619>:    mov    QWORD PTR [rsp+0xb0],rax
+   0x401273 <main.main+627>:    mov    rax,QWORD PTR [rsp+0xb0]
+   0x40127b <main.main+635>:    lea    rbx,[rsp+0x128]
+   0x401283 <main.main+643>:    mov    rbp,QWORD PTR [rbx]
+   0x401286 <main.main+646>:    mov    QWORD PTR [rsp],rbp
+   0x40128a <main.main+650>:    lea    rbx,[rsp+0xa8]
+gef➤  
+   0x401292 <main.main+658>:    mov    rbp,QWORD PTR [rbx]
+   0x401295 <main.main+661>:    mov    QWORD PTR [rsp+0x8],rbp
+   0x40129a <main.main+666>:    mov    QWORD PTR [rsp+0x10],rax
+   0x40129f <main.main+671>:    call   0x4014f0 <main.memcpy>
+   0x4012a4 <main.main+676>:    mov    rbx,QWORD PTR [rsp+0xc8]
+   0x4012ac <main.main+684>:    mov    QWORD PTR [rsp+0x118],rbx
+   0x4012b4 <main.main+692>:    mov    rbx,QWORD PTR [rsp+0xd0]
+   0x4012bc <main.main+700>:    mov    QWORD PTR [rsp+0x120],rbx
+   0x4012c4 <main.main+708>:    mov    QWORD PTR [rsp],0x0
+   0x4012cc <main.main+716>:    mov    rbx,QWORD PTR [rsp+0x128]
+gef➤  
+   0x4012d4 <main.main+724>:    mov    QWORD PTR [rsp+0x8],rbx
+   0x4012d9 <main.main+729>:    mov    rbx,QWORD PTR [rsp+0x130]
+   0x4012e1 <main.main+737>:    mov    QWORD PTR [rsp+0x10],rbx
+   0x4012e6 <main.main+742>:    mov    rbx,QWORD PTR [rsp+0x138]
+   0x4012ee <main.main+750>:    mov    QWORD PTR [rsp+0x18],rbx
+   0x4012f3 <main.main+755>:    call   0x43f630 <runtime.slicebytetostring>
+
+    #+end_example
+
+    すると、 ~0x40129f~ において、 ~main.memcpy~ という関数が呼ばれており、
+    
+** 2. 配布された実行ファイルの静的解析
+
+** solver
+
+*** Flag
+    ~SECCON{---}~
+   
