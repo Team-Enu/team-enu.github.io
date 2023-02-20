@@ -16,7 +16,7 @@ CTFTimeはこちら：[https://ctftime.org/team/4894/](https://ctftime.org/team/
 
 ## 主な成績
 
-- SECCON 2022 国内予選突破 2月に国内決勝参加予定
+- SECCON CTF 2022 Domestic Finals 6位
 - DEFCON CTF 予選 2022 世界28位
 - SECCON 2019 国内3位
 
