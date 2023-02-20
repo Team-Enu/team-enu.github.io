@@ -3,10 +3,14 @@ title: "News"
 draft: false
 ---
 
-## Webサイトを作りました (2022-11-27)  
+
+## Webサイトを作りました (2023-02-27)  
 
 Team EnuのWebサイトを公開しました！
 
+## SECCON CTF 2022 Domestic Finalsに参加しました（2023-02-12)
+
+SECCON CTF 2022 Domestic Finalsに参加し、6位でした。
 
 ## SECCON CTF 2022の予選に参加しました（2022-11-13）
 
