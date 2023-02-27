@@ -38,7 +38,7 @@ mc4nf@mc4nf:~/ctf/seccon2017/baby_stack$ checksec baby_stack-7b078c99bb96de6e5ef
 2. 特定した脆弱性を利用してシェルの起動
 
 ** 1. 配布された実行ファイルの脆弱性の特定
-*** 実行ファイルの動作の確認   
+*** TODO 実行ファイルの動作の確認   
    とりあえず、配布された実行ファイルの動作がわからない限り何もわからないので、早速実行してみる。
    #+begin_example
 mc4nf@mc4nf:~/ctf/seccon2017/baby_stack$ ./baby_stack-7b078c99bb96de6e5efc2b3da485a9ae8a66fd702b7139baf072ec32175076d8 
@@ -80,9 +80,9 @@ main.main()
    #+end_example
    
    とりあえず、何も考えずに大量の文字列を入力したところ、プログラムがエラーを出力し終了した。
-   ここで、出力されたエラーを見てみると、 ~0x6262626262626262~ のような記述が多く見られる。
+   ここで、出力されたエラーを見てみると、 ~fmt.(*pp).fmtString~ などの引数に  ~0x62626...62~ がよく表われる。
    ~0x62~ はASCIIコードで ~'b'~ を表わすことから、2回目の入力においてスタックバッファオーバフローが発生していると予想できる。
-   また、ここでエラーコードから、問題のプログラムはGo言語で書かれていたこともわかる。
+   また、ここでエラーコードに ~back_stack.go~ や ~goroutine 1~ という文字列があることから、問題のプログラムはGo言語で書かれていたこともわかる。
 
 *** GDBを用いた動的解析
     それでは、だいたいの実行ファイルの動きと脆弱性の存在する箇所の検討がついたことから、GDBを用いて実行ファイルの動きを追ってみる。
@@ -135,7 +135,9 @@ main.main()
 0x40129f <main.main+671>:    call   0x4014f0 <main.memcpy>
 ...
  #+end_example
-    いかにもメモリコピーを担当していそうな関数名であるため、この関数について調べてみる。
+     ~memcpy~ は、入力された文字列を別のメモリ領域にコピーする処理を実装しているので、
+     この関数の呼び出し方法に起因して、スタックバッファオーバフローが発生していると推測できる。
+     そこで、この関数の呼び出しについて調べてみる。
 
     まず、 ~main.memcpy~ が呼び出されたときのスタックの状態を確認してみる。
      #+begin_example
@@ -273,17 +275,19 @@ main.main()
 
 そこで、次に、このエラーを回避する方法を考える。
 
-*** エラーの回避
+*** エラーの回避    
     出力されたエラーの内容を確認しただけでは、スタックのどの領域がエラーの原因であるかわからない。
     そこで、patternを利用し、エラー出力から原因となるスタックの領域を特定する。
 
     まず、 ~0x200~ バイトのpatternを作成する。
+    
      #+begin_example
 gef➤  pattern create 0x200
 [+] Generating a pattern of 512 bytes (n=8)
 aaaaaaaabaaaaaaacaaaaaaadaaaaaaaeaaaaaaafaaaaaaagaaaaaaahaaaaaaaiaaaaaaajaaaaaaakaaaaaaalaaaaaaamaaaaaaanaaaaaaaoaaaaaaapaaaaaaaqaaaaaaaraaaaaaasaaaaaaataaaaaaauaaaaaaavaaaaaaawaaaaaaaxaaaaaaayaaaaaaazaaaaaabbaaaaaabcaaaaaabdaaaaaabeaaaaaabfaaaaaabgaaaaaabhaaaaaabiaaaaaabjaaaaaabkaaaaaablaaaaaabmaaaaaabnaaaaaaboaaaaaabpaaaaaabqaaaaaabraaaaaabsaaaaaabtaaaaaabuaaaaaabvaaaaaabwaaaaaabxaaaaaabyaaaaaabzaaaaaacbaaaaaaccaaaaaacdaaaaaaceaaaaaacfaaaaaacgaaaaaachaaaaaaciaaaaaacjaaaaaackaaaaaaclaaaaaacmaaaaaacnaaaaaac
 [+] Saved as '$_gef0'
      #+end_example
+     patternコマンドにより出力された文字列をプログラムへ入力すると、エラー出力中の値から入力した文字列の何バイト目が原因となっているか推測できる。    
 
      次に、このpatternを入力し、再度エラーを出力させる。
      #+begin_example
@@ -310,7 +314,9 @@ main.main()
 [Inferior 1 (process 38636) exited with code 02]
      #+end_example
 
-     上記のエラーを見てみると、 ~0x6261616161616162~、~0x6261616161616163~ 、 および ~0x626161616161617a~ のパターンの箇所が原因でエラーが発生していると考えられる。
+     上記のエラーを見てみると、 ~runtime.slicebytetostring~ の引数として、先程入力したパターンの一部である ~0x6261616161616162~、~0x6261616161616163~ 、
+     および ~0x626161616161617a~ がエラー出力中に表示されており、これが原因でエラーが発生していると考えられる。
+     
      そこで、これらのパターンのオフセットを求めてみる。
      #+begin_example
 gef➤  pattern search 0x6261616161616162
@@ -465,9 +471,9 @@ gef➤ dereference
     まず、 ~pop rdi~ を行う ~pop rdi; or byte ptr [rax + 0x39], cl; ret;~ は、 ~pop rdi~ 以外に ~rax+0x39~ のアドレスと ~cl~ レジスタの内容を or 演算する。
     このため、 ~rax~ が書き込み不可なアドレスを指していた場合、プログラムがエラーで落ちてしまう。そこで、このガジェットの呼び出し前には、 ~rax~ が bss領域を指すようにすることでこの問題に対処する。
 
-    次に、 ~pop rdx~ を行う ~pop rdx; setbe byte ptr [rsp + 0x50]; add rsp, 0x38; ret;~ は、 スタック領域のアドレスに対して ~setbe~ 命令を行い、最後に ~rsp~ を ~0x38~ バイトだけ増加させる。
+    次に、 ~pop rdx~ を行う ~pop rdx; setbe byte ptr [rsp + 0x50]; add rsp, 0x38; ret;~ は、 スタック領域のアドレスに対して1バイトだけ書き込みを行う ~setbe~ 命令を行い、最後に ~rsp~ を ~0x38~ バイトだけ増加させる。
     ここで、 ~rsp~ がずれると、後ろに続くROPチェーンが機能しなくなる。
-    そこで、~rsp~ が次のガジェットを指すようにこのガジェットの後で ~0x38~ バイトだけパディングを行うことでこの問題に対処する。
+    そこで、 ~rsp~ が次のガジェットを指すようにこのガジェットの後で ~0x38~ バイトだけパディングを行うことでこの問題に対処する。
 
     それぞれのレジスタにスタックから値をpopするガジェットの用意ができたため、これらを用いてROPチェーンを組んでいく。
     
