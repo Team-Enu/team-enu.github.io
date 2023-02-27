@@ -6,27 +6,21 @@
     <description>Recent content in 記事一覧 on Team Enu</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>ja-jp</language>
-    <lastBuildDate>Mon, 08 Aug 2022 21:18:00 +0900</lastBuildDate><atom:link href="http://localhost:8080/posts/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Mon, 08 Aug 2022 21:18:00 +0900</lastBuildDate>
+    
+	<atom:link href="http://localhost:8080/posts/index.xml" rel="self" type="application/rss+xml" />
+    
+    
     <item>
-      <title>最近の勉強会</title>
+      <title>スタックに関するPwnの勉強会</title>
       <link>http://localhost:8080/posts/2022111101/</link>
       <pubDate>Fri, 11 Nov 2022 21:18:00 +0900</pubDate>
       
       <guid>http://localhost:8080/posts/2022111101/</guid>
-      <description>最近のPwn部屋 Pwn部屋では、○○を題材に勉強しました。
-（参加者のひとこと）
-部屋横断勉強会 NFLabs.のインターンに来ていただいているmc4nfさんがSECCON予選に向けて勉強会をしてくれました！
-もうすぐSECCON予選ということで、昨年のPwn問題を題材にしました。
+      <description>Team Enuでは毎週金曜日に勉強会をしています。Pwnの勉強をするグループでは、さまざまなCTFのPwn問題を題材に、勉強会に取り組んでいます。
+初心者グループではpicoCTFを中心に各自のレベルにあった問題に取り組んでいます。
+今回はスタックを用いたROPとして、return to dl resolveの個別勉強会をしました。 NFLabs.のインターンに参加中のmc4nfさんが昨年のSECCON2021予選のkasu_bofを題材にreturn to dl resolveの勉強会をしてくれました。
 writeupはこちら</description>
-    </item>
-    
-    <item>
-      <title>DEF CON CTF 2022 予選参加レポート(サンプル)</title>
-      <link>http://localhost:8080/posts/2022060801/</link>
-      <pubDate>Wed, 08 Jun 2022 21:18:00 +0900</pubDate>
-      
-      <guid>http://localhost:8080/posts/2022060801/</guid>
-      <description>本記事は、「Team Enu」のDEF CON CTF 2022予選参加を主に事務局の視点からまとめた参加レポートです。</description>
     </item>
     
   </channel>
