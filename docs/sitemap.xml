@@ -23,11 +23,6 @@
   </url>
   
   <url>
-    <loc>http://localhost:8080/writeup/seccon_ctf_2021_kasu_bof/</loc>
-    <lastmod>2022-11-11T11:29:55+09:00</lastmod>
-  </url>
-  
-  <url>
     <loc>http://localhost:8080/posts/</loc>
     <lastmod>2022-08-08T21:18:00+09:00</lastmod>
   </url>

@@ -20,14 +20,5 @@
       <description>本記事はSECCON CTF 2017のPwn問題Baby StackのWriteupです。</description>
     </item>
     
-    <item>
-      <title>SECCON CTF 2021 - kasu_bof Writeup</title>
-      <link>http://localhost:8080/writeup/seccon_ctf_2021_kasu_bof/</link>
-      <pubDate>Fri, 11 Nov 2022 11:29:55 +0900</pubDate>
-      
-      <guid>http://localhost:8080/writeup/seccon_ctf_2021_kasu_bof/</guid>
-      <description>本記事はSECCON CTF 2021のPwn問題kasu_bofのWriteupです。</description>
-    </item>
-    
   </channel>
 </rss>
