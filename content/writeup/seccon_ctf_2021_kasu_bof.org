@@ -3,7 +3,7 @@ title: "SECCON CTF 2021 - kasu_bof Writeup"
 date: 2023-02-28T10:51:55+09:00
 draft: false
 summary: "本記事はSECCON CTF 2021のPwn問題kasu_bofのWriteupです。"
-author: "siva"
+author: "siva (https://twitter.com/mc4nf)"
 ---
 
 ** 問題
