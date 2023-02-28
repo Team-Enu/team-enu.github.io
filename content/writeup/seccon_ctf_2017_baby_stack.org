@@ -3,7 +3,7 @@ title: "SECCON CTF 2017 - Baby Stack Writeup"
 date: 2023-02-14T11:29:55+09:00
 draft: false
 summary: "本記事はSECCON CTF 2017のPwn問題Baby StackのWriteupです。"
-author: "mc4nf"
+author: "siva"
 ---
 
 ** 問題
@@ -612,4 +612,7 @@ SECCON{'un54f3'm0dul3_15_fr13ndly_70_4774ck3r5}
    #+end_example
    
 **** ~SECCON{'un54f3'm0dul3_15_fr13ndly_70_4774ck3r5}~
-   
+
+     
+created 2022/2/13\\
+updated 2023/2/28

