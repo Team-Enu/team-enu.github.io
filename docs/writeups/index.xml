@@ -2,9 +2,9 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Writeups on Team Enu</title>
-    <link>https://team-enu.github.io/writeups/</link>
+    <link>/writeups/</link>
     <description>Recent content in Writeups on Team Enu</description>
     <generator>Hugo -- gohugo.io</generator>
-    <language>ja-jp</language><atom:link href="https://team-enu.github.io/writeups/index.xml" rel="self" type="application/rss+xml" />
+    <language>ja-jp</language><atom:link href="/writeups/index.xml" rel="self" type="application/rss+xml" />
   </channel>
 </rss>

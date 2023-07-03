@@ -5,19 +5,38 @@
 本WebサイトはHugoで作成し、Hugoの出力をdocsに保存しています。
 本番環境ではGitHub Pagesでdocs以下を公開することを想定しています。
 
+## レポジトリのクローン
+
+```bash
+git clone https://github.com:Team-Enu/pr-site-dev.git
+cd pr-site-dev
+git submodule init && git submodule update
+```
+
+- Hugoを入れた環境が欲しい人のために、[`./Dockerfile`](./Dockerfile)を用意したので、使ってください
+
 ## Webサイトの確認方法
 
 ### 1. Webサーバを起動する
 
 ```bash
-git clone --recursive git@github.com:Team-Enu/pr-site-dev.git
-cd pr-site-dev/docs
+cd docs
 python3 -m http.server 8080
 ```
 
 ### 2. Webサイトにアクセスする
 
 Webブラウザで[http://localhost:8080](http://localhost:8080)にアクセスする。
+
+## Webサイトの更新方法
+
+- [`./content/`](./content/)以下のMarkdownファイルを更新したら、次のコマンドでHTMLを出力します
+
+```
+hugo
+```
+
+- そしたら、上のWebサーバーを立ち上げたり、ページリフレッシュすれば、反映されていることが確認できます
 
 # 現状について
 
@@ -118,13 +137,13 @@ markdownを作る。説明では`2022123101.md`を作成するものとする。
 
 Hugoがインストールされている場合以下のコマンドを実行する。
 ```bash
-hugo new writeups/2022123101.md
+hugo new writeup/2022123101.md
 ```
 
 Hugoがインストールされていない場合、以下のコマンドを実行する。
 
 ```bash
-cp archetypes/writeups.md content/writeups/2022123101.md
+cp archetypes/writeups.md content/writeup/2022123101.md
 ```
 
 以下の内容のファイルが作成される。これを編集する。
@@ -144,22 +163,22 @@ author: "著者名"
 作成したmarkdownのファイル名から`.md`を除いたディレクトリ名でディレクトリを作成する。
 
 ```bash
-mkdir `content/writeups/2022123101`
+mkdir `content/writeup/2022123101`
 ```
 
-この中に画像を配置することで、`content/writeups/2022123101.md`では`[aaa](<content/writeups/2022123101からの相対パス>)`で参照できる
+この中に画像を配置することで、`content/writeup/2022123101.md`では`[aaa](<content/writeup/2022123101からの相対パス>)`で参照できる
 
 
 ## writeupの削除方法
 
-絶対パスで`/writeups/2022123101`を削除する場合、以下を実行する。
+絶対パスで`/writeup/2022123101`を削除する場合、以下を実行する。
 
 ```bash
-git rm content/writeups/2022123101.md
-git rm -rf content/writeups/2022123101
+git rm content/writeup/2022123101.md
+git rm -rf content/writeup/2022123101
 ```
 
-上記の場合、`content/writeups/2022123101`ディレクトリが存在しない場合は実行しなく良い。
+上記の場合、`content/writeup/2022123101`ディレクトリが存在しない場合は実行しなく良い。
 
 ## memberの追加方法
 
