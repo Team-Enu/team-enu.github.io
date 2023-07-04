@@ -2,10 +2,13 @@
 
 本リポジトリはTeam Enuを紹介するWebサイトのソースコードです。
 
-本WebサイトはHugoで作成し、Hugoの出力をdocsに保存しています。
-本番環境ではGitHub Pagesでdocs以下を公開することを想定しています。
+本Webサイトは、[Hugo](https://gohugo.io/)で作成しています。
+Hugoの入力は、[`/content/`](/content/)以下で管理しています。
+Hugoの出力は、[`/docs/`](/docs/)以下に保存しています。
+本番環境では、GitHub Pagesを用いて、[`/docs/`](/docs/)以下を公開することを想定しています。
 
-## レポジトリのクローン
+
+## このレポジトリのクローン
 
 ```bash
 git clone https://github.com:Team-Enu/pr-site-dev.git
@@ -13,30 +16,31 @@ cd pr-site-dev
 git submodule init && git submodule update
 ```
 
-- Hugoを入れた環境が欲しい人のために、[`./Dockerfile`](./Dockerfile)を用意したので、使ってください
+Hugoを入れた環境が欲しい人は、[`./Dockerfile`](./Dockerfile)を使ってみてください
+
 
 ## Webサイトの確認方法
 
-### 1. Webサーバを起動する
+1. 次のようなコマンドで、Webサーバーを起動します
 
-```bash
-cd docs
-python3 -m http.server 8080
-```
+  ```bash
+  cd docs
+  python3 -m http.server 8080
+  ```
 
-### 2. Webサイトにアクセスする
+2. Webブラウザで、[http://localhost:8080](http://localhost:8080)にアクセスします
 
-Webブラウザで[http://localhost:8080](http://localhost:8080)にアクセスする。
 
 ## Webサイトの更新方法
 
-- [`./content/`](./content/)以下のMarkdownファイルを更新したら、次のコマンドでHTMLを出力します
+[`./content/`](./content/)以下のMarkdownファイルを更新したら、次のコマンドでHTMLを出力します
 
-```
+```bash
 hugo
 ```
 
-- そしたら、上のWebサーバーを立ち上げたり、ページリフレッシュすれば、反映されていることが確認できます
+そしたら、上のWebサーバーを立ち上げたり、ブラウザでページをリフレッシュすれば、反映されていることが確認できます
+
 
 # 現状について
 
@@ -46,16 +50,19 @@ Webサイト右上のリンクを用いると、サイト内のページに遷�
 - writeupページ[http://localhost:8080/writeups/](http://localhost:8080/writeups/)
   - サンプルのWriteUp [http://localhost:8080/writeups/writeup1/](http://localhost:8080/writeups/writeup1/)
 
-# Link Previewへの対応について
+
+## Link Previewへの対応について
 
 以下の行がすべてのページについているため、全ページ共通のLink Previewがなされる場合があると思います。OpenGraphやTwitter Cardではないので、どうなるかわかりません。設定上は1箇所のみdescriptionを記入できるようになっているため、文章は画面上の右側の紹介と共通になります。
 ```html
 <meta name="description" content="Team EnuのWriteupや活動の紹介を掲載しています。">
 ```
 
+
 # ページの編集方法について
 
 ページの追加方法および編集方法を説明します。
+
 
 ## Newsの追加方法
 
@@ -63,177 +70,83 @@ Webサイト右上のリンクを用いると、サイト内のページに遷�
 
 以下のような感じです。個別記事の書き方は下の「個別記事の追加方法」を参照してください。
 
-```md
+```markdown
 # 表題 (yyyy-mm-dd)
 
 Team Enuが予選にどのように取り組んでいるか記事にしました。ぜひご覧ください。  
 [DEF CON CTF 2022 予選参加レポート(サンプル)](/posts/2022060801)
 ```
 
+
 ## 個別記事の追加方法（Postsの追加方法）
 
 <span style="color: red">注意：ページを作ってGitHubにpushした段階で公開されます。自動で`/posts/`にリンクが作成されます。意図しない公開に気をつけてください。</span>  
 
-1. 個別記事を作る
+1. Markdownファイルを作成するために、次のようなコマンドを実行してください
 
-markdownを作る。説明では`2022123101.md`を作成するものとする。
+    ```bash
+    hugo new posts/2022123101/_index.md
+    ```
 
-Hugoがインストールされている場合以下のコマンドを実行する。
-```bash
-hugo new posts/2022123101.md
-```
+2. `posts/2022123101/_index.md`として、次のような内容のファイルが作成されるので、これを元に編集してください
 
-Hugoがインストールされていない場合、以下のコマンドを実行する。
+    ```
+    ---
+    title: "記事のタイトル"
+    date: 2022-11-10T03:13:53Z
+    author: "記事の概要と記事のページに印字される著者名"
+    draft: false
+    summary: "記事の一覧に表示される概要です。"
+    ---
+    <!--ここから記事のMarkdownを書く。最初にtitleが自動で出力される。-->
+    ```
 
-```bash
-cp archetypes/posts.md content/posts/2022123101.md
-```
+    - 画像等を挿入したい場合は、`posts/2022123101/`以下に入れて、見通しを良くしましょう
 
-以下の内容のファイルが作成される。これを編集する。
-```
----
-title: "記事のタイトル"
-date: 2022-11-10T03:13:53Z
-author: "記事の概要と記事のページに印字される著者名"
-draft: false
-summary: "記事の一覧に表示される概要です。"
----
-<!--ここから記事のMarkdownを書く。最初にtitleが自動で出力される。-->
-```
-
-2. （画像を貼る場合）、外部ファイルを置くためのディレクトリを作成する
-
-作成したmarkdownのファイル名から`.md`を除いたディレクトリ名でディレクトリを作成する。
-
-```bash
-mkdir `content/posts/2022123101`
-```
-
-この中に画像を配置することで、`content/posts/2022123101.md`では`[aaa](<content/posts/2022123101からの相対パス>)`で参照できる
-
-3. リンクをNewsに貼る
-
-
-絶対パスで`/posts/2022123101/`をリンク先にすると、正しく表示される。
+3. リンクを[`/content/news/_index.md`](/content/news/_index.md)に貼る
+    - このファイルからの相対パスで記述してください: `../posts/2022111101/`
 
 
 ## 個別記事の削除方法
 
-絶対パスで`/posts/2022123101`を削除する場合、以下を実行する。
+リンク `/posts/2022123101`の個別記事を削除したい場合は、次のコマンドを実行します
 
 ```bash
-git rm content/posts/2022123101.md
 git rm -rf content/posts/2022123101
 ```
-
-上記の場合、`content/posts/2022123101`ディレクトリが存在しない場合は実行しなく良い。
 
 
 ## Writeupの作成方法
 
-1. writeup用のmarkdownを作る
+1. Markdownを作成するために、次のようなコマンドを実行します
 
-markdownを作る。説明では`2022123101.md`を作成するものとする。
+    ```bash
+    hugo new writeup/2022123101/_index.md
+    ```
 
-Hugoがインストールされている場合以下のコマンドを実行する。
-```bash
-hugo new writeup/2022123101.md
-```
+2. `writeup/2022123101/_index.md`として、次のような内容のファイルが作成されるので、これを元に編集してください
 
-Hugoがインストールされていない場合、以下のコマンドを実行する。
+    ```
+    ---
+    title: "記事のタイトルです。"
+    date: 2022-11-10T14:58:39+09:00
+    draft: false
+    summary: "記事一覧に表示される概要です"
+    author: "著者名"
+    ---
+    <!--ここから記事のMarkdownを書く。最初にtitleが自動で出力される。-->
+    ```
 
-```bash
-cp archetypes/writeups.md content/writeup/2022123101.md
-```
+    - 画像等を挿入したい場合は、`writeup/2022123101/`以下に入れて、見通しを良くしましょう
 
-以下の内容のファイルが作成される。これを編集する。
-```
----
-title: "記事のタイトルです。"
-date: 2022-11-10T14:58:39+09:00
-draft: false
-summary: "記事一覧に表示される概要です"
-author: "著者名"
----
-<!--ここから記事のMarkdownを書く。最初にtitleが自動で出力される。-->
-```
-
-2. （画像を貼る場合）、外部ファイルを置くためのディレクトリを作成する
-
-作成したmarkdownのファイル名から`.md`を除いたディレクトリ名でディレクトリを作成する。
-
-```bash
-mkdir `content/writeup/2022123101`
-```
-
-この中に画像を配置することで、`content/writeup/2022123101.md`では`[aaa](<content/writeup/2022123101からの相対パス>)`で参照できる
+3. リンクを[`/content/writeups/_index.md`](/content/writeups/_index.md)に貼ります
+    - このファイルからの相対パスで記述してください: `../writeup/2022123101/`
 
 
 ## writeupの削除方法
 
-絶対パスで`/writeup/2022123101`を削除する場合、以下を実行する。
+リンク `/writeup/2022123101`のwriteupを削除したい場合は、次のコマンドを実行します
 
 ```bash
-git rm content/writeup/2022123101.md
 git rm -rf content/writeup/2022123101
 ```
-
-上記の場合、`content/writeup/2022123101`ディレクトリが存在しない場合は実行しなく良い。
-
-## memberの追加方法
-
-1. member用のmarkdownを作る
-
-markdownを作る。説明では`s.ichioka.md`を作成するものとする。
-
-Hugoがインストールされている場合以下のコマンドを実行する。
-```bash
-hugo new members/s.ichioka.md
-```
-
-Hugoがインストールされていない場合、以下のコマンドを実行する。
-
-```bash
-cp archetypes/members.md content/members/s.ichioka.md
-```
-
-以下の内容のファイルが作成される。これを編集する。
-```
----
-title: "表示する氏名"
-draft: false
----
-
-## 普段のCTF活動
-Team-Enuでは毎週金曜日にpwn部屋で活動したり、たまに有志で野良CTFに参加しています。
-
-## CTF以外の趣味
-ポケモン
-
-## CTF活動での経歴
-
-- SECCON CTF ○○を作問 (2022)
-- SECCON for Beginners 作問 (2018)
-```
-
-2. （画像を貼る場合）、外部ファイルを置くためのディレクトリを作成する
-
-作成したmarkdownのファイル名から`.md`を除いたディレクトリ名でディレクトリを作成する。
-
-```bash
-mkdir `content/members/s.ichioka`
-```
-
-この中に画像を配置することで、`content/members/s.ichioka.md`では`[aaa](<content/members/s.ichiokaからの相対パス>)`で参照できる
-
-
-## writeupの削除方法
-
-絶対パスで`/members/s.ichioka`を削除する場合、以下を実行する。
-
-```bash
-git rm content/members/s.ichioka.md
-git rm -rf content/members/s.ichioka
-```
-
-上記の場合、`content/members/s.ichioka`ディレクトリが存在しない場合は実行しなく良い。
