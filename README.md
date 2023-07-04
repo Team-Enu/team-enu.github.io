@@ -16,47 +16,50 @@ cd pr-site-dev
 git submodule init && git submodule update
 ```
 
-Hugoを入れた環境が欲しい人は、[`./Dockerfile`](./Dockerfile)を使ってみてください
+Hugoを入れた環境が欲しい人は、[`/Dockerfile`](/Dockerfile)を使ってみてください。
 
 
 ## Webサイトの確認方法
 
 1. 次のようなコマンドで、Webサーバーを起動します
 
-  ```bash
-  cd docs
-  python3 -m http.server 8080
-  ```
+    ```bash
+    cd docs
+    python3 -m http.server 8080
+    ```
 
 2. Webブラウザで、[http://localhost:8080](http://localhost:8080)にアクセスします
 
 
 ## Webサイトの更新方法
 
-[`./content/`](./content/)以下のMarkdownファイルを更新したら、次のコマンドでHTMLを出力します
+[`/content/`](./content/)以下のMarkdownファイルを更新したら、次のコマンドでHTMLを出力します。
 
 ```bash
 hugo
 ```
 
-そしたら、上のWebサーバーを立ち上げたり、ブラウザでページをリフレッシュすれば、反映されていることが確認できます
+そしたら、Webサーバーを立ち上げてアクセスしたり、ブラウザでページをリフレッシュすれば、反映されていることが確認できます。
 
 
 # 現状について
 
 Webサイト右上のリンクを用いると、サイト内のページに遷移します。  
 以下の2種類のページがあります。
-- Webサイトのトップページ[http://localhost:8080/](http://localhost:8080/)
-- writeupページ[http://localhost:8080/writeups/](http://localhost:8080/writeups/)
-  - サンプルのWriteUp [http://localhost:8080/writeups/writeup1/](http://localhost:8080/writeups/writeup1/)
+- Webサイトのトップページ: <http://localhost:8080/>
+- writeupページ: <http://localhost:8080/writeups/>
+  - サンプルのWriteUp: <http://localhost:8080/writeups/writeup1/>
 
 
 ## Link Previewへの対応について
 
-以下の行がすべてのページについているため、全ページ共通のLink Previewがなされる場合があると思います。OpenGraphやTwitter Cardではないので、どうなるかわかりません。設定上は1箇所のみdescriptionを記入できるようになっているため、文章は画面上の右側の紹介と共通になります。
 ```html
 <meta name="description" content="Team EnuのWriteupや活動の紹介を掲載しています。">
 ```
+
+この`meta`タグにより、全ページで共通のLink Previewが表示されます。
+OpenGraphやTwitter Cardの仕様に従うものではないようですので、詳細は検討中です。
+設定上は1箇所のみdescriptionを記入できるようになっているため、文章は画面上の右側の紹介と共通になります。
 
 
 # ページの編集方法について
@@ -66,9 +69,7 @@ Webサイト右上のリンクを用いると、サイト内のページに遷�
 
 ## Newsの追加方法
 
-`/content/news/_index.md`を修正してください。
-
-以下のような感じです。個別記事の書き方は下の「個別記事の追加方法」を参照してください。
+次のテンプレートを参考に、[`/content/news/_index.md`](/content/news/_index.md)を修正してください。
 
 ```markdown
 # 表題 (yyyy-mm-dd)
@@ -77,8 +78,10 @@ Team Enuが予選にどのように取り組んでいるか記事にしました
 [DEF CON CTF 2022 予選参加レポート(サンプル)](/posts/2022060801)
 ```
 
+専用のページで詳しく公開したい場合は、次の「News記事の追加方法」を参考にしてください。
 
-## 個別記事の追加方法（Postsの追加方法）
+
+## News記事の追加方法
 
 <span style="color: red">注意：ページを作ってGitHubにpushした段階で公開されます。自動で`/posts/`にリンクが作成されます。意図しない公開に気をつけてください。</span>  
 
@@ -107,7 +110,7 @@ Team Enuが予選にどのように取り組んでいるか記事にしました
     - このファイルからの相対パスで記述してください: `../posts/2022111101/`
 
 
-## 個別記事の削除方法
+## News記事の削除方法
 
 リンク `/posts/2022123101`の個別記事を削除したい場合は、次のコマンドを実行します
 
