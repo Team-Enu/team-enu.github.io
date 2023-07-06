@@ -2,29 +2,32 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
-    <loc>https://team-enu.github.io/writeup/seccon_ctf_2017_baby_stack/</loc>
+    <loc>/writeup/def_con_ctf_quals_2023/</loc>
+    <lastmod>2023-07-03T06:03:04+00:00</lastmod>
+  </url><url>
+    <loc>/</loc>
+    <lastmod>2023-07-03T06:03:04+00:00</lastmod>
+  </url><url>
+    <loc>/writeup/</loc>
+    <lastmod>2023-07-03T06:03:04+00:00</lastmod>
+  </url><url>
+    <loc>/writeup/seccon_ctf_2017_baby_stack/</loc>
     <lastmod>2023-02-28T10:51:55+09:00</lastmod>
   </url><url>
-    <loc>https://team-enu.github.io/writeup/seccon_ctf_2021_kasu_bof/</loc>
+    <loc>/writeup/seccon_ctf_2021_kasu_bof/</loc>
     <lastmod>2023-02-28T10:51:55+09:00</lastmod>
   </url><url>
-    <loc>https://team-enu.github.io/</loc>
-    <lastmod>2023-02-28T10:51:55+09:00</lastmod>
-  </url><url>
-    <loc>https://team-enu.github.io/writeup/</loc>
-    <lastmod>2023-02-28T10:51:55+09:00</lastmod>
-  </url><url>
-    <loc>https://team-enu.github.io/posts/</loc>
+    <loc>/posts/</loc>
     <lastmod>2022-08-08T21:18:00+09:00</lastmod>
   </url><url>
-    <loc>https://team-enu.github.io/categories/</loc>
+    <loc>/categories/</loc>
   </url><url>
-    <loc>https://team-enu.github.io/news/</loc>
+    <loc>/news/</loc>
   </url><url>
-    <loc>https://team-enu.github.io/series/</loc>
+    <loc>/series/</loc>
   </url><url>
-    <loc>https://team-enu.github.io/tags/</loc>
+    <loc>/tags/</loc>
   </url><url>
-    <loc>https://team-enu.github.io/writeups/</loc>
+    <loc>/writeups/</loc>
   </url>
 </urlset>

@@ -1,4 +1,4 @@
-baseURL = "https://team-enu.github.io"
+baseURL = "/"
 theme = "risotto"
 title = "Team Enu"
 author = "Team Enu"

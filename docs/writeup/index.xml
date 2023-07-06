@@ -2,26 +2,26 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Writeups on Team Enu</title>
-    <link>https://team-enu.github.io/writeup/</link>
+    <link>/writeup/</link>
     <description>Recent content in Writeups on Team Enu</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>ja-jp</language>
-    <lastBuildDate>Tue, 28 Feb 2023 10:51:55 +0900</lastBuildDate><atom:link href="https://team-enu.github.io/writeup/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Mon, 03 Jul 2023 06:03:04 +0000</lastBuildDate><atom:link href="/writeup/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>SECCON CTF 2017 - Baby Stack Writeup</title>
-      <link>https://team-enu.github.io/writeup/seccon_ctf_2017_baby_stack/</link>
+      <link>/writeup/seccon_ctf_2017_baby_stack/</link>
       <pubDate>Tue, 28 Feb 2023 10:51:55 +0900</pubDate>
       
-      <guid>https://team-enu.github.io/writeup/seccon_ctf_2017_baby_stack/</guid>
+      <guid>/writeup/seccon_ctf_2017_baby_stack/</guid>
       <description>本記事はSECCON CTF 2017のPwn問題Baby StackのWriteupです。</description>
     </item>
     
     <item>
       <title>SECCON CTF 2021 - kasu_bof Writeup</title>
-      <link>https://team-enu.github.io/writeup/seccon_ctf_2021_kasu_bof/</link>
+      <link>/writeup/seccon_ctf_2021_kasu_bof/</link>
       <pubDate>Tue, 28 Feb 2023 10:51:55 +0900</pubDate>
       
-      <guid>https://team-enu.github.io/writeup/seccon_ctf_2021_kasu_bof/</guid>
+      <guid>/writeup/seccon_ctf_2021_kasu_bof/</guid>
       <description>本記事はSECCON CTF 2021のPwn問題kasu_bofのWriteupです。</description>
     </item>
     
