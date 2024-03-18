@@ -3,6 +3,11 @@ title: "News"
 draft: false
 ---
 
+## Cyber Apocalypse 2024: Hacker Royaleに参加しました（2024-03-14)
+
+Cyber Apocalypse 2024: Hacker Royaleに参加し、28位でした。  
+RevについてWriteupを以下のリンクで公開しました。  
+[https://blog.nflabs.jp/entry/2024/3/18/133000](https://blog.nflabs.jp/entry/2024/3/18/133000)
 
 ## DEF CON CTF 予選 2023に参加しました(2023-5-29)
 
