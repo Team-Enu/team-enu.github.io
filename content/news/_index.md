@@ -3,9 +3,7 @@ title: "News"
 draft: false
 ---
 
-## Test Test 2025 (2025-04-16)
-Test Test 2025に参加しました。
-- [詳細](../posts/2025041612/)
+
 
 ## DEF CON CTF Qualifier 2025に参加しました(2025-04-14)
 
