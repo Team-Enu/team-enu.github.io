@@ -35,5 +35,5 @@ DEF CON CTF Qualifier 2024 22位
 
 PlaidCTF 2024 27位
 
-CyberApocalypse 2024: Hacker Royale 28位
+CyberApocalypse 2024: Hacker Royale 28位(国内1位)
 
