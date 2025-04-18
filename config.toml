@@ -51,7 +51,7 @@ logo = "team-enu.png"
   #[[menu.main]]
    # identifier = "about"
     #name = "About"
-    #url = "/about/"
+    #url = "/About/"
     #weight = 10
 
 [taxonomies]
