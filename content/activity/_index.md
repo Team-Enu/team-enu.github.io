@@ -20,7 +20,7 @@ Team EnuのこれまでのCTF大会参加記録です。詳細な活動内容や
 - CTFZone 2024 Quals - 世界63位
 - ENOWARS 8 - 世界43位
 - HTB BusinessCTF24 - 世界47位
-- HITCON CTF 2024 Quals - 世界22位
+- HITCON CTF 2024 Quals - 世界156位
 - DEF CON CTF Qualifier 2024 - 世界22位
 - PlaidCTF 2024 - 世界27位
 - CyberApocalypse 2024 - 世界28位（国内1位）
