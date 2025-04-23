@@ -24,3 +24,19 @@ Team EnuのこれまでのCTF大会参加記録です。詳細な活動内容や
 - DEF CON CTF Qualifier 2024 - 世界22位
 - PlaidCTF 2024 - 世界27位
 - CyberApocalypse 2024 - 世界28位（国内1位）
+
+## 2023年（参加大会：13）
+
+- Hack.lu CTF 2023 - 世界50位
+- SECCON CTF 2023 Quals - 世界69位
+- HITCON CTF 2023 Quals - 世界37位
+- zer0pts CTF 2023 - 世界53位
+- Google Capture The Flag 2023 - 世界212位
+- DEF CON CTF Qualifier 2023 - 世界31位
+- Ricerca CTF 2023 - 世界16位
+- ångstromCTF 2023 - 世界495位
+- PlaidCTF 2023 - 世界51位
+- b01lers CTF - 世界53位
+- hxp CTF 2022 - 世界171位
+- SECCON CTF 2022 Domestic Finals - 国内6位
+- DiceCTF 2023 - 世界120位
