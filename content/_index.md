@@ -16,12 +16,17 @@ CTFTimeはこちら：[https://ctftime.org/team/4894/](https://ctftime.org/team/
 
 ## 主な成績
 
-- Cyber Apocalypse 2024: Hacker Royale 28位（国内1位）
-- DEF CON CTF 予選 2023 世界31位
-- SECCON CTF 2022 Domestic Finals 6位
-- SECCON CTF 2022 予選 35位（国内9位）
-- DEF CON CTF 予選 2022 世界28位
-- SECCON CTF 2019 -Domestic-（国内）3位
+- DEF CON CTF Qualifier 2025 - 27位
+- SECCON CTF 13 Domestic Finals - 7位
+- TSG CTF 2024 - 20位
+- SECCON CTF 13 Quals - 世界36位（国内9位）
+- DEF CON CTF Qualifier 2024 - 22位
+- Cyber Apocalypse 2024 - Hacker Royale 世界28位（国内1位）
+- DEF CON CTF Qualifier 2023 - 31位
+- SECCON CTF 2022 Domestic Finals - 6位
+- SECCON CTF 2022 Quals - 35位（国内9位）
+- DEF CON CTF Qualifier 2022 - 28位
+- SECCON CTF 2019 Domestic Finals - 3位
 
 ## Team EnuではCTFに興味のある学生の皆さんも大歓迎！！
 
