@@ -3,7 +3,7 @@ title: "Writeups"
 draft: false
 ---
 
-## [DEF CON CTF 予選 2023まとめ](/content/writeup/def_con_ctf_quals_2023/)
+## [DEF CON CTF 予選 2024まとめ](/writeup/def_con_ctf_quals_2024/)
 
 ## [Cyber Apocalypse 2024: Hacker Royale](https://blog.nflabs.jp/entry/2024/3/18/133000)
 
