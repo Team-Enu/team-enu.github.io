@@ -8,11 +8,11 @@ author: "hiro4bbh"
 
 2023年もTeam Enuは、DEF CON CTF 予選に参加しました。
 
-![チーム順位](./team_result.png)
+![チーム順位](/writeup/def_con_ctf_quals_2023/team_result.png)
 
 結果は651点を獲得し、31位となりました。競技中に解けた問題は、次の通りです。
 
-![獲得スコア](./score_result.png)
+![獲得スコア](/writeup/def_con_ctf_quals_2023/score_result.png)
 
 参加したチームメンバーにより、それぞれの問題についてのwriteupが公開されています。
 
