@@ -46,7 +46,7 @@ Team EnuのWebサイトを公開しました！
 
 ---
 
-## SECCON CTF 2022 Domestic Finalsに参加しました（2023-02-12)
+## SECCON CTF 2022 Domestic Finalsに参加しました(2023-02-12)
 SECCON CTF 2022 Domestic Finalsに参加し、国内6位でした。
 
 ---
