@@ -22,3 +22,9 @@ draft: false
     - LiveCTF2問 "durnk", "trickshot" の解説です。
     - "durnk"はpwn,winapiが絡んだ問題です。
     - "trickshot"はrevの問題です。
+
+
+興味のある方は、ぜひ上のリンクからご覧ください。
+
+また、今年度はNFlabsの公式X(旧Twitter)にて学生向けイベントとして学生CTFプレイヤーを募集しました。
+(<https://twitter.com/NFLaboratories/status/1778236027616059760>)

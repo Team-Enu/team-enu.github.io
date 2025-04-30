@@ -5,6 +5,8 @@ draft: false
 
 ## [DEF CON CTF 予選 2024まとめ](/writeup/def_con_ctf_quals_2024/)
 
+本記事はDEF CON CTF 予選 2024へ出場したメンバーたちによるWriteupのまとめです。
+
 ## [Cyber Apocalypse 2024: Hacker Royale](https://blog.nflabs.jp/entry/2024/3/18/133000)
 
 本記事は Rev2問 "QuickScan", "MazeOfPower" のWriteupです。
