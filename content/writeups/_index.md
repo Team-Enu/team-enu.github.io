@@ -7,7 +7,7 @@ draft: false
 ## [SECCON CTF 国内決勝 2024](https://blog.nflabs.jp/entry/2025/03/28/090000)
 *via Nflabs Blog(2025/5/2)*
 
-本記事は Rev問"simple_reversing"とKotH形式の問題"Allegro"のWriteupです。
+本記事は Rev問 "simple_reversing"とKotH形式の問題 "Allegro"のWriteupです。
 
 ## [SECCON CTF 予選 2024](https://blog.nflabs.jp/entry/2024/12/05/093000)
 *via Nflabs Blog(2025/5/2)*
@@ -46,12 +46,17 @@ Team Enuと、外部のCTFチームのBunkyoWesternsで合同チームを組み�
 
 本記事は DEF CON CTF 予選 2023へ出場したメンバーたちによるWriteupのまとめです。
 
+## [SECCON CTF 国内決勝 2022](https://jp.security.ntt/tech_blog/102i7lq)
+*via NTT Security Tech Blog(2025/5/2)*
+
+本記事は pwn問 "babyescape"のWriteupです。
+
 ## [SECCON CTF 予選 2021 - kasu_bof Writeup](/writeup/seccon_ctf_2021_kasu_bof/)
 *by siva (2023/2/28)*
 
-本記事は SECCON CTF 2021のPwn問kasu_bofのWriteupです。
+本記事は SECCON CTF 2021のPwn問 "kasu_bof"のWriteupです。
 
 ## [SECCON CTF 2017 - Baby Stack Writeup](/writeup/seccon_ctf_2017_baby_stack/)
 *by siva (2023/2/28)*
 
-本記事は SECCON CTF 2017のPwn問Baby StackのWriteupです。
+本記事は SECCON CTF 2017のPwn問 "Baby Stack"のWriteupです。
