@@ -14,7 +14,7 @@ author: "hiro4bbh"
 
 ![獲得スコア](/writeup/def_con_ctf_quals_2023/score_result.png)
 
-参加したチームメンバーにより、それぞれの問題についてのwriteupが公開されています。
+参加したチームメンバーにより、それぞれの問題についてのWriteupが公開されています。
 
 - kkkkklik: NTTセキュリティ・ジャパンのコンサルティングサービス部 濱崎さんによる解説(<https://techblog.security.ntt/102ifsw>)
   - Visual Basic 6.0で書かれたWindowsアプリのリバースエンジニアリングにより、暗号化され、隠されたフラグを探す問題です
