@@ -5,23 +5,27 @@ draft: false
 
 
 ## [SECCON CTF 国内決勝](https://blog.nflabs.jp/entry/2025/03/28/090000)
+*via Nflabs Blog(2025/5/2)*
 
 本記事はRev問"simple_reversing"とKotH形式の問題"Allegro"のWriteupです。
 
 ## [SECCON CTF 予選 2024](https://blog.nflabs.jp/entry/2024/12/05/093000)
+*via Nflabs Blog(2025/5/2)*
 
 本記事はRev問 "F is for Flag"のWriteupです。
 
 ## [DEF CON CTF 予選 2024まとめ](/writeup/def_con_ctf_quals_2024/)
+*by k1_zuna (2025/5/2)*
 
 本記事はDEF CON CTF 予選 2024へ出場したメンバーたちによるWriteupのまとめです。
 
 ## [Cyber Apocalypse 2024: Hacker Royale](https://blog.nflabs.jp/entry/2024/3/18/133000)
+*via Nflabs Blog(2025/5/2)*
 
 本記事は Rev2問 "QuickScan", "MazeOfPower" のWriteupです。
 
 ## [DEF CON CTF 予選 2023まとめ](/writeup/def_con_ctf_quals_2023/)
-*hiro4bbh (2023/7/4)*
+*by hiro4bbh (2023/7/4)*
 
 本記事はDEF CON CTF 予選 2023へ出場したメンバーたちによるWriteupのまとめです。
 
