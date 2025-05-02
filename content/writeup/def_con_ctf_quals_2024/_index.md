@@ -15,6 +15,7 @@ draft: false
 
 - suscall: NTTセキュリティ・ジャパンのプロフェッショナルサービス部 鈴木さんによる解説(<https://jp.security.ntt/tech_blog/defcon-ctf-2024-writeup>)
     - Format String Attackによるアドレスリークとシェル取得について書かれています。
+    
 
 
 

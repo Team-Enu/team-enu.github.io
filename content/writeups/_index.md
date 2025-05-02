@@ -4,7 +4,7 @@ draft: false
 ---
 
 
-## [SECCON CTF 国内決勝](https://blog.nflabs.jp/entry/2025/03/28/090000)
+## [SECCON CTF 国内決勝 2024](https://blog.nflabs.jp/entry/2025/03/28/090000)
 *via Nflabs Blog(2025/5/2)*
 
 本記事はRev問"simple_reversing"とKotH形式の問題"Allegro"のWriteupです。
@@ -13,6 +13,16 @@ draft: false
 *via Nflabs Blog(2025/5/2)*
 
 本記事はRev問 "F is for Flag"のWriteupです。
+
+## [SAS CTF 2024 Finals](https://jp.security.ntt/tech_blog/sas-ctf-2024-final)
+*via NTT Security Tech Blog(2025/5/2)*
+
+本記事はSAS CTF 2024 Finalsの参加記です。
+Team Enuと、外部のCTFチームのBunkyoWesternsで合同チームを組み、Team BuNkyoとして参加しました。
+"stocks++"の解説も記載されています。
+
+
+
 
 ## [DEF CON CTF 予選 2024まとめ](/writeup/def_con_ctf_quals_2024/)
 *by k1_zuna (2025/5/2)*
