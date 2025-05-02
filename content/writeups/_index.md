@@ -49,7 +49,7 @@ Team Enuと、外部のCTFチームのBunkyoWesternsで合同チームを組み�
 ## [SECCON CTF 国内決勝 2022](https://jp.security.ntt/tech_blog/102i7lq)
 *via NTT Security Tech Blog(2025/5/2)*
 
-本記事は pwn問 "babyescape"のWriteupです。
+本記事は kernel問 "babyescape"のWriteupです。
 
 ## [SECCON CTF 予選 2021 - kasu_bof Writeup](/writeup/seccon_ctf_2021_kasu_bof/)
 *by siva (2023/2/28)*
