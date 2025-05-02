@@ -6,3 +6,7 @@ summary: "本記事はHack The Box Cyber Apocalypse CTF 2024へ出場したメ�
 author: "k1zuna"
 ---
 
+https://jp.security.ntt/tech_blog/hack-the-box-cyber-apocalypse-ctf-2024
+
+https://blog.nflabs.jp/entry/2024/3/18/133000
+本記事は Rev2問 "QuickScan", "MazeOfPower" のWriteupです。
