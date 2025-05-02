@@ -2,7 +2,7 @@
 title: "DEF CON CTF 予選 2023まとめ"
 date: 2023-07-03T06:03:04Z
 draft: false
-summary: "本記事はDEF CON CTF 予選 2023へ出場したメンバーたちによるWriteupのまとめです。"
+summary: "本記事は DEF CON CTF 予選 2023へ出場したメンバーたちによるWriteupのまとめです。"
 author: "hiro4bbh"
 ---
 
