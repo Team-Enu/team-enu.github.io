@@ -36,6 +36,11 @@ Team Enuと、外部のCTFチームのBunkyoWesternsで合同チームを組み�
 
 本記事は Hack The Box Cyber Apocalypse CTF 2024へ出場したメンバーたちによるWriteupのまとめです。
 
+## [Hack.lu CTF 2023](https://jp.security.ntt/tech_blog/hack-lu-ctf-2023-writeup)
+*via NTT Security Tech Blog(2025/5/2)*
+
+本記事は Hack.lu CTF 2023のPwn3問 "Destiny Digits", "New House", "pong"のWriteupです。
+
 ## [DEF CON CTF 予選 2023まとめ](/writeup/def_con_ctf_quals_2023/)
 *by hiro4bbh (2023/7/4)*
 
@@ -44,9 +49,9 @@ Team Enuと、外部のCTFチームのBunkyoWesternsで合同チームを組み�
 ## [SECCON CTF 予選 2021 - kasu_bof Writeup](/writeup/seccon_ctf_2021_kasu_bof/)
 *by siva (2023/2/28)*
 
-本記事は SECCON CTF 2021のPwn問題kasu_bofのWriteupです。
+本記事は SECCON CTF 2021のPwn問kasu_bofのWriteupです。
 
 ## [SECCON CTF 2017 - Baby Stack Writeup](/writeup/seccon_ctf_2017_baby_stack/)
 *by siva (2023/2/28)*
 
-本記事は SECCON CTF 2017のPwn問題Baby StackのWriteupです。
+本記事は SECCON CTF 2017のPwn問Baby StackのWriteupです。
