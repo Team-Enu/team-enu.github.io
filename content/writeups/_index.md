@@ -21,13 +21,15 @@ draft: false
 Team Enuと、外部のCTFチームのBunkyoWesternsで合同チームを組み、Team BuNkyoとして参加しました。
 "stocks++"の解説も記載されています。
 
-
-
-
 ## [DEF CON CTF 予選 2024まとめ](/writeup/def_con_ctf_quals_2024/)
-*by k1_zuna (2025/5/2)*
+*by k1zuna (2025/5/2)*
 
 本記事はDEF CON CTF 予選 2024へ出場したメンバーたちによるWriteupのまとめです。
+
+## [HTB Cyber Apocalypse CTF 2024まとめ](/writeup/htb_cyber_apocalypse_ctf_2024)
+*by k1zuna (2025/5/2)*
+
+本記事はHack The Box Cyber Apocalypse CTF 2024へ出場したメンバーたちによるWriteupのまとめです。
 
 ## [Cyber Apocalypse 2024: Hacker Royale](https://blog.nflabs.jp/entry/2024/3/18/133000)
 *via Nflabs Blog(2025/5/2)*
