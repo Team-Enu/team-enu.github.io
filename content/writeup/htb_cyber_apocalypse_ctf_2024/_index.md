@@ -22,3 +22,4 @@ TeamEnuは、 Hack the Box Cyber Apocalypse CTF 2024に参加しました。
 - QuickScan, MazeOfPower: NFlabs strinsert1Naさんによる解説(<https://blog.nflabs.jp/entry/2024/3/18/133000>)
  - 出題されたRev問の中から、最も難易度が高かった問題と、それに次ぐ問題の2問についての解説です。
 
+興味のある方は、ぜひ上のリンクからご覧ください。
