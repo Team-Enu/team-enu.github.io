@@ -51,10 +51,13 @@ Team Enuと、外部のCTFチームのBunkyoWesternsで合同チームを組み�
 
 本記事は kernel問 "babyescape"のWriteupです。
 
-## [HTB Business CTF 2022まとめ](/writeup/htb_business_ctf_2022)
-*by k1zuna (2025/5/2)*
+## HTB Business CTF 2022
+*via NTT Security Tech Blog(2025/5/2)*
 
 本記事は Hack the Box Business CTF 2022へ出場したメンバーたちによるWriteupのまとめです。
+
+- [pwn問](https://jp.security.ntt/tech_blog/102htzm)
+- [firefox問](https://jp.security.ntt/tech_blog/102htp3)
 
 ## [SECCON CTF 予選 2021 - kasu_bof Writeup](/writeup/seccon_ctf_2021_kasu_bof/)
 *by siva (2023/2/28)*
