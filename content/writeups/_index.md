@@ -54,7 +54,7 @@ Team Enuと、外部のCTFチームのBunkyoWesternsで合同チームを組み�
 ## HTB Business CTF 2022
 *via NTT Security Tech Blog(2022/10/3)*
 
-本記事は Hack the Box Business CTF 2022へ出場したメンバーたちによるWriteupのまとめです。
+本記事は、Team Enuのメンバーである鈴木さんが、NTT Securityのチームの一員として参加した「Hack The Box Business CTF 2022」におけるWriteupをまとめたものです。
 
 - [pwn問](https://jp.security.ntt/tech_blog/102htzm)
 - [firefox問](https://jp.security.ntt/tech_blog/102htp3)
