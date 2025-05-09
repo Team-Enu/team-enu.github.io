@@ -4,13 +4,13 @@ draft: false
 ---
 
 
-## [SECCON CTF 国内決勝 2024](https://blog.nflabs.jp/entry/2025/03/28/090000)
-*via Nflabs Blog(2025/3/28)*
+## [SECCON CTF 13 決勝](https://blog.nflabs.jp/entry/2025/03/28/090000)
+*via NFLabs. Blog(2025/3/28)*
 
 本記事は Rev問 "simple_reversing"とKotH形式の問題 "Allegro"のWriteupです。
 
-## [SECCON CTF 予選 2024](https://blog.nflabs.jp/entry/2024/12/05/093000)
-*via Nflabs Blog(2024/12/5)*
+## [SECCON CTF 13 予選](https://blog.nflabs.jp/entry/2024/12/05/093000)
+*via NFLabs. Blog(2024/12/5)*
 
 本記事は Rev問 "F is for Flag"のWriteupです。
 
