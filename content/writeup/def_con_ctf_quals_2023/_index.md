@@ -5,6 +5,7 @@ draft: false
 summary: "本記事は DEF CON CTF 予選 2023へ出場したメンバーたちによるWriteupのまとめです。"
 author: "hiro4bbh"
 ---
+執筆日時:2023/7/3
 
 2023年もTeam Enuは、DEF CON CTF 予選に参加しました。
 

@@ -5,6 +5,7 @@ draft: false
 summary: "本記事はHack The Box Cyber Apocalypse CTF 2024へ出場したメンバーたちによるWriteupのまとめです。"
 author: "k1zuna"
 ---
+執筆日時:2025/5/2
 
 TeamEnuは、 Hack the Box Cyber Apocalypse CTF 2024に参加しました。
 

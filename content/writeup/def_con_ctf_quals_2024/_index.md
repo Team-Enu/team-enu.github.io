@@ -5,6 +5,7 @@ draft: false
 summary: "本記事は DEF CON CTF 予選 2024へ出場したメンバーたちによるWriteupのまとめです。"
 author: "k1zuna"
 ---
+執筆日時:2025/4/30
 
 2024年 Team Enuは、DEF CON CTF 予選に参加しました。
 
