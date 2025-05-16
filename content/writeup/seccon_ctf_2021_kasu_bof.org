@@ -5,6 +5,7 @@ draft: false
 summary: "本記事はSECCON CTF 2021のPwn問題kasu_bofのWriteupです。"
 author: "siva (https://twitter.com/mc4nf)"
 ---
+執筆日時:2023/2/8
 
 ** 問題
 *** 問題文

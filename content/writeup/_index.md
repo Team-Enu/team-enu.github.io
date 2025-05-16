@@ -1,5 +1,4 @@
 ---
-title: "Writeups"
+title: "Writeup"
 draft: false
-type: post
 ---

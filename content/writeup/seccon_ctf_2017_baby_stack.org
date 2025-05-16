@@ -5,6 +5,7 @@ draft: false
 summary: "本記事はSECCON CTF 2017のPwn問題Baby StackのWriteupです。"
 author: "siva (https://twitter.com/mc4nf)"
 ---
+執筆日時:2023/2/28
 
 ** 問題
 *** 問題文

@@ -51,7 +51,7 @@ logo = "team-enu.png"
   #[[menu.main]]
    # identifier = "about"
     #name = "About"
-    #url = "/about/"
+    #url = "/About/"
     #weight = 10
 
 [taxonomies]
@@ -109,6 +109,8 @@ weight = 2
 name = "News"
 url = "/news/"
 weight = 3
+
+
 
 #[params.homepage_meta_tags]
 # .Site.Params.homepage_meta_tags.meta_description

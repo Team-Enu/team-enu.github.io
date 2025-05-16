@@ -11,8 +11,8 @@ Hugoの出力は、[`/docs/`](/docs/)以下に保存しています。
 ## このレポジトリのクローン
 
 ```bash
-git clone https://github.com:Team-Enu/pr-site-dev.git
-cd pr-site-dev
+git clone https://github.com/Team-Enu/team-enu.github.io.git
+cd team-enu.github.io
 git submodule init && git submodule update
 ```
 
@@ -38,6 +38,8 @@ Hugoを入れた環境が欲しい人は、[`/Dockerfile`](/Dockerfile)を使っ
 ```bash
 hugo
 ```
+
+hugoコマンドは[`/team-enu.github.io/`](./)で動かす必要があります。
 
 そしたら、Webサーバーを立ち上げてアクセスしたり、ブラウザでページをリフレッシュすれば、反映されていることが確認できます。
 

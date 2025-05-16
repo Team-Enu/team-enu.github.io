@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Writeups on Team Enu</title>
+    <title>Writeup on Team Enu</title>
     <link>/writeup/</link>
-    <description>Recent content in Writeups on Team Enu</description>
+    <description>Recent content in Writeup on Team Enu</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>ja-jp</language>
-    <lastBuildDate>Mon, 03 Jul 2023 06:03:04 +0000</lastBuildDate><atom:link href="/writeup/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Fri, 02 May 2025 13:57:20 +0900</lastBuildDate><atom:link href="/writeup/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>SECCON CTF 2017 - Baby Stack Writeup</title>
       <link>/writeup/seccon_ctf_2017_baby_stack/</link>

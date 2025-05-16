@@ -2,13 +2,19 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
-    <loc>/writeup/def_con_ctf_quals_2023/</loc>
-    <lastmod>2023-07-03T06:03:04+00:00</lastmod>
+    <loc>/writeup/htb_cyber_apocalypse_ctf_2024/</loc>
+    <lastmod>2025-05-02T13:57:20+09:00</lastmod>
   </url><url>
     <loc>/</loc>
-    <lastmod>2023-07-03T06:03:04+00:00</lastmod>
+    <lastmod>2025-05-02T13:57:20+09:00</lastmod>
   </url><url>
     <loc>/writeup/</loc>
+    <lastmod>2025-05-02T13:57:20+09:00</lastmod>
+  </url><url>
+    <loc>/writeup/def_con_ctf_quals_2024/</loc>
+    <lastmod>2025-04-30T10:47:50+09:00</lastmod>
+  </url><url>
+    <loc>/writeup/def_con_ctf_quals_2023/</loc>
     <lastmod>2023-07-03T06:03:04+00:00</lastmod>
   </url><url>
     <loc>/writeup/seccon_ctf_2017_baby_stack/</loc>

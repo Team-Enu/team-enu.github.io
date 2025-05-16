@@ -2,19 +2,20 @@
 title: "DEF CON CTF 予選 2023まとめ"
 date: 2023-07-03T06:03:04Z
 draft: false
-summary: "本記事はDEF CON CTF 予選 2023へ出場したメンバーたちによるWriteupのまとめです。"
+summary: "本記事は DEF CON CTF 予選 2023へ出場したメンバーたちによるWriteupのまとめです。"
 author: "hiro4bbh"
 ---
+執筆日時:2023/7/3
 
 2023年もTeam Enuは、DEF CON CTF 予選に参加しました。
 
-![チーム順位](./team_result.png)
+![チーム順位](/writeup/def_con_ctf_quals_2023/team_result.png)
 
 結果は651点を獲得し、31位となりました。競技中に解けた問題は、次の通りです。
 
-![獲得スコア](./score_result.png)
+![獲得スコア](/writeup/def_con_ctf_quals_2023/score_result.png)
 
-参加したチームメンバーにより、それぞれの問題についてのwriteupが公開されています。
+参加したチームメンバーにより、それぞれの問題についてのWriteupが公開されています。
 
 - kkkkklik: NTTセキュリティ・ジャパンのコンサルティングサービス部 濱崎さんによる解説(<https://techblog.security.ntt/102ifsw>)
   - Visual Basic 6.0で書かれたWindowsアプリのリバースエンジニアリングにより、暗号化され、隠されたフラグを探す問題です
