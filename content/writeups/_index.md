@@ -23,8 +23,8 @@ LiveCTF問 "ROPably(rev)", "N-Buns(rev/misc)", "Multi-Level Model Marketing (mis
 ## [SAS CTF 2024 Finals (2024/10/22) - 参加者Blog](https://jp.security.ntt/tech_blog/sas-ctf-2024-final)
 *via NTT Security Tech Blog*
 
-本記事は SAS CTF 2024 Finalsの参加記です。 
-Team Enuと、外部のCTFチームのBunkyoWesternsで合同チームを組み、Team BuNkyoとして参加しました。 
+本記事は SAS CTF 2024 Finalsの参加記です。  
+Team Enuと、外部のCTFチームのBunkyoWesternsで合同チームを組み、Team BuNkyoとして参加しました。  
 "stocks++"の解説も記載されています。
 
 ## [ENOWARS 8 (2024/7/20) - 参加者Blog](https://jp.security.ntt/tech_blog/enowars-8-writeup-attack-and-defense)
