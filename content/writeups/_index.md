@@ -8,7 +8,7 @@ draft: false
 *via NFLabs. Blog*
 
 本記事は Basics問 "🐱‍💻🌐" と Quals問 "memorybank", "totem1"  
-LiveCTF問 "ROPably(rev)", "N-Buns(rev/misc)", "Multi-Level Model Marketing (misc/pwn)", "No F In the Stack (pwn)" のWriteupです。
+LiveCTF問 "ROPably", "N-Buns", "Multi-Level Model Marketing", "No F In the Stack" のWriteupです。
 
 ## [SECCON CTF 13 決勝 (2025/3/2) - 参加者Blog](https://blog.nflabs.jp/entry/2025/03/28/090000)
 *via NFLabs. Blog*
